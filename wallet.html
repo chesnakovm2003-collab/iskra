@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Кошелёк · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+
+  .wallet-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f5f5f5;
+    min-height: 100%;
+    padding-bottom: 30px;
+  }
+
+  /* Шапка */
+  .wl-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    gap: 12px;
+  }
+  .wl-back {
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+  }
+  .wl-title {
+    font-size: 17px;
+    font-weight: 800;
+    flex: 1;
+  }
+
+  /* Карточка баланса */
+  .wl-balance-card {
+    margin: 0 16px 16px;
+    background: linear-gradient(135deg, #ffb74d, #e91e63);
+    border-radius: 20px;
+    padding: 22px 20px;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(233, 30, 99, 0.3);
+  }
+  .wl-balance-label {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 6px;
+  }
+  .wl-balance-value {
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .wl-balance-sub {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-bottom: 16px;
+  }
+  .wl-balance-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .wl-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.22);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: #fff;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: 0.15s;
+  }
+  .wl-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.32); }
+
+  /* Заголовок секции */
+  .wl-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 20px 10px;
+  }
+
+  /* Список транзакций */
+  .wl-list {
+    background: #fff;
+    border-radius: 16px;
+    margin: 0 16px;
+    overflow: hidden;
+  }
+  .wl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .wl-row:last-child { border-bottom: none; }
+  .wl-row-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .wl-row-icon.topup { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .wl-row-icon.gift_sent { background: linear-gradient(135deg, #e91e63, #9c27b0); }
+  .wl-row-icon.gift_received { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .wl-row-icon.crash_bet { background: linear-gradient(135deg, #2196f3, #1565c0); }
+  .wl-row-icon.crash_win { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .wl-row-icon.lottery_start { background: linear-gradient(135deg, #ff9800, #e91e63); }
+  .wl-row-icon.lottery_win { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .wl-row-icon.lottery_refund { background: linear-gradient(135deg, #b0bec5, #78909c); }
+    .wl-row-icon.yummy_bet { background: linear-gradient(135deg, #9c27b0, #673ab7); }
+  .wl-row-icon.yummy_win { background: linear-gradient(135deg, #ff3b5c, #ffd54f); }
+
+  .wl-row-info { flex: 1; min-width: 0; }
+  .wl-row-note {
+    font-size: 14px;
+    font-weight: 700;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .wl-row-time {
+    font-size: 12px;
+    color: #999;
+    margin-top: 2px;
+  }
+  .wl-row-amount {
+    font-size: 15px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .wl-row-amount.plus { color: #43a047; }
+  .wl-row-amount.minus { color: #e53935; }
+  .wl-row-after {
+    font-size: 11px;
+    color: #999;
+    text-align: right;
+    margin-top: 2px;
+  }
+  .wl-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 13px;
+  }
+
+  /* Нижняя навигация — упрощённая, две кнопки */
+  .wl-footer {
+    display: flex;
+    gap: 8px;
+    padding: 20px 16px 0;
+  }
+  .wl-footer-btn {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    color: #222;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .wl-footer-btn.primary {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    border: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wallet-page">
+
+  <div class="wl-header">
+    <button class="wl-back" onclick="goBack()">←</button>
+    <div class="wl-title">Кошелёк</div>
+  </div>
+
+  <div class="wl-balance-card">
+    <div class="wl-balance-label">Твой баланс</div>
+    <div class="wl-balance-value" id="walletBalance">0</div>
+    <div class="wl-balance-sub">💎 алмазов · 1 💎 = 1 ₽</div>
+    <div class="wl-balance-actions">
+      <button class="wl-btn" onclick="goTopup()">💎 Пополнить</button>
+      <button class="wl-btn" onclick="goLive()">🎁 Подарить</button>
+    </div>
+  </div>
+
+  <div class="wl-section-title">История транзакций</div>
+  <div class="wl-list" id="walletList">
+    <div class="wl-empty">Загрузка...</div>
+  </div>
+
+  <div class="wl-footer">
+    <button class="wl-footer-btn" onclick="goBack()">← Назад</button>
+    <button class="wl-footer-btn primary" onclick="goLive()">Перейти в эфир</button>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var myName = sessionStorage.getItem('myName') || 'Гость';
+var myBalance = 0;
+var myTransactions = [];
+
+// Подключаемся к сокету — притворяемся, что зашли в «служебную» комнату
+socket.on('connect', function() {
+  // Используем ту же комнату, что последняя открытая — из sessionStorage
+  var lastRoom = sessionStorage.getItem('lastRoomId') || 'default';
+  socket.emit('join', {
+    name: myName,
+    roomId: lastRoom,
+    host: sessionStorage.getItem('lastRoomHost') || myName,
+    gender: 'male',
+    baseViewers: 1,
+    diamonds: 0
+  });
+});
+
+socket.on('balance_update', function(data) {
+  myBalance = data.balance;
+  document.getElementById('walletBalance').textContent =
+    data.balance.toLocaleString('ru-RU');
+});
+
+socket.on('transactions', function(list) {
+  myTransactions = list || [];
+  renderTransactions();
+});
+
+function renderTransactions() {
+  var el = document.getElementById('walletList');
+  if (!el) return;
+  if (!myTransactions.length) {
+    el.innerHTML = '<div class="wl-empty">Пока нет транзакций</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < myTransactions.length; i++) {
+    var t = myTransactions[i];
+    var row = document.createElement('div');
+    row.className = 'wl-row';
+
+    var icon = '💎';
+    if (t.type === 'topup') icon = '➕';
+    else if (t.type === 'gift_sent') icon = '🎁';
+    else if (t.type === 'gift_received') icon = '💰';
+    else if (t.type === 'crash_bet') icon = '🚀';
+    else if (t.type === 'crash_win') icon = '🏆';
+    else if (t.type === 'lottery_start') icon = '🎉';
+    else if (t.type === 'lottery_win') icon = '🥇';
+    else if (t.type === 'lottery_refund') icon = '↩️';
+	else if (t.type === 'yummy_bet') icon = '🎰';
+    else if (t.type === 'yummy_win') icon = '🍒';
+    else if (t.type === 'quest_daily') icon = '🎯';
+    else if (t.type === 'quest_weekly') icon = '🏆';
+
+    var sign = t.amount >= 0 ? '+' : '';
+    var cls = t.amount >= 0 ? 'plus' : 'minus';
+
+    row.innerHTML =
+      '<div class="wl-row-icon ' + t.type + '">' + icon + '</div>' +
+      '<div class="wl-row-info">' +
+        '<div class="wl-row-note">' + escapeHtml(t.note || t.type) + '</div>' +
+        '<div class="wl-row-time">' + formatTime(t.ts) + '</div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="wl-row-amount ' + cls + '">' + sign + t.amount.toLocaleString('ru-RU') + '</div>' +
+        (t.balanceAfter != null ? '<div class="wl-row-after">ост. ' + t.balanceAfter.toLocaleString('ru-RU') + '</div>' : '') +
+      '</div>';
+
+    el.appendChild(row);
+  }
+}
+
+function formatTime(ts) {
+  var d = new Date(ts);
+  var now = new Date();
+  var diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'только что';
+  if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+  var dd = String(d.getDate()).padStart(2, '0');
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var hh = String(d.getHours()).padStart(2, '0');
+  var mi = String(d.getMinutes()).padStart(2, '0');
+  return dd + '.' + mm + ' ' + hh + ':' + mi;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function goBack() { history.back(); }
+function goLive() {
+  var lastRoom = sessionStorage.getItem('lastRoomId') || 'room_0';
+  var lastHost = sessionStorage.getItem('lastRoomHost') || 'Ведущий';
+  window.location.href = '/room.html?room=' + lastRoom + '&host=' + encodeURIComponent(lastHost);
+}
+function goTopup() {
+  alert('Пополнение доступно в эфире — открой комнату и нажми 💎 в панели подарков');
+}
+
+// После join — запросим историю
+setTimeout(function() {
+  socket.emit('get_transactions');
+}, 500);
+</script>
+</body>
+</html>

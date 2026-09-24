@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Центр заданий · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .quests-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f5f5f5;
+    min-height: 100%;
+    padding-bottom: 40px;
+  }
+  .qs-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    gap: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  .qs-back {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #333;
+  }
+  .qs-title { font-size: 18px; font-weight: 800; flex: 1; }
+
+  .qs-card {
+    margin: 16px;
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .qs-card.daily {
+    border-top: 4px solid #4dd8e8;
+  }
+  .qs-card.weekly {
+    border-top: 4px solid #ffd54f;
+  }
+  .qs-card-title {
+    font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+  .qs-card-sub {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 14px;
+  }
+  .qs-reward {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffd54f, #f57c00);
+    color: #000;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .qs-task {
+    margin-bottom: 14px;
+  }
+  .qs-task-head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .qs-task-val {
+    color: #666;
+    font-weight: 600;
+  }
+  .qs-bar {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .qs-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4dd8e8, #2bb8d0);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+  .qs-card.weekly .qs-bar-fill {
+    background: linear-gradient(90deg, #ffd54f, #f57c00);
+  }
+  .qs-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 16px;
+    border: none;
+    font-size: 15px;
+    font-weight: 900;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: 0.15s;
+  }
+  .qs-btn.locked {
+    background: #eee;
+    color: #999;
+    cursor: not-allowed;
+  }
+  .qs-btn.ready {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #003;
+    box-shadow: 0 4px 14px rgba(67,233,123,0.5);
+  }
+  .qs-btn.claimed {
+    background: #e0e0e0;
+    color: #666;
+    cursor: not-allowed;
+  }
+  .qs-btn:active:not(.locked):not(.claimed) { transform: scale(0.97); }
+
+  .qs-hint {
+    margin: 16px;
+    padding: 12px 14px;
+    background: #eaf7fa;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #2b7a8a;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="quests-page">
+  <div class="qs-header">
+    <button class="qs-back" onclick="history.back()">←</button>
+    <div class="qs-title">🎯 Центр заданий</div>
+  </div>
+
+  <div class="qs-card daily">
+    <div class="qs-card-title">Дневной квест <span class="qs-reward">+500 💎</span></div>
+    <div class="qs-card-sub">Сброс каждый день в полночь</div>
+
+    <div class="qs-task">
+      <div class="qs-task-head">
+        <span>💰 Монеты за день</span>
+        <span class="qs-task-val" id="dCoinsVal">0 / 500</span>
+      </div>
+      <div class="qs-bar"><div class="qs-bar-fill" id="dCoinsBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="qs-task">
+      <div class="qs-task-head">
+        <span>⏱ Часов в эфире</span>
+        <span class="qs-task-val" id="dHoursVal">0 / 3</span>
+      </div>
+      <div class="qs-bar"><div class="qs-bar-fill" id="dHoursBar" style="width:0%"></div></div>
+    </div>
+
+    <button class="qs-btn locked" id="dClaimBtn" disabled>Забрать 500 💎</button>
+  </div>
+
+  <div class="qs-card weekly">
+    <div class="qs-card-title">Недельный квест <span class="qs-reward">+5000 💎</span></div>
+    <div class="qs-card-sub">Сброс каждый понедельник</div>
+
+    <div class="qs-task">
+      <div class="qs-task-head">
+        <span>💰 Монеты за неделю</span>
+        <span class="qs-task-val" id="wCoinsVal">0 / 3000</span>
+      </div>
+      <div class="qs-bar"><div class="qs-bar-fill" id="wCoinsBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="qs-task">
+      <div class="qs-task-head">
+        <span>⏱ Часов в эфире</span>
+        <span class="qs-task-val" id="wHoursVal">0 / 15</span>
+      </div>
+      <div class="qs-bar"><div class="qs-bar-fill" id="wHoursBar" style="width:0%"></div></div>
+    </div>
+
+    <div class="qs-task">
+      <div class="qs-task-head">
+        <span>📅 Дней в эфире</span>
+        <span class="qs-task-val" id="wDaysVal">0 / 5</span>
+      </div>
+      <div class="qs-bar"><div class="qs-bar-fill" id="wDaysBar" style="width:0%"></div></div>
+    </div>
+
+    <button class="qs-btn locked" id="wClaimBtn" disabled>Забрать 5000 💎</button>
+  </div>
+
+  <div class="qs-hint">
+    💡 Монеты капают с подарков и платных сообщений в твоём эфире (тебе идёт 70%).
+    Часы считаются, пока ты сам ведёшь эфир (открыл комнату через «+»).
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var myName = sessionStorage.getItem('myName') || 'Гость';
+
+socket.on('connect', function() {
+  socket.emit('join', {
+    name: myName,
+    roomId: sessionStorage.getItem('lastRoomId') || 'default',
+    host: sessionStorage.getItem('lastRoomHost') || myName,
+    gender: 'male',
+    baseViewers: 1,
+    diamonds: 0
+  });
+  setTimeout(function() { socket.emit('quests_get'); }, 300);
+});
+
+socket.on('quests_progress', function(data) {
+  renderQuests(data);
+});
+
+socket.on('quests_error', function(data) {
+  alert(data.message || 'Ошибка');
+});
+
+function renderQuests(data) {
+  if (!data || !data.daily || !data.weekly) return;
+
+  var d = data.daily;
+  var w = data.weekly;
+
+  // Дневной: монеты
+  var dCoinsPct = Math.min(100, Math.floor(d.coins / d.coinsGoal * 100));
+  document.getElementById('dCoinsVal').textContent = d.coins + ' / ' + d.coinsGoal;
+  document.getElementById('dCoinsBar').style.width = dCoinsPct + '%';
+
+  // Дневной: часы
+  var dHours = Math.floor(d.seconds / 3600);
+  var dHoursPct = Math.min(100, Math.floor(d.seconds / d.secondsGoal * 100));
+  document.getElementById('dHoursVal').textContent = dHours + ' / 3';
+  document.getElementById('dHoursBar').style.width = dHoursPct + '%';
+
+  // Дневная кнопка
+  var dBtn = document.getElementById('dClaimBtn');
+  if (d.claimed) {
+    dBtn.className = 'qs-btn claimed';
+    dBtn.disabled = true;
+    dBtn.textContent = '✓ Получено';
+  } else if (d.done) {
+    dBtn.className = 'qs-btn ready';
+    dBtn.disabled = false;
+    dBtn.textContent = '🎁 Забрать 500 💎';
+    dBtn.onclick = function() { socket.emit('quests_claim', { which: 'daily' }); };
+  } else {
+    dBtn.className = 'qs-btn locked';
+    dBtn.disabled = true;
+    dBtn.textContent = 'Забрать 500 💎';
+    dBtn.onclick = null;
+  }
+
+  // Недельный: монеты
+  var wCoinsPct = Math.min(100, Math.floor(w.coins / w.coinsGoal * 100));
+  document.getElementById('wCoinsVal').textContent = w.coins + ' / ' + w.coinsGoal;
+  document.getElementById('wCoinsBar').style.width = wCoinsPct + '%';
+
+  // Недельный: часы
+  var wHours = Math.floor(w.seconds / 3600);
+  var wHoursPct = Math.min(100, Math.floor(w.seconds / w.secondsGoal * 100));
+  document.getElementById('wHoursVal').textContent = wHours + ' / 15';
+  document.getElementById('wHoursBar').style.width = wHoursPct + '%';
+
+  // Недельный: дни
+  var wDaysPct = Math.min(100, Math.floor(w.activeDays / w.activeDaysGoal * 100));
+  document.getElementById('wDaysVal').textContent = w.activeDays + ' / 5';
+  document.getElementById('wDaysBar').style.width = wDaysPct + '%';
+
+  // Недельная кнопка
+  var wBtn = document.getElementById('wClaimBtn');
+  if (w.claimed) {
+    wBtn.className = 'qs-btn claimed';
+    wBtn.disabled = true;
+    wBtn.textContent = '✓ Получено';
+  } else if (w.done) {
+    wBtn.className = 'qs-btn ready';
+    wBtn.disabled = false;
+    wBtn.textContent = '🏆 Забрать 5000 💎';
+    wBtn.onclick = function() { socket.emit('quests_claim', { which: 'weekly' }); };
+  } else {
+    wBtn.className = 'qs-btn locked';
+    wBtn.disabled = true;
+    wBtn.textContent = 'Забрать 5000 💎';
+    wBtn.onclick = null;
+  }
+}
+
+// Обновлять прогресс каждые 10 секунд
+setInterval(function() {
+  socket.emit('quests_get');
+}, 10000);
+</script>
+</body>
+</html>

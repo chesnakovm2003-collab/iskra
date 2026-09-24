@@ -1,0 +1,5207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Эфир</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  html, body {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+
+  .stream {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%; height: 100%;
+    background: #0a0a0a;
+    z-index: 1;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .animated-bg {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #533483, #1a1a2e);
+    background-size: 300% 300%;
+    animation: bgMove 10s ease infinite;
+    z-index: 1;
+  }
+  .animated-bg.female {
+    background: linear-gradient(135deg, #ff6b9d, #c44569, #f8b500, #e94560, #ff6b9d);
+    background-size: 300% 300%;
+    animation: bgMove 10s ease infinite;
+  }
+  .animated-bg.male {
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460, #533483, #1a1a2e);
+    background-size: 300% 300%;
+    animation: bgMove 10s ease infinite;
+  }
+  .animated-bg.lottery {
+    background: linear-gradient(135deg, #ff9800, #ffc107, #ff5722, #e91e63, #ff9800);
+    background-size: 300% 300%;
+    animation: bgMove 4s ease infinite;
+  }
+  .animated-bg.crash {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364, #1a1a2e, #0f2027);
+    background-size: 300% 300%;
+    animation: bgMove 6s ease infinite;
+  }
+  .animated-bg.crash.boom {
+    background: linear-gradient(135deg, #e53935, #b71c1c, #3e0000, #e53935);
+    background-size: 300% 300%;
+    animation: bgMove 1.5s ease infinite;
+  }
+  @keyframes bgMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .placeholder {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    font-size: 14px;
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  .top-bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    box-sizing: border-box;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+    background: linear-gradient(180deg, rgba(0,0,0,0.7), transparent);
+  }
+  .host-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 4px 12px 4px 4px;
+    border-radius: 30px;
+    flex-shrink: 0;
+    max-width: 55%;
+  }
+  .host-pill .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    border: 1.5px solid #fff;
+    flex-shrink: 0;
+  }
+  .host-pill .meta { min-width: 0; overflow: hidden; }
+  .host-pill .meta .name {
+    font-size: 12px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100px;
+  }
+  .host-pill .meta .coins {
+    font-size: 10px; color: #ffd54f; font-weight: 700;
+  }
+  .btn-follow {
+    background: #4dd8e8; color: #fff;
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 20px; font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .top-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .viewers-badge {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: 700;
+    background: rgba(0,0,0,0.5);
+    padding: 4px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .viewers-badge:active { transform: scale(0.95); }
+  .btn-close {
+    width: 32px; height: 32px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 50%;
+    color: #fff; font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .top-donators {
+    display: flex;
+    gap: -6px;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+  .top-donators .td-item {
+    position: relative;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    margin-left: -8px;
+    border: 2px solid #ffd700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 900; color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  }
+  .top-donators .td-item:first-child { margin-left: 0; }
+  .top-donators .td-item.rank2 {
+    border-color: #c0c0c0;
+    box-shadow: 0 0 8px rgba(192, 192, 192, 0.5);
+  }
+  .top-donators .td-item.rank3 {
+    border-color: #cd7f32;
+    box-shadow: 0 0 8px rgba(205, 127, 50, 0.5);
+  }
+  .top-donators .td-rank {
+    position: absolute;
+    bottom: -6px; left: 50%;
+    transform: translateX(-50%);
+    background: #ffd700;
+    color: #000;
+    font-size: 8px; font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 6px;
+    line-height: 1;
+    white-space: nowrap;
+    border: 1px solid rgba(0,0,0,0.3);
+  }
+  .top-donators .td-item.rank2 .td-rank { background: #c0c0c0; }
+  .top-donators .td-item.rank3 .td-rank { background: #cd7f32; color: #fff; }
+
+  .stream-timer {
+    position: absolute;
+    top: 92px;          /* под лайками */
+    right: 12px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 8px;
+    z-index: 10;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+  }
+  .likes-badge {
+    position: absolute;
+    top: 60px; left: 12px;
+    display: flex; align-items: center; gap: 4px;
+    font-size: 13px; font-weight: 700;
+    color: #ff3b5c;
+    background: rgba(0,0,0,0.5);
+    padding: 4px 10px;
+    border-radius: 8px;
+    z-index: 10;
+  }
+
+  .lottery-mini {
+    position: absolute;
+    top: 92px;          /* под лайками (лайки на 60px) */
+    left: 12px;
+    background: linear-gradient(135deg, #ff9800, #e91e63);
+    padding: 5px 10px;
+    border-radius: 14px;
+    z-index: 11;
+    display: none;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    box-shadow: 0 3px 14px rgba(233, 30, 99, 0.6);
+    animation: lmPulse 2s ease-in-out infinite;
+    user-select: none;
+  }
+  .lottery-mini.show { display: flex; }
+  @keyframes lmPulse {
+    0%, 100% { box-shadow: 0 3px 14px rgba(233, 30, 99, 0.6); transform: scale(1); }
+    50% { box-shadow: 0 3px 20px rgba(255, 152, 0, 0.9); transform: scale(1.05); }
+  }
+  .lottery-mini .lm-emoji { font-size: 18px; line-height: 1; }
+  .lottery-mini .lm-timer {
+    font-size: 12px; font-weight: 900; color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .viewers-modal {
+    position: fixed;
+    left: 0; right: 0; bottom: 0; top: 0;
+    background: rgba(10, 10, 12, 0.97);
+    z-index: 500;
+    display: none;
+    flex-direction: column;
+    color: #fff;
+  }
+  .viewers-modal.open { display: flex; }
+  .vm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .vm-title { font-size: 17px; font-weight: 800; }
+  .vm-title span { color: #4dd8e8; }
+  .vm-close {
+    width: 34px; height: 34px;
+    background: #1f1f24;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vm-tabs {
+    display: flex; gap: 0;
+    padding: 0 18px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .vm-tab {
+    padding: 12px 16px;
+    font-size: 13px; font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    transition: 0.15s;
+  }
+  .vm-tab.active { color: #fff; }
+  .vm-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 8px; right: 8px;
+    height: 2px; background: #4dd8e8;
+    border-radius: 2px;
+  }
+  .vm-subtabs {
+    display: flex; gap: 6px;
+    padding: 10px 18px;
+    border-bottom: 1px solid #1f1f24;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .vm-subtabs::-webkit-scrollbar { display: none; }
+  .vm-subtab {
+    background: #1a1a1e;
+    color: #888;
+    font-size: 12px; font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid #222;
+    transition: 0.15s;
+  }
+  .vm-subtab.active { background: #4dd8e8; color: #003; border-color: transparent; }
+  .vm-body {
+    flex: 1; overflow-y: auto;
+    padding: 12px 14px;
+    scrollbar-width: none;
+  }
+  .vm-body::-webkit-scrollbar { display: none; }
+
+  .viewer-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #16161a;
+    margin-bottom: 8px;
+    transition: 0.15s;
+  }
+  .viewer-row.vip {
+    background: linear-gradient(135deg, rgba(255, 213, 79, 0.15), rgba(233, 30, 99, 0.15));
+    border: 1px solid rgba(255, 213, 79, 0.4);
+  }
+  .viewer-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; color: #fff;
+    border: 2px solid #2a2a30;
+  }
+  .viewer-avatar.lvl-gold { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+  .viewer-avatar.lvl-silver { border-color: #c0c0c0; box-shadow: 0 0 8px rgba(192, 192, 192, 0.5); }
+  .viewer-avatar.lvl-bronze { border-color: #cd7f32; box-shadow: 0 0 8px rgba(205, 127, 50, 0.5); }
+  .viewer-avatar.lvl-vip { border-color: #e91e63; box-shadow: 0 0 12px rgba(233, 30, 99, 0.7); }
+  .viewer-avatar .vip-crown {
+    position: absolute;
+    top: -8px; right: -8px;
+    font-size: 16px;
+  }
+  .viewer-avatar .lvl-badge {
+    position: absolute;
+    bottom: -4px; left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1e;
+    color: #fff;
+    font-size: 9px; font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 8px;
+    border: 1px solid #2a2a30;
+    white-space: nowrap;
+  }
+  .viewer-info { flex: 1; min-width: 0; }
+  .viewer-name {
+    font-size: 14px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .viewer-name .vip-label {
+    background: linear-gradient(90deg, #ffd700, #ff8f00);
+    color: #000;
+    font-size: 9px; font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .viewer-sub {
+    font-size: 11px;
+    color: #888;
+    margin-top: 3px;
+  }
+  .viewer-sub .diamonds { color: #ffd54f; font-weight: 700; }
+  .viewer-rank {
+    font-size: 13px; font-weight: 900;
+    color: #666;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: center;
+  }
+  .viewer-rank.top1 { color: #ffd700; }
+  .viewer-rank.top2 { color: #c0c0c0; }
+  .viewer-rank.top3 { color: #cd7f32; }
+  .vm-empty { text-align: center; color: #555; font-size: 14px; padding: 40px 20px; }
+
+  .chat {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 40%;
+    display: flex;
+    flex-direction: column;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .chat-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 8px 12px;
+    font-size: 13px;
+    background: transparent;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    scrollbar-width: none;
+  }
+  .chat-body::-webkit-scrollbar { display: none; }
+  .msg {
+    margin: 3px 0;
+    line-height: 1.35;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+    word-wrap: break-word;
+    font-size: 13px;
+  }
+  .msg.system { color: #ccc; font-size: 12px; font-style: italic; }
+  .msg.gift {
+    background: rgba(233,30,99,0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+  }
+  .msg.lottery {
+    background: linear-gradient(90deg, rgba(255, 152, 0, 0.5), rgba(233, 30, 99, 0.5));
+    padding: 6px 10px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 700;
+    border: 1px solid rgba(255, 213, 79, 0.5);
+  }
+  .msg .lvl {
+    display: inline-block;
+    background: linear-gradient(135deg, #9c27b0, #673ab7);
+    color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 6px;
+    margin-right: 4px;
+  }
+  .msg .lvl.gold { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .msg .name { color: #4dd8e8; font-weight: 700; }
+  .msg .name.gold { color: #ffd54f; }
+  .msg .name.green { color: #81c784; }
+  .new-tag {
+    background: #ffd54f;
+    color: #000;
+    font-size: 9px; font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 4px;
+    margin-right: 4px;
+  }
+
+  .bottom-bar {
+    flex-shrink: 0;
+    padding: 8px 8px 14px;
+    background: transparent;
+    pointer-events: auto;
+  }
+  .input-row { display: flex; gap: 6px; align-items: center; }
+  .input-row input {
+    flex: 1; min-width: 0;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 22px;
+    outline: none;
+    font-family: inherit;
+  }
+  .input-row input::placeholder { color: rgba(255,255,255,0.6); }
+  .input-row button {
+    background: #4dd8e8;
+    color: #003;
+    border: none;
+    padding: 0 14px;
+    font-size: 18px;
+    border-radius: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .input-row .gift-btn {
+    width: 40px !important; height: 40px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px !important;
+    flex-shrink: 0;
+  }
+  .gift-btn {
+    background: linear-gradient(135deg, #e91e63, #9c27b0) !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    padding: 0 16px !important;
+    border: none !important;
+    border-radius: 22px !important;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .bell-btn {
+    background: linear-gradient(135deg, #ffd54f, #f57c00) !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    padding: 0 !important;
+    width: 40px !important; height: 40px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    border: none !important;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    box-shadow: 0 0 12px rgba(255, 213, 79, 0.5);
+    animation: bellPulse 2s ease-in-out infinite;
+  }
+  @keyframes bellPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(255, 213, 79, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 213, 79, 0.9); }
+  }
+  .bell-btn:active { transform: scale(0.9); }
+
+  .sale-btn {
+    background: linear-gradient(135deg, #ff3b5c, #e91e63) !important;
+    color: #fff !important;
+    font-size: 10px !important;
+    font-weight: 900 !important;
+    padding: 0 8px !important;
+    width: 40px !important; height: 40px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    border: none !important;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    letter-spacing: 0.5px;
+  }
+  .sale-modal {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 80%;
+    background: #1a1a1e;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 900;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+  }
+  .sale-modal.open { display: flex; }
+  .sm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 14px 0;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .sm-tabs { display: flex; gap: 4px; flex: 1; }
+  .sm-tab {
+    padding: 10px 12px;
+    font-size: 13px; font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+  }
+  .sm-tab.active { color: #fff; }
+  .sm-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 8px; right: 8px;
+    height: 2px; background: #ff3b5c;
+    border-radius: 2px;
+  }
+  .sm-close {
+    width: 32px; height: 32px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .sm-body { flex: 1; overflow-y: auto; padding: 14px; }
+  .sm-body::-webkit-scrollbar { display: none; }
+
+  .sale-promo {
+    background: linear-gradient(135deg, #ff9800, #ffc107);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+  .sale-promo .sp-title { font-size: 18px; font-weight: 900; margin-bottom: 14px; line-height: 1.2; }
+  .sale-promo .sp-pic { font-size: 72px; margin: 10px 0; }
+  .sale-promo .sp-price { font-size: 22px; font-weight: 900; margin-top: 12px; }
+  .sale-promo .sp-old { font-size: 13px; opacity: 0.7; text-decoration: line-through; margin-top: 4px; }
+
+  .sale-games-title { font-size: 14px; font-weight: 700; color: #aaa; margin-bottom: 12px; }
+  .sale-games {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .sale-game {
+    background: #25252a;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.15s;
+    border: 1px solid #2f2f36;
+  }
+  .sale-game:active { transform: scale(0.95); }
+  .sale-game .sg-icon { font-size: 44px; margin-bottom: 8px; }
+  .sale-game .sg-name { font-size: 13px; font-weight: 700; color: #fff; }
+
+  .menu-btn {
+    background: rgba(255,255,255,0.15) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    padding: 0 !important;
+    width: 36px !important; height: 36px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .room-menu {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 75%;
+    background: #1a1a1e;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 900;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+  }
+  .room-menu.open { display: flex; }
+  .rm-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .rm-title { font-size: 16px; font-weight: 800; }
+  .rm-close {
+    width: 32px; height: 32px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+ 
+  .rm-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    padding: 20px 16px 30px;
+    overflow-y: auto;
+  }
+  .rm-grid::-webkit-scrollbar { display: none; }
+  .rm-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; transition: 0.15s; }
+  .rm-item:active { transform: scale(0.92); }
+  .rm-icon {
+    width: 52px; height: 52px;
+    background: #2a2a30;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    color: #fff; font-weight: 900;
+  }
+  .rm-name { font-size: 11px; color: #ccc; text-align: center; line-height: 1.2; max-width: 70px; }
+
+  .emoji-btn {
+    background: rgba(255,255,255,0.15) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    color: #fff !important;
+    font-size: 16px !important;
+    padding: 0 !important;
+    width: 36px !important; height: 36px !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+    line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .emoji-panel {
+    display: none;
+    background: rgba(20, 20, 24, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 10px;
+    margin-bottom: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+  .emoji-panel.open { display: grid; }
+  .emoji-panel::-webkit-scrollbar { display: none; }
+  .emoji-item {
+    font-size: 26px;
+    text-align: center;
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.15s;
+    user-select: none;
+  }
+  .emoji-item:hover { background: rgba(77, 216, 232, 0.25); transform: scale(1.15); }
+  .emoji-item:active { transform: scale(0.9); }
+
+  .mini-profile {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+  }
+  .mini-profile.open {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .mp-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+  .mp-card {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    background: #ffffff;
+    color: #222;
+    border-top-left-radius: 24px;
+    border-top-right-radius: 24px;
+    padding: 20px 18px 24px;
+    max-height: 90%;
+    overflow-y: auto;
+    animation: mpSlideUp 0.25s ease-out;
+  }
+  .mp-card::-webkit-scrollbar { display: none; }
+  @keyframes mpSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .mp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .mp-report {
+    background: transparent;
+    border: none;
+    color: #333;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 4px 0;
+  }
+  .mp-top-badge {
+    background: linear-gradient(135deg, #ff80ab, #e91e63);
+    color: #fff;
+    font-size: 11px; font-weight: 900;
+    padding: 4px 12px;
+    border-radius: 14px;
+    letter-spacing: 0.3px;
+  }
+  .mp-avatar-wrap { display: flex; justify-content: center; position: relative; margin-bottom: 14px; }
+  .mp-avatar {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: #333 center/cover;
+    border: 4px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+  }
+  .mp-crown {
+    position: absolute;
+    top: -10px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 32px;
+    filter: drop-shadow(0 2px 6px rgba(255, 165, 0, 0.8));
+  }
+  .mp-name { text-align: center; font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .mp-sub { text-align: center; font-size: 14px; margin-bottom: 4px; }
+  .mp-verified { color: #4dd8e8; font-weight: 900; }
+  .mp-gender { color: #4dd8e8; margin-left: 6px; }
+  .mp-id { text-align: center; font-size: 12px; color: #888; margin-bottom: 14px; }
+  .mp-badges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 16px; }
+  .mp-badge {
+    display: inline-flex; align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 11px; font-weight: 800;
+    border: 1px solid transparent;
+  }
+  .mp-badge.gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; }
+  .mp-badge.green { background: #43a047; color: #fff; }
+  .mp-badge.blue { background: #4dd8e8; color: #003; }
+  .mp-badge.pink { background: linear-gradient(135deg, #ff80ab, #e91e63); color: #fff; }
+  .mp-badge.purple { background: linear-gradient(135deg, #9c27b0, #673ab7); color: #fff; }
+  .mp-badge.dark { background: #333; color: #fff; }
+  .mp-stats {
+    display: flex; justify-content: space-around;
+    padding: 12px 0;
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 14px;
+  }
+  .mp-stat { text-align: center; }
+  .mp-stat-num { font-size: 16px; font-weight: 900; color: #222; }
+  .mp-stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+  .mp-plates { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .mp-plate {
+    padding: 12px 6px;
+    border-radius: 10px;
+    font-size: 12px; font-weight: 900;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mp-plate-gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; }
+  .mp-plate-dark { background: linear-gradient(135deg, #004d40, #00695c); color: #fff; }
+  .mp-actions { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+  .mp-action-btn {
+    padding: 12px 8px;
+    border-radius: 24px;
+    font-size: 14px; font-weight: 800;
+    cursor: pointer;
+    border: 2px solid transparent;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .mp-action-btn:active { transform: scale(0.95); }
+  .mp-subscribe {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    border: none;
+  }
+  .mp-subscribe.subscribed { background: #e0e0e0; color: #666; }
+  .mp-chat { background: #fff; color: #222; border-color: #ddd; }
+
+  .combo-btn {
+    position: absolute;
+    right: 16px;
+    bottom: 80px;
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    border: none;
+    color: #003;
+    cursor: pointer;
+    z-index: 20;
+    display: none;
+    align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(77, 216, 232, 0.7);
+    transition: transform 0.15s;
+    font-family: inherit;
+    outline: none;
+  }
+  .combo-btn.show { display: flex; }
+  .combo-btn:active { transform: scale(0.9); }
+  .combo-btn .combo-ring {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+  .combo-btn .combo-ring-bg { fill: none; stroke: rgba(255,255,255,0.25); stroke-width: 5; }
+  .combo-btn .combo-ring-progress {
+    fill: none; stroke: #ffffff; stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 289; stroke-dashoffset: 289;
+    transition: stroke-dashoffset 0.1s linear;
+  }
+  .combo-btn .combo-text {
+    font-size: 11px; font-weight: 900;
+    color: #003;
+    text-align: center;
+    line-height: 1.1;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .gift-sheet {
+    display: none;
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-height: 80%;
+    background: #16161a;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 9999;
+    flex-direction: column;
+    border-top: 1px solid #2a2a2a;
+  }
+  .gift-sheet.open { display: flex; }
+  .gs-handle {
+    width: 40px; height: 4px;
+    background: #444;
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .gs-top {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 14px 10px;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .gs-level { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .gs-level-badge {
+    background: linear-gradient(135deg, #9c27b0, #673ab7);
+    color: #fff;
+    font-size: 12px; font-weight: 900;
+    padding: 5px 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .gs-progress { flex: 1; min-width: 0; }
+  .gs-progress-text { font-size: 10px; color: #888; margin-bottom: 3px; }
+  .gs-progress-bar { height: 4px; background: #2a2a30; border-radius: 2px; overflow: hidden; }
+  .gs-progress-fill {
+    width: 0%; height: 100%;
+    background: linear-gradient(90deg, #ffd54f, #f57c00);
+    transition: width 0.3s ease;
+  }
+  .gs-mine {
+    background: linear-gradient(135deg, #ffd54f, #f57c00);
+    color: #000;
+    font-weight: 900;
+    font-size: 12px;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  .gs-tabs {
+    display: flex; gap: 16px;
+    padding: 4px 14px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-bottom: 1px solid #222;
+    flex-shrink: 0;
+  }
+  .gs-tabs::-webkit-scrollbar { display: none; }
+  .gs-tab {
+    font-size: 13px; font-weight: 700;
+    color: #666;
+    white-space: nowrap;
+    padding-bottom: 10px;
+    cursor: pointer;
+    position: relative;
+  }
+  .gs-tab.active { color: #fff; }
+  .gs-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px; background: #4dd8e8;
+    border-radius: 2px;
+  }
+  .gs-filters {
+    display: flex; gap: 6px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .gs-filters::-webkit-scrollbar { display: none; }
+  .gs-filter {
+    background: #222;
+    color: #aaa;
+    font-size: 11px; font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid #2a2a30;
+  }
+  .gs-filter.active { background: #333; color: #fff; }
+  .gs-banner {
+    margin: 0 14px 10px;
+    background: linear-gradient(90deg, #1a237e, #3f51b5);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 11px; font-weight: 700;
+    color: #fff;
+    display: flex; align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .gs-banner-icon { font-size: 20px; }
+  .gs-banner-arrow { margin-left: auto; font-size: 16px; color: #ffd54f; }
+  .gs-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 10px 10px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    scrollbar-width: none;
+    min-height: 0;
+  }
+  .gs-grid::-webkit-scrollbar { display: none; }
+  .gift-item {
+    background: #1d1d22;
+    border-radius: 8px;
+    padding: 4px 2px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid #25252a;
+    transition: 0.15s;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .gift-item:active { transform: scale(0.95); background: #2a2a33; }
+  .gift-item .gift-icon {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 2px;
+  }
+  .gift-item .gift-icon img { max-width: 100%; max-height: 100%; display: block; }
+  .gift-item .gift-name {
+    font-size: 10px;
+    color: #ccc;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    padding: 0 2px;
+  }
+  .gift-item .gift-price {
+    font-size: 11px;
+    color: #ffd54f;
+    font-weight: 800;
+    line-height: 1;
+    margin-top: 2px;
+    white-space: nowrap;
+    text-align: center;
+    letter-spacing: -0.3px;
+    max-width: 100%;
+    display: block;
+  }
+  .gift-item.selected {
+    border: 2px solid #4dd8e8;
+    background: #252530;
+    box-shadow: 0 0 12px rgba(77, 216, 232, 0.6);
+    transform: scale(1.05);
+  }
+  .gift-item .gift-tag {
+    position: absolute;
+    top: 4px; right: 4px;
+    font-size: 8px; font-weight: 900;
+    color: #fff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+  }
+  .gift-item .gift-tag.event { background: #9c27b0; }
+  .gift-item .gift-tag.new { background: #4caf50; }
+  .gift-item .gift-tag.hot { background: #ff3b5c; }
+  .gift-item .gift-tag.bonus { background: #ff9800; }
+  .gift-item.big-gift {
+    background: linear-gradient(135deg, #2a1650, #4a148c);
+    border-color: #6a1b9a;
+  }
+  .gift-item.big-gift .gift-price { color: #ffd54f; }
+  .gs-bottom {
+    display: flex; align-items: center;
+    gap: 8px;
+    padding: 10px 12px 14px;
+    border-top: 1px solid #222;
+    background: #15151a;
+    flex-shrink: 0;
+  }
+  .gs-balance { color: #ffd54f; font-size: 14px; font-weight: 900; flex-shrink: 0; }
+  .gs-pay-options {
+    display: flex; gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1; min-width: 0;
+  }
+  .gs-pay-options::-webkit-scrollbar { display: none; }
+  .gs-pay {
+    background: #25252a;
+    border: 1px solid #2f2f36;
+    color: #fff;
+    font-size: 12px; font-weight: 700;
+    padding: 7px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .gs-pay.active { background: #4dd8e8; color: #003; border-color: transparent; }
+  .gs-give {
+    background: #333;
+    color: #666;
+    border: none;
+    font-size: 14px; font-weight: 900;
+    padding: 11px 22px;
+    border-radius: 22px;
+    cursor: not-allowed;
+    flex-shrink: 0;
+    font-family: inherit;
+    transition: 0.2s;
+  }
+  .gs-give.active {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #003;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(77, 216, 232, 0.5);
+  }
+  .gs-give.active:active { transform: scale(0.95); }
+
+  /* ============ LOTTERY SHEET ============ */
+  .lottery-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 92%;
+    background: #16161a;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 950;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+  }
+  .lottery-sheet.open { display: flex; }
+  .ls-handle {
+    width: 40px; height: 4px;
+    background: #444;
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .ls-header {
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .ls-header .ls-title {
+    font-size: 18px; font-weight: 900;
+    background: linear-gradient(90deg, #ff9800, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+  }
+  .ls-header .ls-sub { text-align: center; font-size: 11px; color: #888; margin-top: 2px; }
+  .ls-close {
+    position: absolute;
+    top: 6px; right: 14px;
+    width: 32px; height: 32px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ls-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    scrollbar-width: none;
+  }
+  .ls-body::-webkit-scrollbar { display: none; }
+  .ls-section-title {
+    font-size: 12px; font-weight: 800;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 14px 0 8px;
+  }
+  .ls-section-title:first-child { margin-top: 0; }
+  .ls-conditions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .ls-cond {
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    border-radius: 14px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .ls-cond:active { transform: scale(0.97); }
+  .ls-cond.active {
+    border-color: #4dd8e8;
+    background: linear-gradient(135deg, rgba(77, 216, 232, 0.15), rgba(43, 184, 208, 0.15));
+    box-shadow: 0 0 14px rgba(77, 216, 232, 0.5);
+  }
+  .ls-cond .ls-cond-icon { font-size: 28px; margin-bottom: 6px; }
+  .ls-cond .ls-cond-name { font-size: 12px; font-weight: 800; color: #fff; }
+  .ls-cond .ls-cond-desc { font-size: 10px; color: #888; margin-top: 3px; line-height: 1.2; }
+
+  .ls-gift-picker, .ls-password-row { margin-bottom: 4px; }
+  .ls-gift-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .ls-gift {
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    border-radius: 10px;
+    padding: 6px 2px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.15s;
+    min-width: 0;
+  }
+  .ls-gift img { width: 30px; height: 30px; display: block; margin: 0 auto 2px; }
+  .ls-gift .ls-gift-name { font-size: 9px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ls-gift .ls-gift-price { font-size: 10px; color: #ffd54f; font-weight: 800; }
+  .ls-gift.active {
+    border-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(233, 30, 99, 0.2));
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.6);
+  }
+  .ls-password-row input {
+    width: 100%;
+    background: #1d1d22;
+    border: 2px solid #2a2a30;
+    color: #fff;
+    padding: 12px 14px;
+    font-size: 15px;
+    border-radius: 12px;
+    outline: none;
+    font-family: inherit;
+  }
+  .ls-password-row input:focus { border-color: #4dd8e8; }
+
+  .ls-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; }
+  .ls-chip {
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.15s;
+    font-family: inherit;
+    min-width: 44px;
+    text-align: center;
+  }
+  .ls-chip.active {
+    border-color: #e91e63;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(233, 30, 99, 0.25), rgba(156, 39, 176, 0.25));
+    box-shadow: 0 0 10px rgba(233, 30, 99, 0.5);
+  }
+  .ls-chip.prize.active {
+    border-color: #ff9800;
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.25), rgba(233, 30, 99, 0.25));
+    box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+  }
+  .ls-chip.winner.active {
+    border-color: #4dd8e8;
+    background: linear-gradient(135deg, rgba(77, 216, 232, 0.25), rgba(43, 184, 208, 0.25));
+    box-shadow: 0 0 10px rgba(77, 216, 232, 0.5);
+  }
+
+  .ls-winners-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .ls-winners-row input {
+    flex: 1;
+    background: #1d1d22;
+    border: 2px solid #2a2a30;
+    color: #fff;
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+    outline: none;
+    font-family: inherit;
+  }
+  .ls-winners-row input:focus { border-color: #4dd8e8; }
+  .ls-winners-hint { font-size: 11px; color: #888; margin-top: 4px; }
+
+  .ls-summary {
+    background: #1d1d22;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin: 14px 0 12px;
+    border: 1px solid #25252a;
+  }
+  .ls-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin-bottom: 6px;
+    color: #aaa;
+  }
+  .ls-summary-row:last-child { margin-bottom: 0; }
+  .ls-summary-row .ls-val { color: #fff; font-weight: 800; }
+  .ls-summary-row.total {
+    border-top: 1px dashed #2a2a30;
+    padding-top: 8px;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #fff;
+  }
+  .ls-summary-row.total .ls-val { color: #ffd54f; font-size: 16px; }
+
+  .ls-start {
+    width: 100%;
+    background: linear-gradient(135deg, #ff9800, #e91e63);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    border-radius: 26px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+    transition: 0.15s;
+  }
+  .ls-start:active { transform: scale(0.97); }
+  .ls-start:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+
+  .ls-active-box {
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(233, 30, 99, 0.15));
+    border: 1px solid rgba(255, 152, 0, 0.5);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .ls-active-box .ls-a-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 6px; }
+  .ls-active-box .ls-a-line { font-size: 12px; color: #ccc; margin-bottom: 4px; }
+  .ls-active-box .ls-a-timer {
+    font-size: 30px; font-weight: 900; color: #ffd54f;
+    margin: 8px 0; font-variant-numeric: tabular-nums;
+  }
+  .ls-active-box .ls-a-count { font-size: 13px; color: #fff; font-weight: 800; }
+  .ls-stop {
+    background: #ff3b5c; color: #fff; border: none;
+    padding: 10px 20px; border-radius: 20px;
+    font-size: 13px; font-weight: 900; cursor: pointer;
+    font-family: inherit; margin-top: 10px;
+  }
+
+  /* ============ CRASH SHEET ============ */
+  .crash-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 92%;
+    background: #0f1419;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 960;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #2a2a2a;
+    overflow: hidden;
+  }
+  .crash-sheet.open { display: flex; }
+  .cs-handle {
+    width: 40px; height: 4px;
+    background: #444;
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .cs-header {
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .cs-header .cs-title {
+    font-size: 18px; font-weight: 900;
+    background: linear-gradient(90deg, #4dd8e8, #43e97b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+  }
+  .cs-header .cs-sub { text-align: center; font-size: 11px; color: #888; margin-top: 2px; }
+  .cs-close {
+    position: absolute;
+    top: 6px; right: 14px;
+    width: 32px; height: 32px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cs-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    scrollbar-width: none;
+  }
+  .cs-body::-webkit-scrollbar { display: none; }
+
+  .cs-balance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #161c22;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1px solid #1f2833;
+  }
+  .cs-balance-row .cs-bal-label { font-size: 12px; color: #888; }
+  .cs-balance-row .cs-bal-val { font-size: 18px; font-weight: 900; color: #ffd54f; }
+
+  .cs-bet-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .cs-bet {
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    color: #ccc;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 12px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .cs-bet.active {
+    border-color: #4dd8e8;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(77, 216, 232, 0.25), rgba(67, 233, 123, 0.25));
+    box-shadow: 0 0 10px rgba(77, 216, 232, 0.5);
+  }
+
+  .cs-action-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    transition: 0.15s;
+    margin-bottom: 10px;
+  }
+  .cs-start {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #003;
+    box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+  }
+  .cs-start:active { transform: scale(0.97); }
+  .cs-start:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+  .cs-cashout {
+    background: linear-gradient(135deg, #ffd54f, #f57c00);
+    color: #000;
+    box-shadow: 0 6px 20px rgba(255, 213, 79, 0.5);
+    display: none;
+  }
+  .cs-cashout.show { display: block; }
+  .cs-cashout:active { transform: scale(0.97); }
+
+  .cs-field {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(180deg, #0a0e12, #161c22);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #1f2833;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cs-field .cs-curve {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at bottom left, rgba(67, 233, 123, 0.15), transparent 60%);
+  }
+  .cs-field .cs-rocket {
+    position: absolute;
+    font-size: 40px;
+    left: 10%;
+    bottom: 10%;
+    transition: left 0.15s linear, bottom 0.15s linear;
+    filter: drop-shadow(0 0 10px rgba(77, 216, 232, 0.7));
+    max-width: 60px;
+    max-height: 60px;
+  }
+  .cs-field .cs-rocket.boom {
+    filter: drop-shadow(0 0 20px rgba(255, 59, 92, 1));
+  }
+  .cs-field .cs-multiplier-big {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 40px;
+    font-weight: 900;
+    color: #43e97b;
+    text-shadow: 0 0 20px rgba(67, 233, 123, 0.7);
+    font-variant-numeric: tabular-nums;
+  }
+  .cs-field .cs-multiplier-big.crashed {
+    color: #ff3b5c;
+    text-shadow: 0 0 20px rgba(255, 59, 92, 0.9);
+  }
+  .cs-field .cs-status {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.7);
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  .cs-bets-title { font-size: 12px; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .cs-bets {
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+  }
+  .cs-bets::-webkit-scrollbar { display: none; }
+  .cs-bet-row-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #161c22;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #1f2833;
+    font-size: 13px;
+  }
+  .cs-bet-row-item.win { border-color: rgba(67, 233, 123, 0.5); }
+  .cs-bet-row-item.lose { border-color: rgba(255, 59, 92, 0.4); opacity: 0.7; }
+  .cs-bet-row-item .cs-bname { font-weight: 700; color: #fff; }
+  .cs-bet-row-item .cs-bval { color: #ffd54f; font-weight: 800; }
+  .cs-bet-row-item .cs-bmult { font-weight: 900; margin-left: 8px; }
+  .cs-bet-row-item .cs-bmult.win { color: #43e97b; }
+  .cs-bet-row-item .cs-bmult.lose { color: #ff3b5c; }
+
+  .cs-history {
+    display: flex; gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .cs-history::-webkit-scrollbar { display: none; }
+  .cs-hchip {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 800;
+    background: #1d1d22;
+    color: #43e97b;
+    border: 1px solid #25252a;
+  }
+  .cs-hchip.low { color: #ffb74d; }
+  .cs-hchip.high { color: #ff3b5c; }
+
+  .cs-error {
+    color: #ff3b5c;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
+
+  .heart-layer, .gift-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 6;
+  }
+  .big-gift-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .big-gift-item { text-align: center; animation: bigGiftIn 3.2s ease-out forwards; }
+  @keyframes bigGiftIn {
+    0%   { transform: scale(0.2) rotate(-15deg); opacity: 0; }
+    15%  { transform: scale(1.4) rotate(8deg); opacity: 1; }
+    30%  { transform: scale(1.1) rotate(-3deg); opacity: 1; }
+    80%  { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.6) rotate(5deg); opacity: 0; }
+  }
+  .big-gift-icon {
+    font-size: 140px; line-height: 1;
+    color: #ffd54f;
+    text-shadow: 0 0 40px rgba(255, 213, 79, 0.9), 0 0 80px rgba(233, 30, 99, 0.7);
+    margin-bottom: 10px;
+  }
+  .big-gift-icon img { max-width: 140px; max-height: 140px; }
+  .big-gift-from { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+  .big-gift-name { font-size: 16px; font-weight: 700; color: #ffd54f; text-shadow: 0 2px 8px rgba(0,0,0,0.9); margin-top: 4px; }
+
+  .fly-heart {
+    position: absolute;
+    font-size: 34px;
+    color: #ff3b5c;
+    text-shadow: 0 0 8px rgba(255, 59, 92, 0.7);
+    animation: flyHeart 2.2s ease-out forwards;
+  }
+  @keyframes flyHeart {
+    0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+    15%  { transform: translateY(-30px) scale(1.3); opacity: 1; }
+    100% { transform: translateY(-400px) scale(0.7); opacity: 0; }
+  }
+  .fly-gift {
+    position: absolute;
+    font-size: 42px;
+    animation: flyGift 2.6s ease-out forwards;
+  }
+  .fly-gift img { width: 42px; height: 42px; display: block; }
+  @keyframes flyGift {
+    0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+    20%  { transform: translateY(-20px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-380px) scale(0.7); opacity: 0; }
+  }
+
+  /* ============ YUMMY ============ */
+  .yummy-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 92%;
+    background: #1a0f2e;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 970;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #3a1f5e;
+    overflow: hidden;
+  }
+  .yummy-sheet.open { display: flex; }
+  .ys-handle {
+    width: 40px; height: 4px;
+    background: #4a3a6a;
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .ys-header {
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid #2a1f44;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .ys-title {
+    font-size: 18px; font-weight: 900;
+    background: linear-gradient(90deg, #ff80ab, #ffd54f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+  }
+  .ys-sub { text-align: center; font-size: 11px; color: #999; margin-top: 2px; }
+  .ys-close {
+    position: absolute;
+    top: 6px; right: 14px;
+    width: 32px; height: 32px;
+    background: #3a2a5a;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ys-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    scrollbar-width: none;
+  }
+  .ys-body::-webkit-scrollbar { display: none; }
+
+  .ys-balance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #221636;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1px solid #3a1f5e;
+  }
+  .ys-bal-label { font-size: 12px; color: #aaa; }
+  .ys-bal-val { font-size: 18px; font-weight: 900; color: #ffd54f; }
+
+  .ys-bet-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .ys-bet {
+    background: #221636;
+    border: 2px solid #3a1f5e;
+    color: #ccc;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 10px 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .ys-bet.active {
+    border-color: #ff80ab;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(255,128,171,0.25), rgba(255,213,79,0.25));
+    box-shadow: 0 0 10px rgba(255,128,171,0.5);
+  }
+
+  .ys-error {
+    color: #ff3b5c;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
+
+  .ys-reels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .ys-reel {
+    aspect-ratio: 1;
+    background: #2a1a44;
+    border: 2px solid #4a2f6e;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    line-height: 1;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    transition: 0.1s;
+  }
+  .ys-reel.spinning {
+    animation: ysSpin 0.1s linear infinite;
+  }
+  @keyframes ysSpin {
+    0% { transform: translateY(-4px); }
+    50% { transform: translateY(4px); }
+    100% { transform: translateY(-4px); }
+  }
+  .ys-reel.win {
+    border-color: #ffd54f;
+    box-shadow: 0 0 20px rgba(255,213,79,0.8), inset 0 0 20px rgba(255,213,79,0.3);
+    animation: ysPulse 0.5s ease infinite;
+  }
+  @keyframes ysPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+
+  .ys-result {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 900;
+    min-height: 24px;
+    margin-bottom: 12px;
+  }
+  .ys-result.win { color: #ffd54f; text-shadow: 0 0 12px rgba(255,213,79,0.8); }
+  .ys-result.lose { color: #888; }
+  .ys-result.jackpot {
+    color: #ff3b5c;
+    text-shadow: 0 0 16px rgba(255,59,92,0.9);
+    font-size: 20px;
+    animation: ysPulse 0.5s ease infinite;
+  }
+
+  .ys-action-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    transition: 0.15s;
+    margin-bottom: 14px;
+  }
+  .ys-spin {
+    background: linear-gradient(135deg, #ff80ab, #ffd54f);
+    color: #2a0a3a;
+    box-shadow: 0 6px 20px rgba(255,128,171,0.5);
+  }
+  .ys-spin:active { transform: scale(0.97); }
+  .ys-spin:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+
+  .ys-history-title {
+    font-size: 12px; font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .ys-history {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .ys-history::-webkit-scrollbar { display: none; }
+  .ys-hchip {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 800;
+    background: #221636;
+    color: #ccc;
+    border: 1px solid #3a1f5e;
+    line-height: 1;
+  }
+  .ys-hchip.win { color: #43e97b; border-color: rgba(67,233,123,0.5); }
+  .ys-hchip.lose { color: #666; }
+  .ys-hchip.jackpot { color: #ff3b5c; border-color: #ff3b5c; }
+    /* ============ GREEDY WHEEL ============ */
+  .greedy-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 94%;
+    background: #1a1208;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    z-index: 980;
+    display: none;
+    flex-direction: column;
+    border-top: 1px solid #4a3010;
+    overflow: hidden;
+  }
+  .greedy-sheet.open { display: flex; }
+  .gd-handle {
+    width: 40px; height: 4px;
+    background: #5a4020;
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    touch-action: none;
+  }
+  .gd-header {
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid #3a2810;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .gd-title {
+    font-size: 18px; font-weight: 900;
+    background: linear-gradient(90deg, #ffd54f, #ff9800);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-align: center;
+  }
+  .gd-sub { text-align: center; font-size: 11px; color: #b09060; margin-top: 2px; }
+  .gd-close {
+    position: absolute;
+    top: 6px; right: 14px;
+    width: 32px; height: 32px;
+    background: #3a2810;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .gd-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    scrollbar-width: none;
+  }
+  .gd-body::-webkit-scrollbar { display: none; }
+
+  .gd-balance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #2a1c08;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border: 1px solid #4a3010;
+  }
+  .gd-bal-label { font-size: 12px; color: #b09060; }
+  .gd-bal-val { font-size: 18px; font-weight: 900; color: #ffd54f; }
+
+  .gd-bet-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .gd-bet {
+    background: #2a1c08;
+    border: 2px solid #4a3010;
+    color: #ccb080;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 10px 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .gd-bet.active {
+    border-color: #ffd54f;
+    color: #fff;
+    background: linear-gradient(135deg, rgba(255,213,79,0.25), rgba(255,152,0,0.25));
+    box-shadow: 0 0 10px rgba(255,213,79,0.6);
+  }
+
+  .gd-error {
+    color: #ff3b5c;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
+
+  .gd-wheel-wrap {
+    position: relative;
+    width: 300px;
+    height: 320px;
+    margin: 0 auto 14px;
+  }
+.gd-wheel {
+  width: 300px;
+  height: 300px;
+  display: block;
+  filter: drop-shadow(0 0 20px rgba(255,152,0,0.5));
+  transition: transform 4s cubic-bezier(0.15, 0.85, 0.25, 1);
+  transform-origin: 150px 150px;
+  transform-box: fill-box;
+}
+  .gd-wheel.spinning {
+    transition: transform 4s cubic-bezier(0.15, 0.85, 0.25, 1);
+  }
+  .gd-pointer {
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 34px;
+    color: #ffd54f;
+    text-shadow: 0 0 12px rgba(255,213,79,0.9);
+    z-index: 3;
+    line-height: 1;
+  }
+  .gd-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff3b5c, #c62828);
+    border: 4px solid #ffd54f;
+    box-shadow: 0 0 20px rgba(255,59,92,0.8), inset 0 -4px 10px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 2;
+    letter-spacing: 1px;
+  }
+
+  .gd-result {
+    text-align: center;
+    font-size: 16px;
+    font-weight: 900;
+    min-height: 24px;
+    margin-bottom: 12px;
+  }
+  .gd-result.win { color: #ffd54f; text-shadow: 0 0 12px rgba(255,213,79,0.8); }
+  .gd-result.lose { color: #888; }
+  .gd-result.jackpot {
+    color: #ff3b5c;
+    text-shadow: 0 0 16px rgba(255,59,92,0.9);
+    font-size: 22px;
+    animation: gdPulse 0.5s ease infinite;
+  }
+  @keyframes gdPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  .gd-action-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    transition: 0.15s;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #ffd54f, #ff9800);
+    color: #2a1c08;
+    box-shadow: 0 6px 20px rgba(255,152,0,0.5);
+  }
+  .gd-action-btn:active { transform: scale(0.97); }
+  .gd-action-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+
+  .gd-history-title {
+    font-size: 12px; font-weight: 800;
+    color: #b09060;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .gd-history {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .gd-history::-webkit-scrollbar { display: none; }
+  .gd-hchip {
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    background: #2a1c08;
+    color: #ccb080;
+    border: 1px solid #4a3010;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .gd-hchip.win { color: #43e97b; border-color: rgba(67,233,123,0.5); }
+  .gd-hchip.lose { color: #666; }
+  .gd-hchip.jackpot { color: #ffd54f; border-color: #ffd54f; }
+  /* История транзакций */
+  .history-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+  }
+  .history-modal.open { display: flex; }
+  .history-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+  }
+  .history-card {
+    position: relative;
+    margin: auto;
+    width: 400px;
+    max-width: 94%;
+    max-height: 80vh;
+    background: #16161a;
+    border-radius: 20px;
+    border: 1px solid #2a2a30;
+    display: flex;
+    flex-direction: column;
+    animation: topupIn 0.2s ease-out;
+    overflow: hidden;
+  }
+  .history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .history-title {
+    font-size: 17px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .history-close {
+    width: 30px;
+    height: 30px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .history-balance {
+    padding: 10px 18px;
+    font-size: 13px;
+    color: #ccc;
+    background: #1a1a20;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+  }
+  .history-balance b { color: #ffd54f; font-size: 15px; }
+  .history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 12px 12px;
+    scrollbar-width: none;
+  }
+  .history-list::-webkit-scrollbar { display: none; }
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    border-bottom: 1px solid #1f1f24;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .history-icon.topup { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .history-icon.gift_sent { background: linear-gradient(135deg, #e91e63, #9c27b0); }
+  .history-icon.gift_received { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .history-icon.crash_bet { background: linear-gradient(135deg, #2196f3, #1565c0); }
+  .history-icon.crash_win { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+  .history-icon.lottery_start { background: linear-gradient(135deg, #ff9800, #e91e63); }
+  .history-icon.lottery_win { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .history-icon.lottery_refund { background: linear-gradient(135deg, #b0bec5, #78909c); }
+    .history-icon.yummy_bet { background: linear-gradient(135deg, #9c27b0, #673ab7); }
+  .history-icon.yummy_win { background: linear-gradient(135deg, #ff3b5c, #ffd54f); }
+   .history-icon.greedy_bet { background: linear-gradient(135deg, #ff9800, #e91e63); }
+  .history-icon.greedy_win { background: linear-gradient(135deg, #ffd54f, #43e97b); }
+  .history-info { flex: 1; min-width: 0; }
+  .history-note {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-time {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+  }
+  .history-amount {
+    font-size: 14px;
+    font-weight: 900;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .history-amount.plus { color: #43e97b; }
+  .history-amount.minus { color: #ff3b5c; }
+  .history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #555;
+    font-size: 13px;
+  }
+  /* Попап пополнения */
+  .topup-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+  }
+  .topup-modal.open { display: flex; }
+  .topup-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+  }
+  .topup-card {
+    position: relative;
+    margin: auto;
+    width: 340px;
+    max-width: 92%;
+    background: #16161a;
+    border-radius: 20px;
+    border: 1px solid #2a2a30;
+    padding: 18px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: topupIn 0.2s ease-out;
+  }
+  @keyframes topupIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .topup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .topup-title {
+    font-size: 18px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .topup-close {
+    width: 30px;
+    height: 30px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .topup-info {
+    background: #1d1d22;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #ccc;
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .topup-section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 14px 0 8px;
+  }
+  .topup-packs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .topup-pack {
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.15s;
+    font-family: inherit;
+  }
+  .topup-pack:hover { background: #25252a; }
+  .topup-pack.active {
+    border-color: #4dd8e8;
+    background: linear-gradient(135deg, rgba(77,216,232,0.2), rgba(67,233,123,0.2));
+    box-shadow: 0 0 12px rgba(77,216,232,0.5);
+  }
+  .topup-pack .pack-diamonds {
+    font-size: 16px;
+    font-weight: 900;
+    color: #ffd54f;
+    margin-bottom: 3px;
+  }
+  .topup-pack .pack-price {
+    font-size: 12px;
+    color: #ccc;
+  }
+  .topup-pack .pack-bonus {
+    font-size: 10px;
+    color: #43e97b;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+  .topup-custom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+  .topup-custom input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+  }
+  .topup-custom span { font-size: 13px; color: #aaa; font-weight: 700; }
+  .topup-btn {
+    width: 100%;
+    margin-top: 16px;
+    background: linear-gradient(135deg, #ffb74d, #e91e63);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 6px 20px rgba(233,30,99,0.4);
+  }
+  .topup-btn:active { transform: scale(0.97); }
+  .topup-note {
+    font-size: 11px;
+    color: #666;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* Заставка Iskra */
+  .iskra-splash {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    animation: iskraFadeOut 0.6s ease-out 1s forwards;
+  }
+  .iskra-splash.show { display: flex; }
+  .iskra-splash img {
+    width: 160px;
+    height: 160px;
+    object-fit: contain;
+    animation: iskraPulse 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 30px rgba(255, 152, 0, 0.8));
+  }
+  .iskra-splash-text {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  @keyframes iskraPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  @keyframes iskraFadeOut {
+    to { opacity: 0; pointer-events: none; }
+  }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .overlay .box {
+    background: #1a1a1e;
+    padding: 28px 24px;
+    border-radius: 20px;
+    border: 1px solid #2a2a30;
+    text-align: center;
+    width: 300px;
+    max-width: 90%;
+  }
+  .overlay .box h2 { margin-bottom: 16px; font-size: 17px; }
+  .overlay .box input {
+    width: 100%;
+    background: #25252a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 12px;
+    outline: none;
+    font-size: 15px;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .overlay .box button {
+    width: 100%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #003;
+    border: none;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  @media (max-width: 700px) {
+    .chat { height: 40%; }
+    .host-pill .meta .name { max-width: 80px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="stream" onclick="sendLike(event)">
+    <div class="animated-bg" id="animatedBg"></div>
+    <div class="placeholder">[ эфир ведущего ]</div>
+  </div>
+
+  <div class="heart-layer" id="heartLayer"></div>
+  <div class="gift-layer" id="giftLayer"></div>
+  <div class="big-gift-layer" id="bigGiftLayer"></div>
+
+  <div class="top-bar">
+    <div class="host-pill">
+      <div class="avatar"></div>
+      <div class="meta">
+        <div class="name" id="hostName">Ведущий</div>
+        <div class="coins">💎 <span id="hostCoins">2512451</span></div>
+      </div>
+    </div>
+    <button class="btn-follow">+</button>
+    <div class="top-donators" id="topDonators"></div>
+    <div class="top-right">
+      <div class="viewers-badge" onclick="openViewers()">
+        ◉ <span id="viewers">0</span>
+      </div>
+      <button class="btn-close" onclick="goBack()">×</button>
+    </div>
+  </div>
+
+  <!-- Мини-иконка лотереи (слева, под лайками) -->
+  <div class="lottery-mini" id="lotteryMini" onclick="openLotterySheet()">
+    <span class="lm-emoji">🎁</span>
+    <span class="lm-timer" id="lmTimer">0:00</span>
+  </div>
+
+  <div class="likes-badge">
+    ♥ <span id="likeCount">0</span>
+  </div>
+    <div class="stream-timer" id="streamTimer">⏱ 00:00:00</div>
+
+  <div class="sale-modal" id="saleModal">
+    <div class="sm-header">
+      <div class="sm-tabs">
+        <div class="sm-tab active" data-tab="promo" onclick="switchSaleTab('promo')">Акции пополнения счёта</div>
+        <div class="sm-tab" data-tab="games" onclick="switchSaleTab('games')">Игровой центр</div>
+      </div>
+      <button class="sm-close" onclick="closeSale()">×</button>
+    </div>
+    <div class="sm-body" id="smBody"></div>
+  </div>
+
+  <div class="room-menu" id="roomMenu">
+    <div class="rm-header">
+      <div class="rm-title">Инструменты Комнаты</div>
+      <button class="rm-close" onclick="closeMenu()">×</button>
+    </div>
+
+    <div class="rm-grid">
+      <div class="rm-item" onclick="menuAction('Поделиться')"><div class="rm-icon">➤</div><div class="rm-name">Поделиться</div></div>
+      <div class="rm-item" onclick="menuAction('Запись')"><div class="rm-icon">📹</div><div class="rm-name">Записывающий</div></div>
+      <div class="rm-item" onclick="menuAction('Свернуть')"><div class="rm-icon">⌄</div><div class="rm-name">Свернуть</div></div>
+      <div class="rm-item" onclick="menuAction('Оптимизация')"><div class="rm-icon">🔧</div><div class="rm-name">Оптимизация просмотра</div></div>
+      <div class="rm-item" onclick="menuAction('Качество')"><div class="rm-icon">HD</div><div class="rm-name">Качество</div></div>
+      <div class="rm-item" onclick="menuAction('Настройки подарка')"><div class="rm-icon">🎁</div><div class="rm-name">Настройки подарка</div></div>
+      <div class="rm-item" onclick="menuAction('Жалоба')"><div class="rm-icon">⚠️</div><div class="rm-name">Жалоба</div></div>
+      <div class="rm-item" onclick="menuAction('Заблокировать')"><div class="rm-icon">🚫</div><div class="rm-name">Заблокировать</div></div>
+      <div class="rm-item" onclick="menuAction('Неинтересно')"><div class="rm-icon">👎</div><div class="rm-name">Мне это неинтересно</div></div>
+      <div class="rm-item" onclick="menuAction('Перевод')"><div class="rm-icon">CC</div><div class="rm-name">Перевод</div></div>
+      <div class="rm-item" onclick="menuAction('Очистка')"><div class="rm-icon">🧹</div><div class="rm-name">Режим очистки</div></div>
+    </div>
+  </div>
+
+  <div class="mini-profile" id="miniProfile">
+    <div class="mp-backdrop" onclick="closeMiniProfile()"></div>
+    <div class="mp-card">
+      <div class="mp-top">
+        <button class="mp-report" onclick="mpAction('Жалоба')">🚨 ЖАЛОБА</button>
+        <div class="mp-top-badge" id="mpTopBadge" style="display:none;">💎 топ ></div>
+      </div>
+      <div class="mp-avatar-wrap" onclick="openBigProfile()">
+        <div class="mp-avatar" id="mpAvatar"></div>
+        <div class="mp-crown" id="mpCrown" style="display:none;">👑</div>
+      </div>
+      <div class="mp-name" id="mpName">Имя</div>
+      <div class="mp-sub">
+        <span class="mp-verified" id="mpVerified">✓</span>
+        <span class="mp-gender" id="mpGender">♂</span>
+      </div>
+      <div class="mp-id">ID: <span id="mpId">user_000</span></div>
+      <div class="mp-badges" id="mpBadges"></div>
+      <div class="mp-stats">
+        <div class="mp-stat"><div class="mp-stat-num" id="mpFollowers">0</div><div class="mp-stat-label">Подписчики</div></div>
+        <div class="mp-stat"><div class="mp-stat-num" id="mpFollowing">0</div><div class="mp-stat-label">подписки</div></div>
+        <div class="mp-stat"><div class="mp-stat-num" id="mpBeans">0</div><div class="mp-stat-label">Бобы</div></div>
+        <div class="mp-stat"><div class="mp-stat-num" id="mpDiamonds">0</div><div class="mp-stat-label">Алмазы</div></div>
+      </div>
+      <div class="mp-plates">
+        <div class="mp-plate mp-plate-gold" id="mpLevelPlate">💎 Lv.0</div>
+        <div class="mp-plate mp-plate-dark" onclick="mpAction('Зал Почета')">🏆 Зал Почета</div>
+      </div>
+      <div class="mp-actions">
+        <button class="mp-action-btn mp-subscribe" id="mpSubscribeBtn" onclick="mpSubscribe()">➕ Подписаться</button>
+        <button class="mp-action-btn mp-chat" onclick="openPrivateChat()">💬 Чат</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="viewers-modal" id="viewersModal">
+    <div class="vm-header">
+      <div class="vm-title">Зрители · <span id="vmCount">0</span></div>
+      <button class="vm-close" onclick="closeViewers()">×</button>
+    </div>
+    <div class="vm-tabs">
+      <div class="vm-tab active" data-tab="viewers">Зрители</div>
+      <div class="vm-tab" data-tab="vip">VIP</div>
+      <div class="vm-tab" data-tab="donate">Рейтинг донатов</div>
+    </div>
+    <div class="vm-subtabs" id="vmSubtabs" style="display: none;">
+      <div class="vm-subtab active" data-period="live">Live</div>
+      <div class="vm-subtab" data-period="day">За день</div>
+      <div class="vm-subtab" data-period="week">За неделю</div>
+      <div class="vm-subtab" data-period="month">За месяц</div>
+      <div class="vm-subtab" data-period="all">Общий</div>
+    </div>
+    <div class="vm-body" id="vmBody"></div>
+  </div>
+
+  <div class="chat">
+    <div class="chat-body" id="chatBody"></div>
+    <div class="bottom-bar">
+      <div class="emoji-panel" id="emojiPanel">
+        <div class="emoji-item" onclick="insertEmoji('😀')">😀</div>
+        <div class="emoji-item" onclick="insertEmoji('😂')">😂</div>
+        <div class="emoji-item" onclick="insertEmoji('🥰')">🥰</div>
+        <div class="emoji-item" onclick="insertEmoji('😍')">😍</div>
+        <div class="emoji-item" onclick="insertEmoji('😎')">😎</div>
+        <div class="emoji-item" onclick="insertEmoji('🤔')">🤔</div>
+        <div class="emoji-item" onclick="insertEmoji('😢')">😢</div>
+        <div class="emoji-item" onclick="insertEmoji('😡')">😡</div>
+        <div class="emoji-item" onclick="insertEmoji('👍')">👍</div>
+        <div class="emoji-item" onclick="insertEmoji('👎')">👎</div>
+        <div class="emoji-item" onclick="insertEmoji('❤️')">❤️</div>
+        <div class="emoji-item" onclick="insertEmoji('🔥')">🔥</div>
+        <div class="emoji-item" onclick="insertEmoji('💎')">💎</div>
+        <div class="emoji-item" onclick="insertEmoji('🎁')">🎁</div>
+        <div class="emoji-item" onclick="insertEmoji('👑')">👑</div>
+        <div class="emoji-item" onclick="insertEmoji('⭐')">⭐</div>
+        <div class="emoji-item" onclick="insertEmoji('🌟')">🌟</div>
+        <div class="emoji-item" onclick="insertEmoji('💯')">💯</div>
+        <div class="emoji-item" onclick="insertEmoji('🎉')">🎉</div>
+        <div class="emoji-item" onclick="insertEmoji('🎊')">🎊</div>
+        <div class="emoji-item" onclick="insertEmoji('😂')">😂</div>
+        <div class="emoji-item" onclick="insertEmoji('🤣')">🤣</div>
+        <div class="emoji-item" onclick="insertEmoji('😊')">😊</div>
+        <div class="emoji-item" onclick="insertEmoji('🙃')">🙃</div>
+        <div class="emoji-item" onclick="insertEmoji('😴')">😴</div>
+        <div class="emoji-item" onclick="insertEmoji('🤯')">🤯</div>
+        <div class="emoji-item" onclick="insertEmoji('🥳')">🥳</div>
+        <div class="emoji-item" onclick="insertEmoji('🤩')">🤩</div>
+      </div>
+      <div class="input-row">
+        <input id="msgInput" placeholder="Написать сообщение..." />
+        <button class="emoji-btn" onclick="toggleEmojiPanel()">😊</button>
+        <button class="menu-btn" onclick="openMenu()">☰</button>
+        <button class="sale-btn" onclick="openSale()">SALE</button>
+        <button class="bell-btn" onclick="quickBell()">🔔</button>
+        <button class="gift-btn" onclick="openGiftSheet()">🎁</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="combo-btn" id="comboBtn" onclick="sendCombo()">
+    <svg class="combo-ring" viewBox="0 0 100 100">
+      <circle class="combo-ring-bg" cx="50" cy="50" r="46"></circle>
+      <circle class="combo-ring-progress" cx="50" cy="50" r="46" id="comboRing"></circle>
+    </svg>
+    <span class="combo-text" id="comboText">Комбо ×1</span>
+  </button>
+
+  <div class="gift-sheet" id="giftSheet">
+    <div class="gs-handle"></div>
+    <div class="gs-top">
+      <div class="gs-level">
+        <span class="gs-level-badge" id="gsLevelBadge">💎 1</span>
+        <div class="gs-progress">
+          <div class="gs-progress-text" id="gsProgressText">+0 до Lv.2</div>
+          <div class="gs-progress-bar"><div class="gs-progress-fill" id="gsProgressFill"></div></div>
+        </div>
+      </div>
+      <button class="gs-mine" onclick="openHistory()" style="background:#2a2a30;color:#fff;margin-right:6px;">📜</button>
+      <button class="gs-mine" onclick="openTopup()">💎 Пополнить</button>
+    </div>
+    <div class="gs-tabs">
+      <div class="gs-tab active">Актуальное ▲</div>
+      <div class="gs-tab">Недавние</div>
+      <div class="gs-tab">Activity</div>
+      <div class="gs-tab">Досуг</div>
+    </div>
+    <div class="gs-filters">
+      <div class="gs-filter active">Все</div>
+      <div class="gs-filter">Сундук сокровищ</div>
+      <div class="gs-filter">Статус</div>
+      <div class="gs-filter">Сортировка по цене ⇅</div>
+    </div>
+    <div class="gs-banner">
+      <span class="gs-banner-icon">🎁</span>
+      <span>Join the rise of the cyber era! Win big prizes!</span>
+      <span class="gs-banner-arrow">›</span>
+    </div>
+    <div class="gs-grid" id="giftSheetGrid"></div>
+    <div class="gs-bottom">
+      <div class="gs-balance" onclick="openTopup()" style="cursor:pointer;">💎 <span id="myBalance">1000</span> ›</div>
+      <div class="gs-pay-options">
+        <button class="gs-pay active">1</button>
+        <button class="gs-pay">10</button>
+        <button class="gs-pay">99 ⚡</button>
+        <button class="gs-pay">188 ⚡</button>
+        <button class="gs-pay">999 ⚡</button>
+        <button class="gs-pay">Другое</button>
+      </div>
+      <button class="gs-give" id="giftSendBtn" onclick="sendSelectedGift()">Выберите</button>
+    </div>
+  </div>
+
+  <div class="lottery-sheet" id="lotterySheet">
+    <div class="ls-handle" onclick="closeLotterySheet()"></div>
+    <div class="ls-header">
+      <div class="ls-title">🎉 Fan Lottery</div>
+      <div class="ls-sub">Продвижение эфира · участники · активность</div>
+      <button class="ls-close" onclick="closeLotterySheet()">×</button>
+    </div>
+    <div class="ls-body" id="lsBody"></div>
+  </div>
+
+  <!-- ============ CRASH SHEET ============ -->
+  <div class="crash-sheet" id="crashSheet">
+    <div class="cs-handle"></div>
+    <div class="cs-header">
+      <div class="cs-title">🚀 Crash</div>
+      <div class="cs-sub">Поставь ставку и вовремя забери выигрыш</div>
+      <button class="cs-close" onclick="closeCrashSheet()">×</button>
+    </div>
+    <div class="cs-body" id="csBody">
+      <div class="cs-balance-row">
+        <div class="cs-bal-label">💎 Баланс</div>
+        <div class="cs-bal-val" id="csBalance">0</div>
+      </div>
+
+      <div class="cs-bet-row" id="csBetRow">
+        <div class="cs-bet active" data-bet="1" onclick="selectCrashBet(1)">1</div>
+        <div class="cs-bet" data-bet="10" onclick="selectCrashBet(10)">10</div>
+        <div class="cs-bet" data-bet="100" onclick="selectCrashBet(100)">100</div>
+        <div class="cs-bet" data-bet="1000" onclick="selectCrashBet(1000)">1000</div>
+      </div>
+
+      <div class="cs-error" id="csError"></div>
+
+      <div class="cs-field" id="csField">
+        <div class="cs-curve"></div>
+        <div class="cs-rocket" id="csRocket">🚀</div>
+        <div class="cs-multiplier-big" id="csMultiplier">1.00×</div>
+        <div class="cs-status" id="csStatus"></div>
+      </div>
+
+      <button class="cs-action-btn cs-start" id="csStartBtn" onclick="startCrash()">🚀 Старт (ставка <span id="csStartBet">1</span> 💎)</button>
+      <button class="cs-action-btn cs-cashout" id="csCashoutBtn" onclick="cashoutCrash()">💰 Забрать <span id="csCashoutAmount">0</span> 💎</button>
+
+      <div class="cs-bets-title">Игроки этой партии</div>
+      <div class="cs-bets" id="csBets"></div>
+
+      <div class="cs-bets-title">Последние игры</div>
+      <div class="cs-history" id="csHistory"></div>
+    </div>
+  </div>
+
+  <!-- История транзакций -->
+  <div class="history-modal" id="historyModal">
+    <div class="history-backdrop" onclick="closeHistory()"></div>
+    <div class="history-card">
+      <div class="history-header">
+        <div class="history-title">📜 История</div>
+        <button class="history-close" onclick="closeHistory()">×</button>
+      </div>
+      <div class="history-balance">
+        Баланс: <b id="historyBalance">0</b> 💎
+      </div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+    <!-- Yummy — слоты -->
+  <div class="yummy-sheet" id="yummySheet">
+    <div class="ys-handle"></div>
+    <div class="ys-header">
+      <div class="ys-title">🍬 Yummy</div>
+      <div class="ys-sub">Три в ряд — и приз твой</div>
+      <button class="ys-close" onclick="closeYummySheet()">×</button>
+    </div>
+    <div class="ys-body">
+      <div class="ys-balance-row">
+        <div class="ys-bal-label">💎 Баланс</div>
+        <div class="ys-bal-val" id="ysBalance">0</div>
+      </div>
+
+      <div class="ys-bet-row" id="ysBetRow">
+        <div class="ys-bet" data-bet="10" onclick="selectYummyBet(10)">10</div>
+        <div class="ys-bet active" data-bet="50" onclick="selectYummyBet(50)">50</div>
+        <div class="ys-bet" data-bet="100" onclick="selectYummyBet(100)">100</div>
+        <div class="ys-bet" data-bet="500" onclick="selectYummyBet(500)">500</div>
+        <div class="ys-bet" data-bet="1000" onclick="selectYummyBet(1000)">1000</div>
+      </div>
+
+      <div class="ys-error" id="ysError"></div>
+
+      <div class="ys-reels">
+        <div class="ys-reel" id="ysReel1">🍬</div>
+        <div class="ys-reel" id="ysReel2">🍭</div>
+        <div class="ys-reel" id="ysReel3">🍫</div>
+      </div>
+
+      <div class="ys-result" id="ysResult"></div>
+
+      <button class="ys-action-btn ys-spin" id="ysSpinBtn" onclick="spinYummy()">
+        🎰 Крутить (ставка <span id="ysSpinBet">50</span> 💎)
+      </button>
+
+      <div class="ys-history-title">Последние игры</div>
+      <div class="ys-history" id="ysHistory"></div>
+    </div>
+  </div>
+    <!-- GREEDY — колесо -->
+  <div class="greedy-sheet" id="greedySheet">
+    <div class="gd-handle"></div>
+    <div class="gd-header">
+      <div class="gd-title">🍔 Greedy Wheel</div>
+      <div class="gd-sub">Крути колесо — забирай приз</div>
+      <button class="gd-close" onclick="closeGreedySheet()">×</button>
+    </div>
+    <div class="gd-body">
+      <div class="gd-balance-row">
+        <div class="gd-bal-label">💎 Баланс</div>
+        <div class="gd-bal-val" id="gdBalance">0</div>
+      </div>
+
+      <div class="gd-bet-row" id="gdbetRow">
+        <div class="gd-bet" data-bet="10" onclick="selectGreedyBet(10)">10</div>
+        <div class="gd-bet active" data-bet="50" onclick="selectGreedyBet(50)">50</div>
+        <div class="gd-bet" data-bet="100" onclick="selectGreedyBet(100)">100</div>
+        <div class="gd-bet" data-bet="500" onclick="selectGreedyBet(500)">500</div>
+        <div class="gd-bet" data-bet="1000" onclick="selectGreedyBet(1000)">1000</div>
+      </div>
+
+      <div class="gd-error" id="gdError"></div>
+
+      <div class="gd-wheel-wrap">
+        <div class="gd-pointer">▼</div>
+        <svg class="gd-wheel" id="gdWheel" viewBox="0 0 300 300">
+          <!-- сгенерируется JS -->
+        </svg>
+        <div class="gd-center" id="gdCenter">GO</div>
+      </div>
+
+      <div class="gd-result" id="gdResult"></div>
+
+      <button class="gd-action-btn" id="gdSpinBtn" onclick="spinGreedy()">
+        🎡 Крутить (ставка <span id="gdSpinBet">50</span> 💎)
+      </button>
+
+      <div class="gd-history-title">Последние игры</div>
+      <div class="gd-history" id="gdHistory"></div>
+    </div>
+  </div>
+  <!-- Попап пополнения -->
+  <div class="topup-modal" id="topupModal">
+    <div class="topup-backdrop" onclick="closeTopup()"></div>
+    <div class="topup-card">
+      <div class="topup-header">
+        <div class="topup-title">💎 Пополнение</div>
+        <button class="topup-close" onclick="closeTopup()">×</button>
+      </div>
+      <div class="topup-info" id="topupInfo" style="display:none;">
+        У тебя: <b id="topupCurrent">0</b> 💎 ·
+        Нужно: <b id="topupNeeded">0</b> 💎 ·
+        Не хватает: <b id="topupMissing" style="color:#ff3b5c;">0</b> 💎
+      </div>
+      <div class="topup-section-title">Выбери пакет</div>
+      <div class="topup-packs" id="topupPacks"></div>
+      <div class="topup-section-title">Или введи своё число</div>
+      <div class="topup-custom">
+        <input type="number" id="topupCustomInput" placeholder="100" min="1" oninput="updateCustomPrice()">
+        <span>💎 =</span>
+        <span id="topupCustomPrice">100</span>
+        <span>₽</span>
+      </div>
+      <button class="topup-btn" onclick="doTopup()">Пополнить</button>
+      <div class="topup-note">Виртуальное пополнение — для теста. Реальные платежи позже.</div>
+    </div>
+  </div>
+
+  <!-- Заставка Iskra -->
+  <div class="iskra-splash" id="iskraSplash">
+    <img src="/brand/spark-main.png" alt="Iskra">
+    <div class="iskra-splash-text">ISKRA</div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="box">
+      <h2 id="roomTitle">Вход в эфир</h2>
+      <input id="nameInput" placeholder="Ваше имя" />
+      <button onclick="join()">Войти</button>
+    </div>
+  </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// ---------- Параметры из URL ----------
+var params = new URLSearchParams(window.location.search);
+var roomId = params.get('room') || 'default';
+var hostName = params.get('host') || 'Ведущий';
+var roomTitle = params.get('title') || 'Эфир';
+var diamonds = parseInt(params.get('diamonds')) || 2512451;
+var baseViewers = parseInt(params.get('viewers')) || 50;
+
+var femaleNames = ['Мария', 'Катя', 'Оля', 'Аня', 'Лена', 'Соня', 'Юля', 'Даша', 'Мила', 'Ксюша', 'Вика', 'Алина', 'Настя', 'Валя', 'Таня', 'Наталья', 'Женя', 'Кристина', 'Алёна', 'Полина'];
+sessionStorage.setItem('lastRoomId', roomId);
+sessionStorage.setItem('lastRoomHost', hostName);
+var roomGender = (femaleNames.indexOf(hostName) !== -1) ? 'female' : 'male';
+
+window.addEventListener('load', function() {
+  var bg = document.getElementById('animatedBg');
+  if (bg) bg.className = 'animated-bg ' + roomGender;
+});
+
+document.getElementById('hostName').textContent = hostName;
+document.getElementById('roomTitle').textContent = roomTitle;
+document.title = roomTitle + ' · Iskra';
+
+var socket = io();
+var myName = sessionStorage.getItem('myName') || null;
+
+// Авто-join, если имя уже сохранено
+socket.on('connect', function() {
+  var savedName = sessionStorage.getItem('myName');
+  if (savedName) {
+    myName = savedName;
+    socket.emit('join', {
+      name: savedName,
+      roomId: roomId,
+      host: hostName,
+      gender: roomGender,
+      baseViewers: baseViewers,
+      diamonds: diamonds
+    });
+    var ov = document.getElementById('overlay');
+    if (ov) ov.style.display = 'none';
+  }
+});
+
+socket.on('host_earnings', function(total) {
+  document.getElementById('hostCoins').textContent = total.toLocaleString('ru-RU');
+});
+
+function join() {
+  var input = document.getElementById('nameInput');
+  var name = input.value.trim();
+  if (!name) return;
+  myName = name;
+  sessionStorage.setItem('myName', name);
+  socket.emit('join', {
+    name: name,
+    roomId: roomId,
+    host: hostName,
+    gender: roomGender,
+    baseViewers: baseViewers,
+    diamonds: diamonds
+  });
+
+  document.getElementById('overlay').style.display = 'none';
+  // Заставка Iskra
+  var splash = document.getElementById('iskraSplash');
+  if (splash) {
+    splash.classList.add('show');
+    setTimeout(function() {
+      splash.style.display = 'none';
+    }, 1600);
+  }
+}
+
+function goBack() { window.location.href = '/'; }
+
+function quickBell() { socket.emit('send_gift', { giftId: 'bell' }); }
+
+// ---------- SALE ----------
+var currentSaleTab = 'promo';
+
+function openSale() {
+  document.getElementById('saleModal').classList.add('open');
+  renderSale();
+}
+function closeSale() {
+  document.getElementById('saleModal').classList.remove('open');
+}
+function switchSaleTab(tab) {
+  currentSaleTab = tab;
+  var tabs = document.querySelectorAll('.sm-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].getAttribute('data-tab') === tab) tabs[i].classList.add('active');
+    else tabs[i].classList.remove('active');
+  }
+  renderSale();
+}
+function renderSale() {
+  var body = document.getElementById('smBody');
+  if (!body) return;
+  body.innerHTML = '';
+
+  if (currentSaleTab === 'promo') {
+    body.innerHTML =
+      '<div class="sale-promo">' +
+        '<div class="sp-title">ПРЕИМУЩЕСТВА<br>ОГРАНИЧЕННОГО ВРЕМЕНИ</div>' +
+        '<div class="sp-pic">🏆</div>' +
+        '<div class="sp-price">Всего RUB1790</div>' +
+        '<div class="sp-old">Изначально RUB26850</div>' +
+      '</div>' +
+      '<div class="sale-promo" style="background: linear-gradient(135deg, #4dd8e8, #2bb8d0);">' +
+        '<div class="sp-title">БОНУС НА ПЕРВОЕ ПОПОЛНЕНИЕ</div>' +
+        '<div class="sp-pic">💎</div>' +
+        '<div class="sp-price">+100% алмазов</div>' +
+        '<div class="sp-old">Только для новых</div>' +
+      '</div>';
+  } else if (currentSaleTab === 'games') {
+    body.innerHTML =
+      '<div class="sale-games-title">🎉 Продвижение</div>' +
+      '<div class="sale-games">' +
+        '<div class="sale-game" onclick="openLotterySheetFromSale()" style="background: linear-gradient(135deg, #ff9800, #e91e63); border: none;">' +
+          '<div class="sg-icon">🎟</div>' +
+          '<div class="sg-name" style="font-size:15px;">Fan Lottery</div>' +
+          '<div style="font-size:10px; color:#fff; opacity:0.9; margin-top:4px;">Запустить лотерею</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sale-games-title">🎮 Игры</div>' +
+      '<div class="sale-games">' +
+        '<div class="sale-game" onclick="openCrashSheetFromSale()" style="background: linear-gradient(135deg, #43e97b, #38f9d7); border: none;">' +
+          '<div class="sg-icon">🚀</div>' +
+          '<div class="sg-name" style="font-size:15px; color:#003;">Crash</div>' +
+          '<div style="font-size:10px; color:#003; opacity:0.8; margin-top:4px;">Успей забрать</div>' +
+        '</div>' +
+        '<div class="sale-game" onclick="openGreedySheetFromSale()" style="background: linear-gradient(135deg, #ffd54f, #ff9800); border: none;">' +
+          '<div class="sg-icon">🎡</div>' +
+          '<div class="sg-name" style="color:#2a1c08;">Greedy</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="sale-games-title">Больше игр</div>' +
+      '<div class="sale-games">' +
+        '<div class="sale-game" onclick="openYummySheetFromSale()" style="background: linear-gradient(135deg, #ff80ab, #ffd54f); border: none;">' +
+          '<div class="sg-icon">🍬</div>' +
+          '<div class="sg-name" style="color:#2a0a3a;">Yummy</div>' +
+        '</div>' +
+        '<div class="sale-game" onclick="gameAlert(\'Mystery Shop\')">' +
+          '<div class="sg-icon">🅼</div>' +
+          '<div class="sg-name">Mystery Shop</div>' +
+        '</div>' +
+      '</div>';
+  }
+}
+
+function gameAlert(name) { alert('Игра: ' + name); }
+function openYummySheetFromSale() { closeSale(); openYummySheet(); }
+function openGreedySheetFromSale() { closeSale(); openGreedySheet(); }
+function openLotterySheetFromSale() { closeSale(); openLotterySheet(); }
+function openCrashSheetFromSale() { closeSale(); openCrashSheet(); }
+
+// ---------- ROOM MENU ----------
+function openMenu() { document.getElementById('roomMenu').classList.add('open'); }
+function closeMenu() { document.getElementById('roomMenu').classList.remove('open'); }
+function menuAction(name) { alert('Нажато: ' + name); closeMenu(); }
+
+// ---------- EMOJI ----------
+function toggleEmojiPanel() {
+  var panel = document.getElementById('emojiPanel');
+  if (!panel) return;
+  panel.classList.toggle('open');
+}
+function insertEmoji(emoji) {
+  var input = document.getElementById('msgInput');
+  if (!input) return;
+  input.value = input.value + emoji;
+  input.focus();
+}
+
+// ---------- SEND ----------
+function sendMsg() {
+  var input = document.getElementById('msgInput');
+  var text = input.value.trim();
+  if (!text) return;
+  socket.emit('message', text);
+  input.value = '';
+  var panel = document.getElementById('emojiPanel');
+  if (panel) panel.classList.remove('open');
+}
+document.getElementById('msgInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') sendMsg();
+});
+
+// ---------- LIKE ----------
+function sendLike(event) {
+  socket.emit('like');
+  if (event) flyHeartAt(event.clientX, event.clientY);
+  else flyHeartRandom();
+  flyHeartSide();
+}
+function flyHeartAt(x, y) {
+  var stream = document.querySelector('.stream');
+  var rect = stream.getBoundingClientRect();
+  var layer = document.getElementById('heartLayer');
+  var el = document.createElement('div');
+  el.className = 'fly-heart';
+  el.textContent = '♥';
+  el.style.left = (x - rect.left - 15) + 'px';
+  el.style.top = (y - rect.top - 15) + 'px';
+  layer.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2300);
+}
+function flyHeartRandom() {
+  var layer = document.getElementById('heartLayer');
+  var el = document.createElement('div');
+  el.className = 'fly-heart';
+  el.textContent = '♥';
+  el.style.left = (40 + Math.random() * 40) + '%';
+  el.style.bottom = '40px';
+  layer.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2300);
+}
+function flyHeartSide() {
+  var layer = document.getElementById('heartLayer');
+  var el = document.createElement('div');
+  el.className = 'fly-heart';
+  el.textContent = '♥';
+  el.style.left = (78 + Math.random() * 14) + '%';
+  el.style.bottom = (15 + Math.random() * 25) + '%';
+  var size = 26 + Math.random() * 16;
+  el.style.fontSize = size + 'px';
+  layer.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2300);
+}
+
+// ---------- GIFTS ICON ----------
+function renderGiftIcon(icon, size) {
+  if (!icon) return '?';
+  if (icon.charAt(0) === '/' || icon.indexOf('http') === 0) {
+    return '<img src="' + icon + '" style="width:' + (size || 24) + 'px;height:' + (size || 24) + 'px;vertical-align:middle;display:inline-block;" alt="">';
+  }
+  return icon;
+}
+
+// ---------- RENDER EVENT ----------
+function renderEvent(ev, isHistory) {
+  var body = document.getElementById('chatBody');
+  var div = document.createElement('div');
+
+  if (ev.type === 'system') {
+    div.className = 'msg system';
+    div.textContent = ev.text;
+  } else if (ev.type === 'message') {
+    div.className = 'msg';
+    var lvlClass = ev.level > 50 ? 'gold' : '';
+    var nameColor = ev.isBot ? (ev.level > 50 ? 'gold' : '') : 'green';
+    var html = '<span class="lvl ' + lvlClass + '">Lv ' + (ev.level || '?') + '</span>';
+    if (ev.isNew) html += '<span class="new-tag">New</span>';
+    html += '<span class="name ' + nameColor + '">' + escapeHtml(ev.name) + ':</span> ';
+    html += escapeHtml(ev.text);
+    div.innerHTML = html;
+  } else if (ev.type === 'gift') {
+    div.className = 'msg gift';
+
+    var giftHtml = '';
+    if (ev.isRandom) {
+      if (ev.trains > 0) {
+        giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> отправил <b>' + escapeHtml(ev.name) + '</b>; 🚂 ×' + ev.trains + ', 💎 ' + ev.price;
+      } else {
+        giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> отправил <b>' + escapeHtml(ev.name) + '</b> 💎 ' + ev.price;
+      }
+    } else {
+      giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> подарил <b>' + escapeHtml(ev.name) + '</b> 💎 ' + (ev.price || '?');
+    }
+    div.innerHTML = giftHtml;
+
+    if (!isHistory) {
+      if (ev.isRandom) showFountainWithTrains(ev);
+      else if (ev.tier === 'big') showBigGift(ev);
+      else flyGift(ev.gift);
+    }
+  } else if (ev.type === 'refund') {
+    div.className = 'msg gift';
+    div.innerHTML = '🎉 <b>' + escapeHtml(ev.to) + '</b> получил 💎 <b>' + ev.amount + '</b> алмазов!';
+  } else if (ev.type === 'lottery') {
+    div.className = 'msg lottery';
+    div.innerHTML = ev.text;
+  }
+
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  while (body.children.length > 100) body.removeChild(body.firstChild);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function flyGift(icon) {
+  var layer = document.getElementById('giftLayer');
+  var el = document.createElement('div');
+  el.className = 'fly-gift';
+  el.innerHTML = renderGiftIcon(icon, 42);
+  el.style.left = (10 + Math.random() * 70) + '%';
+  el.style.bottom = '20%';
+  layer.appendChild(el);
+  setTimeout(function() { el.remove(); }, 2700);
+}
+
+function showBigGift(ev) {
+  var layer = document.getElementById('bigGiftLayer');
+  if (!layer) return;
+  var el = document.createElement('div');
+  el.className = 'big-gift-item';
+  el.innerHTML =
+    '<div class="big-gift-icon">' + renderGiftIcon(ev.gift, 140) + '</div>' +
+    '<div class="big-gift-from">' + escapeHtml(ev.from) + '</div>' +
+    '<div class="big-gift-name">' + escapeHtml(ev.name) + ' 💎 ' + (ev.price || '?') + '</div>';
+  layer.appendChild(el);
+  setTimeout(function() { el.remove(); }, 3300);
+}
+
+function showFountainWithTrains(ev) {
+  var layer = document.getElementById('bigGiftLayer');
+  if (!layer) return;
+  var fountain = document.createElement('div');
+  fountain.className = 'big-gift-item';
+  fountain.innerHTML =
+    '<div class="big-gift-icon">' + renderGiftIcon(ev.gift, 140) + '</div>' +
+    '<div class="big-gift-from">' + escapeHtml(ev.from) + '</div>' +
+    '<div class="big-gift-name">' + escapeHtml(ev.name) + '</div>';
+  layer.appendChild(fountain);
+  setTimeout(function() { fountain.remove(); }, 3500);
+  if (ev.trains > 0) {
+    for (var i = 0; i < ev.trains; i++) {
+      (function(index) {
+        setTimeout(function() { showTrain(index + 1, ev.trains); }, 3500 + index * 1500);
+      })(i);
+    }
+  }
+}
+
+function showTrain(number, total) {
+  var layer = document.getElementById('bigGiftLayer');
+  if (!layer) return;
+  var train = document.createElement('div');
+  train.className = 'flying-train';
+  train.innerHTML = '<img src="/gifts/train.png" alt="">';
+  layer.appendChild(train);
+  setTimeout(function() { train.remove(); }, 8200);
+}
+
+// ---------- SERVER EVENTS ----------
+socket.on('history', function(msgs) {
+  for (var i = 0; i < msgs.length; i++) renderEvent(msgs[i], true);
+});
+socket.on('event', function(ev) { renderEvent(ev, false); });
+socket.on('online_count', function(count) {
+  var v = document.getElementById('viewers');
+  if (v) v.textContent = count;
+  var vm = document.getElementById('vmCount');
+  if (vm) vm.textContent = count;
+});
+socket.on('likes_count', function(total) {
+  document.getElementById('likeCount').textContent = total;
+});
+var streamStartedAt = null;
+var streamTimerInterval = null;
+
+
+
+
+socket.on('chat_error', function(data) {
+  alert(data.message || 'Ошибка чата');
+});
+socket.on('stream_started_at', function(data) {
+  streamStartedAt = data.startedAt || Date.now();
+  updateStreamTimer();
+  if (streamTimerInterval) clearInterval(streamTimerInterval);
+  streamTimerInterval = setInterval(updateStreamTimer, 1000);
+});
+
+function updateStreamTimer() {
+  if (!streamStartedAt) return;
+  var el = document.getElementById('streamTimer');
+  if (!el) return;
+  var sec = Math.floor((Date.now() - streamStartedAt) / 1000);
+  var h = Math.floor(sec / 3600);
+  var m = Math.floor((sec % 3600) / 60);
+  var s = sec % 60;
+  el.textContent = '⏱ ' +
+    (h < 10 ? '0' : '') + h + ':' +
+    (m < 10 ? '0' : '') + m + ':' +
+    (s < 10 ? '0' : '') + s;
+}
+socket.on('like', function(data) {
+  document.getElementById('likeCount').textContent = data.total;
+  if (data.from !== socket.id) flyHeartRandom();
+});
+
+// ---------- GIFTS ----------
+var selectedGift = null;
+
+function updateSendButton() {
+  var btn = document.getElementById('giftSendBtn');
+  if (!btn) return;
+  var selectedItem = document.querySelector('.gift-item.selected');
+  if (selectedItem) {
+    btn.textContent = 'Подарить';
+    btn.style.background = 'linear-gradient(135deg, #4dd8e8, #2bb8d0)';
+    btn.style.color = '#003';
+    btn.style.cursor = 'pointer';
+  } else {
+    btn.textContent = 'Выберите';
+    btn.style.background = '#333';
+    btn.style.color = '#666';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
+socket.on('gifts_list', function(gifts) {
+  window.GIFTS = gifts;
+  var grid = document.getElementById('giftSheetGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  selectedGift = null;
+  updateSendButton();
+
+  for (var i = 0; i < gifts.length; i++) {
+    (function(gift, idx) {
+      var item = document.createElement('div');
+      item.className = 'gift-item' + (gift.tier === 'big' ? ' big-gift' : '');
+      item.setAttribute('data-gift-id', gift.id);
+
+      var tag = null;
+      if (gift.tier === 'big') tag = 'event';
+      else if (idx % 5 === 0) tag = 'new';
+      else if (idx % 7 === 0) tag = 'hot';
+      else if (idx % 6 === 0) tag = 'bonus';
+
+      item.innerHTML =
+        (tag ? '<div class="gift-tag ' + tag + '">' + tag.toUpperCase() + '</div>' : '') +
+        '<div class="gift-icon">' + renderGiftIcon(gift.icon, 32) + '</div>' +
+        '<div class="gift-name">' + gift.name + '</div>' +
+        '<div class="gift-price">💎 ' + gift.price + '</div>';
+
+      item.onclick = function() {
+        var all = grid.querySelectorAll('.gift-item');
+        for (var k = 0; k < all.length; k++) all[k].classList.remove('selected');
+        item.classList.add('selected');
+        selectedGift = gift;
+        updateSendButton();
+      };
+      grid.appendChild(item);
+    })(gifts[i], i);
+  }
+
+  renderLotteryGifts();
+});
+
+function openGiftSheet() { document.getElementById('giftSheet').classList.add('open'); }
+function closeGiftSheet() { document.getElementById('giftSheet').classList.remove('open'); }
+// Клик вне панели — закрывает
+document.addEventListener('click', function(e) {
+  var sheet = document.getElementById('giftSheet');
+  if (!sheet) return;
+  if (!sheet.classList.contains('open')) return;
+  // Если клик вне панели и вне кнопки открытия
+  if (!sheet.contains(e.target) && !e.target.closest('.gift-btn')) {
+    sheet.classList.remove('open');
+  }
+});
+
+// ---------- COMBO ----------
+var comboGiftId = null;
+var comboClicks = 0;
+var comboInterval = null;
+var comboDuration = 5000;
+var comboStartedAt = 0;
+
+function showComboBtn(giftId) {
+  comboGiftId = giftId;
+  comboClicks = 1;
+  comboStartedAt = Date.now();
+  var btn = document.getElementById('comboBtn');
+  var text = document.getElementById('comboText');
+  var ring = document.getElementById('comboRing');
+  text.textContent = 'Комбо ×' + comboClicks;
+  ring.style.strokeDashoffset = 289;
+  btn.classList.add('show');
+  if (comboInterval) clearInterval(comboInterval);
+  comboInterval = setInterval(function() {
+    var elapsed = Date.now() - comboStartedAt;
+    var left = Math.max(0, comboDuration - elapsed);
+    var progress = left / comboDuration;
+    ring.style.strokeDashoffset = 289 * (1 - progress);
+    if (left <= 0) hideComboBtn();
+  }, 100);
+}
+function hideComboBtn() {
+  var btn = document.getElementById('comboBtn');
+  btn.classList.remove('show');
+  if (comboInterval) { clearInterval(comboInterval); comboInterval = null; }
+  comboGiftId = null;
+  comboClicks = 0;
+}
+function sendCombo() {
+  if (!comboGiftId) return;
+  comboClicks++;
+  comboStartedAt = Date.now();
+  document.getElementById('comboText').textContent = 'Комбо ×' + comboClicks;
+  socket.emit('send_gift', { giftId: comboGiftId });
+}
+function sendSelectedGift() {
+  var selectedItem = document.querySelector('.gift-item.selected');
+  if (!selectedItem) { alert('Сначала выберите подарок'); return; }
+  var giftId = selectedItem.getAttribute('data-gift-id');
+  if (!giftId) { alert('Ошибка: подарок не найден'); return; }
+  socket.emit('send_gift', { giftId: giftId });
+  closeGiftSheet();
+  showComboBtn(giftId);
+}
+
+// ---------- MINI PROFILE ----------
+var currentProfileViewer = null;
+
+function openMiniProfile(viewer) {
+  if (!viewer) return;
+  currentProfileViewer = viewer;
+  var avatar = document.getElementById('mpAvatar');
+  avatar.style.background = getAvatarGradient(viewer.name);
+  avatar.style.backgroundSize = 'cover';
+  document.getElementById('mpName').textContent = viewer.name;
+  var isFemale = false;
+  for (var i = 0; i < femaleNames.length; i++) {
+    if (viewer.name.indexOf(femaleNames[i]) === 0) { isFemale = true; break; }
+  }
+  document.getElementById('mpGender').textContent = isFemale ? '♀' : '♂';
+  var id = viewer.isBot ? ('bot_' + viewer.name.replace(/[^a-zA-Z0-9]/g, '')) : ('user_' + viewer.name.replace(/[^a-zA-Z0-9]/g, ''));
+  document.getElementById('mpId').textContent = id;
+  var level = viewer.level || 30;
+  document.getElementById('mpLevelPlate').textContent = '💎 Lv.' + level;
+  document.getElementById('mpCrown').style.display = viewer.isVip ? 'block' : 'none';
+  var isTop = viewer.diamonds && viewer.diamonds >= 100;
+  document.getElementById('mpTopBadge').style.display = isTop ? 'block' : 'none';
+  var badges = document.getElementById('mpBadges');
+  badges.innerHTML = '';
+  if (viewer.isVip) badges.innerHTML += '<div class="mp-badge gold">👑 VIP</div>';
+  if (viewer.hasDonated) badges.innerHTML += '<div class="mp-badge pink">💎 ДОНАТ</div>';
+  if (level >= 60) badges.innerHTML += '<div class="mp-badge purple">👑 Король</div>';
+  if (level >= 20) badges.innerHTML += '<div class="mp-badge green">Lv.' + level + '</div>';
+  if (viewer.gender === 'female') badges.innerHTML += '<div class="mp-badge pink">🌸 Красотка</div>';
+  else badges.innerHTML += '<div class="mp-badge blue">🎮 Геймер</div>';
+  var followers = Math.floor(Math.random() * 5000) + 500 + (level * 50);
+  var following = Math.floor(Math.random() * 500) + 50 + (level * 5);
+  var beans = Math.floor(Math.random() * 500000) + 10000 + (level * 1000);
+  var diamondsStat = viewer.totalDiamonds || 0;
+  document.getElementById('mpFollowers').textContent = formatStat(followers);
+  document.getElementById('mpFollowing').textContent = formatStat(following);
+  document.getElementById('mpBeans').textContent = formatStat(beans);
+  document.getElementById('mpDiamonds').textContent = formatStat(diamondsStat);
+  var subBtn = document.getElementById('mpSubscribeBtn');
+  if (subBtn) {
+    if (viewer.name === myName) subBtn.style.display = 'none';
+    else {
+      subBtn.style.display = '';
+      var myList = subscriptions[myName] || [];
+      if (myList.indexOf(viewer.name) !== -1) {
+        subBtn.textContent = '✓ Вы подписаны';
+        subBtn.classList.add('subscribed');
+      } else {
+        subBtn.textContent = '➕ Подписаться';
+        subBtn.classList.remove('subscribed');
+      }
+    }
+  }
+  document.getElementById('miniProfile').classList.add('open');
+}
+function closeMiniProfile() { document.getElementById('miniProfile').classList.remove('open'); }
+function openBigProfile() {
+  if (!currentProfileViewer) return;
+  sessionStorage.setItem('profileViewer', JSON.stringify(currentProfileViewer));
+  window.location.href = '/profile.html';
+}
+function formatStat(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(2) + 'K';
+  return n;
+}
+var subscriptions = {};
+socket.on('all_subscriptions', function(subs) { subscriptions = subs || {}; });
+socket.on('my_subscriptions', function(myList) { if (myName) subscriptions[myName] = myList; });
+function mpSubscribe() {
+  var btn = document.getElementById('mpSubscribeBtn');
+  if (!btn) return;
+  var viewerName = document.getElementById('mpName').textContent;
+  if (!viewerName || !myName) return;
+  var myList = subscriptions[myName] || [];
+  var idx = myList.indexOf(viewerName);
+  if (idx === -1) {
+    socket.emit('subscribe', { from: myName, to: viewerName, action: 'subscribe' });
+    btn.textContent = '✓ Вы подписаны';
+    btn.classList.add('subscribed');
+  } else {
+    socket.emit('subscribe', { from: myName, to: viewerName, action: 'unsubscribe' });
+    btn.textContent = '➕ Подписаться';
+    btn.classList.remove('subscribed');
+  }
+}
+function mpAction(name) { alert('Нажато: ' + name); }
+
+// ---------- VIEWERS ----------
+var viewersData = [];
+var currentTab = 'viewers';
+var currentPeriod = 'live';
+var donationsData = [];
+
+function renderTopDonators(top3) {
+  var container = document.getElementById('topDonators');
+  if (!container) return;
+  container.innerHTML = '';
+  for (var i = 0; i < top3.length; i++) {
+    var d = top3[i];
+    var rank = i + 1;
+    var rankClass = rank === 1 ? '' : (rank === 2 ? 'rank2' : 'rank3');
+    var el = document.createElement('div');
+    el.className = 'td-item ' + rankClass;
+    el.style.background = getAvatarGradient(d.name);
+    el.innerHTML = d.name.charAt(0).toUpperCase() + '<div class="td-rank">' + d.diamonds.toLocaleString('ru-RU') + '</div>';
+    container.appendChild(el);
+  }
+}
+socket.on('donations_list', function(list) {
+  donationsData = list || [];
+  if (currentTab === 'donate') renderViewers();
+});
+socket.on('top_donators', function(list) { renderTopDonators(list || []); });
+socket.on('viewers_list', function(list) {
+  viewersData = list || [];
+  renderViewers();
+});
+function openViewers() {
+  document.getElementById('viewersModal').classList.add('open');
+  renderViewers();
+}
+function closeViewers() { document.getElementById('viewersModal').classList.remove('open'); }
+function switchTab(tab) {
+  currentTab = tab;
+  var tabs = document.querySelectorAll('.vm-tab');
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].getAttribute('data-tab') === tab) tabs[i].classList.add('active');
+    else tabs[i].classList.remove('active');
+  }
+  var subtabs = document.getElementById('vmSubtabs');
+  if (tab === 'donate') subtabs.style.display = 'flex';
+  else subtabs.style.display = 'none';
+  renderViewers();
+}
+document.querySelectorAll('.vm-tab').forEach(function(t) {
+  t.onclick = function() { switchTab(t.getAttribute('data-tab')); };
+});
+document.querySelectorAll('.vm-subtab').forEach(function(t) {
+  t.onclick = function() {
+    currentPeriod = t.getAttribute('data-period');
+    var all = document.querySelectorAll('.vm-subtab');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('active');
+    t.classList.add('active');
+    renderViewers();
+  };
+});
+function getAvatarGradient(name) {
+  var colors = [
+    'linear-gradient(135deg, #ff6b9d, #c44569)',
+    'linear-gradient(135deg, #4dd8e8, #2bb8d0)',
+    'linear-gradient(135deg, #ffd54f, #f57c00)',
+    'linear-gradient(135deg, #9c27b0, #673ab7)',
+    'linear-gradient(135deg, #43e97b, #38f9d7)',
+    'linear-gradient(135deg, #f093fb, #f5576c)'
+  ];
+  var sum = 0;
+  for (var i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return colors[sum % colors.length];
+}
+function renderViewers() {
+  var body = document.getElementById('vmBody');
+  if (!body) return;
+  body.innerHTML = '';
+  var list = viewersData.slice();
+  if (currentTab === 'vip') list = list.filter(function(v) { return v.isVip; });
+  else if (currentTab === 'donate') {
+    list = donationsData.slice();
+    var field = 'diamonds';
+    if (currentPeriod === 'day') field = 'daily';
+    else if (currentPeriod === 'week') field = 'weekly';
+    else if (currentPeriod === 'month') field = 'monthly';
+    else if (currentPeriod === 'all') field = 'allTime';
+    list = list.filter(function(v) { return (v[field] || 0) > 0; });
+    list.sort(function(a, b) { return (b[field] || 0) - (a[field] || 0); });
+  } else {
+    list.sort(function(a, b) {
+      if (a.hasDonated && !b.hasDonated) return -1;
+      if (!a.hasDonated && b.hasDonated) return 1;
+      return (b.level || 0) - (a.level || 0);
+    });
+  }
+  if (list.length === 0) {
+    var msg = 'Пока никого нет';
+    if (currentTab === 'donate') msg = 'Пока никто не дарил';
+    if (currentTab === 'vip') msg = 'Пока нет VIP-зрителей';
+    body.innerHTML = '<div class="vm-empty">' + msg + '</div>';
+    return;
+  }
+  for (var i = 0; i < list.length; i++) {
+    var v = list[i];
+    var row = document.createElement('div');
+    row.className = 'viewer-row' + (v.isVip ? ' vip' : '');
+    row.style.cursor = 'pointer';
+    row.onclick = (function(viewer) { return function() { openMiniProfile(viewer); }; })(v);
+    var lvlClass = '';
+    if (v.level > 70) lvlClass = 'lvl-gold';
+    else if (v.level > 50) lvlClass = 'lvl-silver';
+    else if (v.level > 30) lvlClass = 'lvl-bronze';
+    if (v.isVip) lvlClass = 'lvl-vip';
+    var rankHtml = '';
+    if (currentTab === 'donate') {
+      var rank = i + 1;
+      var rankClass = rank === 1 ? 'top1' : rank === 2 ? 'top2' : rank === 3 ? 'top3' : '';
+      rankHtml = '<div class="viewer-rank ' + rankClass + '">' + rank + '</div>';
+    }
+    var crownHtml = v.isVip ? '<span class="vip-crown">👑</span>' : '';
+    var vipLabel = v.isVip ? '<span class="vip-label">VIP</span>' : '';
+    var donorLabel = (currentTab !== 'donate' && v.hasDonated) ? '<span class="vip-label" style="background: linear-gradient(90deg, #e91e63, #9c27b0); color: #fff;">ДОНАТ</span>' : '';
+    var amountHtml = '';
+    if (currentTab === 'donate') {
+      var val = v.diamonds || 0;
+      if (currentPeriod === 'day') val = v.daily || 0;
+      else if (currentPeriod === 'week') val = v.weekly || 0;
+      else if (currentPeriod === 'month') val = v.monthly || 0;
+      else if (currentPeriod === 'all') val = v.allTime || 0;
+      amountHtml = '<div class="viewer-sub">💎 <span class="diamonds">' + val.toLocaleString('ru-RU') + '</span></div>';
+    } else if (v.hasDonated) {
+      amountHtml = '<div class="viewer-sub">💎 <span class="diamonds">' + (v.diamonds || 0).toLocaleString('ru-RU') + '</span></div>';
+    } else {
+      amountHtml = '<div class="viewer-sub">Зритель</div>';
+    }
+    row.innerHTML =
+      rankHtml +
+      '<div class="viewer-avatar ' + lvlClass + '" style="background:' + getAvatarGradient(v.name) + '">' +
+        v.name.charAt(0).toUpperCase() +
+        crownHtml +
+        (v.level ? '<div class="lvl-badge">Lv ' + v.level + '</div>' : '') +
+      '</div>' +
+      '<div class="viewer-info">' +
+        '<div class="viewer-name">' + escapeHtml(v.name) + vipLabel + donorLabel + '</div>' +
+        amountHtml +
+      '</div>';
+    body.appendChild(row);
+  }
+}
+
+// ================= LOTTERY =================
+var lotteryState = null;
+var lotterySelectedCondition = 'none';
+var lotterySelectedGiftId = null;
+var lotterySelectedDuration = 60;
+var lotterySelectedCost = 50;
+var lotterySelectedWinners = 1;
+var lotteryTimerInterval = null;
+
+var ALLOWED_DURATIONS = [60, 120, 180, 240, 300, 360, 420, 480, 540, 600];
+var ALLOWED_COSTS = [];
+for (var _c = 50; _c <= 1500; _c += 50) ALLOWED_COSTS.push(_c);
+
+function openLotterySheet() {
+  document.getElementById('lotterySheet').classList.add('open');
+  renderLotterySheet();
+}
+function closeLotterySheet() {
+  document.getElementById('lotterySheet').classList.remove('open');
+}
+function getConditionLabel(condition, giftId, password) {
+  if (condition === 'share') return '📤 Поделиться';
+  if (condition === 'gift') {
+    var g = (window.GIFTS || []).find(function(x) { return x.id === giftId; });
+    return '🎁 Подарок: ' + (g ? g.name : giftId);
+  }
+  if (condition === 'password') return '🔑 Пароль: ' + (password || '');
+  return '🆓 Без ограничений';
+}
+function renderLotterySheet() {
+  var body = document.getElementById('lsBody');
+  if (!body) return;
+  body.innerHTML = '';
+  if (lotteryState) { renderActiveLottery(body); return; }
+  renderLotterySetup(body);
+}
+function renderActiveLottery(body) {
+  var condLabel = getConditionLabel(lotteryState.condition, lotteryState.giftId, lotteryState.password);
+  var isHost = (myName === lotteryState.hostName);
+  var html = '';
+  html += '<div class="ls-active-box">';
+  html += '<div class="ls-a-title">🎉 Fan Lottery идёт</div>';
+  html += '<div class="ls-a-line">Организатор: <b>' + escapeHtml(lotteryState.hostName) + '</b></div>';
+  html += '<div class="ls-a-line">Условие: ' + condLabel + '</div>';
+  html += '<div class="ls-a-line">Фонд 💎 ' + lotteryState.cost + ' · победителей: ' + lotteryState.winnersCount + ' · по 💎 ' + lotteryState.prizePerWinner + '</div>';
+  html += '<div class="ls-a-timer" id="lsActiveTimer">--:--</div>';
+  html += '<div class="ls-a-count">👥 Участников: <b>' + lotteryState.participantsCount + '</b></div>';
+  if (lotteryState.participants && lotteryState.participants.length > 0) {
+    html += '<div style="font-size:11px; color:#aaa; margin-top:8px; line-height:1.5;">' +
+      lotteryState.participants.slice(0, 15).map(escapeHtml).join(', ') +
+      (lotteryState.participants.length > 15 ? ' и ещё ' + (lotteryState.participants.length - 15) : '') +
+      '</div>';
+  }
+  if (!isHost) html += '<button class="ls-start" style="margin-top:12px;" onclick="joinLottery()">🎟 Участвовать</button>';
+  html += '</div>';
+  body.innerHTML = html;
+  startLotteryTimer();
+}
+function renderLotterySetup(body) {
+  var html = '';
+  html += '<div class="ls-section-title">Условие участия</div>';
+  html += '<div class="ls-conditions">';
+  html += '<div class="ls-cond" data-cond="share" onclick="selectLotteryCond(\'share\')"><div class="ls-cond-icon">📤</div><div class="ls-cond-name">Поделиться</div><div class="ls-cond-desc">Репост эфира</div></div>';
+  html += '<div class="ls-cond" data-cond="gift" onclick="selectLotteryCond(\'gift\')"><div class="ls-cond-icon">🎁</div><div class="ls-cond-name">Подарок</div><div class="ls-cond-desc">Конкретный подарок</div></div>';
+  html += '<div class="ls-cond" data-cond="none" onclick="selectLotteryCond(\'none\')"><div class="ls-cond-icon">🆓</div><div class="ls-cond-name">Без условий</div><div class="ls-cond-desc">Любой желающий</div></div>';
+  html += '<div class="ls-cond" data-cond="password" onclick="selectLotteryCond(\'password\')"><div class="ls-cond-icon">🔑</div><div class="ls-cond-name">Пароль</div><div class="ls-cond-desc">Слово в чат</div></div>';
+  html += '</div>';
+
+  html += '<div class="ls-gift-picker" id="lsGiftPicker" style="display:none;"><div class="ls-section-title">Выберите подарок</div><div class="ls-gift-grid" id="lsGiftGrid"></div></div>';
+  html += '<div class="ls-password-row" id="lsPasswordRow" style="display:none;"><div class="ls-section-title">Пароль (слово в чат)</div><input id="lsPasswordInput" placeholder="Например: лот" maxlength="30" value="лот"></div>';
+
+  html += '<div class="ls-section-title">Длительность (минут)</div><div class="ls-chips" id="lsDurationChips">';
+  for (var i = 0; i < ALLOWED_DURATIONS.length; i++) {
+    var sec = ALLOWED_DURATIONS[i];
+    var min = sec / 60;
+    var active = (lotterySelectedDuration === sec) ? ' active' : '';
+    html += '<button type="button" class="ls-chip' + active + '" data-sec="' + sec + '" onclick="selectLotteryDuration(' + sec + ')">' + min + '</button>';
+  }
+  html += '</div>';
+
+  html += '<div class="ls-section-title">Фонд (💎, делится на победителей)</div><div class="ls-chips" id="lsCostChips">';
+  for (var j = 0; j < ALLOWED_COSTS.length; j++) {
+    var cc = ALLOWED_COSTS[j];
+    var cact = (lotterySelectedCost === cc) ? ' active' : '';
+    html += '<button type="button" class="ls-chip prize' + cact + '" data-cost="' + cc + '" onclick="selectLotteryCost(' + cc + ')">' + cc + '</button>';
+  }
+  html += '</div>';
+
+  html += '<div class="ls-section-title">Число победителей</div><div class="ls-chips" id="lsWinnersChips">';
+  for (var w = 1; w <= 10; w++) {
+    var wact = (lotterySelectedWinners === w) ? ' active' : '';
+    html += '<button type="button" class="ls-chip winner' + wact + '" data-winners="' + w + '" onclick="selectLotteryWinners(' + w + ')">' + w + '</button>';
+  }
+  html += '</div>';
+  html += '<div class="ls-winners-row"><input id="lsWinnersInput" type="number" min="1" max="1000" value="' + lotterySelectedWinners + '" oninput="onWinnersInput()" placeholder="Своё число"></div>';
+  html += '<div class="ls-winners-hint">Можно ввести любое число (от 1 до 1000)</div>';
+
+  var computedPrize = Math.floor(lotterySelectedCost / lotterySelectedWinners);
+  html += '<div class="ls-summary">' +
+    '<div class="ls-summary-row"><span>Условие</span><span class="ls-val" id="lsSumCond">Без условий</span></div>' +
+    '<div class="ls-summary-row"><span>Длительность</span><span class="ls-val" id="lsSumDur">' + (lotterySelectedDuration / 60) + ' мин</span></div>' +
+    '<div class="ls-summary-row"><span>Фонд</span><span class="ls-val" id="lsSumCost">💎 ' + lotterySelectedCost + '</span></div>' +
+    '<div class="ls-summary-row"><span>Число победителей</span><span class="ls-val" id="lsSumWinners">' + lotterySelectedWinners + '</span></div>' +
+    '<div class="ls-summary-row total"><span>Приз на победителя</span><span class="ls-val" id="lsSumPrize">💎 ' + computedPrize + '</span></div>' +
+  '</div>';
+
+  html += '<button class="ls-start" id="lsStartBtn" onclick="startLottery()">🎉 Запустить Fan Lottery</button>';
+  body.innerHTML = html;
+  selectLotteryCond(lotterySelectedCondition, true);
+  renderLotteryGifts();
+}
+function renderLotteryGifts() {
+  var grid = document.getElementById('lsGiftGrid');
+  if (!grid) return;
+  var gifts = window.GIFTS || [];
+  grid.innerHTML = '';
+  for (var i = 0; i < gifts.length; i++) {
+    (function(g) {
+      var el = document.createElement('div');
+      el.className = 'ls-gift' + (lotterySelectedGiftId === g.id ? ' active' : '');
+      el.setAttribute('data-gift-id', g.id);
+      el.innerHTML = renderGiftIcon(g.icon, 30) + '<div class="ls-gift-name">' + g.name + '</div><div class="ls-gift-price">💎 ' + g.price + '</div>';
+      el.onclick = function() {
+        lotterySelectedGiftId = g.id;
+        var all = grid.querySelectorAll('.ls-gift');
+        for (var k = 0; k < all.length; k++) all[k].classList.remove('active');
+        el.classList.add('active');
+        updateLotterySummary();
+      };
+      grid.appendChild(el);
+    })(gifts[i]);
+  }
+}
+function selectLotteryCond(cond, silent) {
+  lotterySelectedCondition = cond;
+  var conds = document.querySelectorAll('.ls-cond');
+  for (var i = 0; i < conds.length; i++) {
+    if (conds[i].getAttribute('data-cond') === cond) conds[i].classList.add('active');
+    else conds[i].classList.remove('active');
+  }
+  var giftPicker = document.getElementById('lsGiftPicker');
+  var passRow = document.getElementById('lsPasswordRow');
+  if (giftPicker) giftPicker.style.display = (cond === 'gift') ? 'block' : 'none';
+  if (passRow) passRow.style.display = (cond === 'password') ? 'block' : 'none';
+  updateLotterySummary();
+}
+function selectLotteryDuration(sec) {
+  lotterySelectedDuration = sec;
+  var items = document.querySelectorAll('#lsDurationChips .ls-chip');
+  for (var i = 0; i < items.length; i++) {
+    if (parseInt(items[i].getAttribute('data-sec')) === sec) items[i].classList.add('active');
+    else items[i].classList.remove('active');
+  }
+  updateLotterySummary();
+}
+function selectLotteryCost(cost) {
+  lotterySelectedCost = cost;
+  var items = document.querySelectorAll('#lsCostChips .ls-chip');
+  for (var i = 0; i < items.length; i++) {
+    if (parseInt(items[i].getAttribute('data-cost')) === cost) items[i].classList.add('active');
+    else items[i].classList.remove('active');
+  }
+  updateLotterySummary();
+}
+function selectLotteryWinners(n) {
+  lotterySelectedWinners = n;
+  var items = document.querySelectorAll('#lsWinnersChips .ls-chip');
+  for (var i = 0; i < items.length; i++) {
+    if (parseInt(items[i].getAttribute('data-winners')) === n) items[i].classList.add('active');
+    else items[i].classList.remove('active');
+  }
+  var input = document.getElementById('lsWinnersInput');
+  if (input) input.value = n;
+  updateLotterySummary();
+}
+function onWinnersInput() {
+  var input = document.getElementById('lsWinnersInput');
+  if (!input) return;
+  var v = parseInt(input.value);
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > 1000) v = 1000;
+  lotterySelectedWinners = v;
+  var items = document.querySelectorAll('#lsWinnersChips .ls-chip');
+  for (var i = 0; i < items.length; i++) {
+    if (parseInt(items[i].getAttribute('data-winners')) === v) items[i].classList.add('active');
+    else items[i].classList.remove('active');
+  }
+  updateLotterySummary();
+}
+function updateLotterySummary() {
+  var computedPrize = Math.floor(lotterySelectedCost / lotterySelectedWinners);
+  var condLabel = getConditionLabel(lotterySelectedCondition, lotterySelectedGiftId, '');
+  var elCond = document.getElementById('lsSumCond');
+  var elDur = document.getElementById('lsSumDur');
+  var elCost = document.getElementById('lsSumCost');
+  var elWin = document.getElementById('lsSumWinners');
+  var elPrize = document.getElementById('lsSumPrize');
+  if (elCond) elCond.textContent = condLabel;
+  if (elDur) elDur.textContent = (lotterySelectedDuration / 60) + ' мин';
+  if (elCost) elCost.textContent = '💎 ' + lotterySelectedCost;
+  if (elWin) elWin.textContent = lotterySelectedWinners;
+  if (elPrize) elPrize.textContent = '💎 ' + computedPrize;
+}
+function startLottery() {
+  var condition = lotterySelectedCondition;
+  var giftId = (condition === 'gift') ? lotterySelectedGiftId : null;
+  var password = '';
+  if (condition === 'password') {
+    var inp = document.getElementById('lsPasswordInput');
+    password = inp ? inp.value.trim() : '';
+    if (password.length < 2) { alert('Пароль слишком короткий'); return; }
+  }
+  if (condition === 'gift' && !giftId) { alert('Выберите подарок'); return; }
+  socket.emit('lottery_start', {
+    condition: condition,
+    giftId: giftId,
+    password: password,
+    durationSec: lotterySelectedDuration,
+    cost: lotterySelectedCost,
+    winnersCount: lotterySelectedWinners
+  });
+}
+function stopLottery() { socket.emit('lottery_stop'); }
+function joinLottery() { socket.emit('lottery_join'); }
+
+socket.on('lottery_state', function(state) {
+  lotteryState = state;
+  var bg = document.getElementById('animatedBg');
+  if (state) {
+    if (bg) bg.className = 'animated-bg lottery';
+    showLotteryBanner(state);
+  } else {
+    if (bg) bg.className = 'animated-bg ' + roomGender;
+    hideLotteryBanner();
+    stopLotteryTimer();
+  }
+  var sheet = document.getElementById('lotterySheet');
+  if (sheet && sheet.classList.contains('open')) renderLotterySheet();
+});
+socket.on('lottery_ended', function(data) {
+  var winners = data.winners || [];
+  var text = '🏆 Fan Lottery завершена! ';
+  if (winners.length > 0) {
+    text += 'Победители (' + winners.length + '/' + data.winnersCount + '): ' +
+      winners.slice(0, 20).map(escapeHtml).join(', ') +
+      (winners.length > 20 ? ' …' : '') +
+      ' — по 💎 ' + data.prizePerWinner;
+  } else {
+    text += 'Участников не было.';
+  }
+  pushLotteryMessage(text);
+});
+socket.on('lottery_error', function(data) { alert(data.message || 'Ошибка лотереи'); });
+socket.on('lottery_info', function(data) { alert(data.message || ''); });
+
+function pushLotteryMessage(text) {
+  var body = document.getElementById('chatBody');
+  var div = document.createElement('div');
+  div.className = 'msg lottery';
+  div.innerHTML = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+  while (body.children.length > 100) body.removeChild(body.firstChild);
+}
+function showLotteryBanner(state) {
+  var mini = document.getElementById('lotteryMini');
+  if (!mini) return;
+  mini.classList.add('show');
+  updateLotteryBannerTimer();
+}
+function hideLotteryBanner() {
+  var mini = document.getElementById('lotteryMini');
+  if (mini) mini.classList.remove('show');
+}
+function updateLotteryBannerTimer() {
+  var el = document.getElementById('lmTimer');
+  if (!el || !lotteryState) return;
+  var left = Math.max(0, Math.floor((lotteryState.endsAt - Date.now()) / 1000));
+  var m = Math.floor(left / 60);
+  var s = left % 60;
+  el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+}
+function startLotteryTimer() {
+  stopLotteryTimer();
+  lotteryTimerInterval = setInterval(function() {
+    updateLotteryBannerTimer();
+    var el = document.getElementById('lsActiveTimer');
+    if (el && lotteryState) {
+      var left = Math.max(0, Math.floor((lotteryState.endsAt - Date.now()) / 1000));
+      var m = Math.floor(left / 60);
+      var s = left % 60;
+      el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    }
+  }, 1000);
+}
+function stopLotteryTimer() {
+  if (lotteryTimerInterval) {
+    clearInterval(lotteryTimerInterval);
+    lotteryTimerInterval = null;
+  }
+}
+
+// ================= CRASH =================
+var crashBalance = 0;
+var crashSelectedBet = 1;
+var crashState = null;
+var crashHistory = [];
+var crashTimerInterval = null;
+
+function openCrashSheet() {
+  document.getElementById('crashSheet').classList.add('open');
+  socket.emit('crash_get');
+  renderCrashUI();
+}
+function closeCrashSheet() {
+  document.getElementById('crashSheet').classList.remove('open');
+}
+function selectCrashBet(bet) {
+  if (crashState && crashState.phase !== 'idle' && crashState.phase !== 'crashed') return;
+  crashSelectedBet = bet;
+  var els = document.querySelectorAll('#csBetRow .cs-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  var startBtn = document.getElementById('csStartBtn');
+  if (startBtn) startBtn.innerHTML = '🚀 Старт (ставка ' + bet + ' 💎)';
+}
+function showCrashError(msg) {
+  var el = document.getElementById('csError');
+  if (!el) return;
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+var _myBetLocal = null;   // моя текущая ставка
+
+function startCrash() {
+  if (crashState && (crashState.phase === 'waiting' || crashState.phase === 'running')) return;
+  _myBetLocal = crashSelectedBet;
+  socket.emit('crash_start', { bet: crashSelectedBet });
+}
+function cashoutCrash() {
+  _myBetLocal = null;
+  socket.emit('crash_cashout');
+}
+
+socket.on('crash_balance', function(data) {
+  crashBalance = data.balance || 0;
+  crashHistory = data.history || [];
+  renderCrashUI();
+});
+
+socket.on('crash_state', function(state) {
+  crashState = state;
+  if (!state || state.phase === 'crashed' || state.phase === 'cashout') {
+    _myBetLocal = null;
+  }
+  var bg = document.getElementById('animatedBg');
+  if (state) {
+    if (state.phase === 'running') {
+      bg.className = 'animated-bg crash';
+    } else if (state.phase === 'crashed' || state.phase === 'cashout') {
+      bg.className = 'animated-bg crash boom';
+    } else {
+      bg.className = 'animated-bg crash';
+    }
+  } else {
+    bg.className = 'animated-bg ' + roomGender;
+  }
+  renderCrashUI();
+});
+socket.on('crash_tick', function(tick) {
+  if (!crashState) return;
+  crashState.multiplier = tick.multiplier;
+  crashState.phase = tick.phase;
+  var multEl = document.getElementById('csMultiplier');
+  var rocket = document.getElementById('csRocket');
+  if (multEl) multEl.textContent = tick.multiplier.toFixed(2) + '×';
+      if (rocket && tick.phase === 'running') {
+    var maxM = Math.max(2, tick.multiplier * 1.2);
+    var p = Math.min(1, (tick.multiplier - 1) / (maxM - 1));
+    // 0..1 → от 10% до 80% слева, от 10% до 75% снизу
+    var leftPct = 10 + p * 70;
+    var bottomPct = 10 + p * 65;
+    rocket.style.left = leftPct + '%';
+    rocket.style.bottom = bottomPct + '%';
+    rocket.style.transform = 'none';
+  }
+  // Сумма «Забрать» обновляется только если я в игре (быстро)
+  if (crashState.bets && myName) {
+    for (var i = 0; i < crashState.bets.length; i++) {
+      var bb = crashState.bets[i];
+      if (bb.name === myName && !bb.cashouted) {
+        var cashAmt = document.getElementById('csCashoutAmount');
+        if (cashAmt) {
+          cashAmt.textContent = Math.round(bb.bet * tick.multiplier).toLocaleString('ru-RU');
+        }
+        break;
+      }
+    }
+  }
+});
+
+socket.on('crash_error', function(data) {
+  showCrashError(data.message || 'Ошибка');
+});
+
+function renderCrashUI() {
+  var balEl = document.getElementById('csBalance');
+  if (balEl) balEl.textContent = crashBalance.toLocaleString('ru-RU');
+
+  var multEl = document.getElementById('csMultiplier');
+  var rocket = document.getElementById('csRocket');
+  var statusEl = document.getElementById('csStatus');
+  var startBtn = document.getElementById('csStartBtn');
+  var cashBtn = document.getElementById('csCashoutBtn');
+  var cashAmt = document.getElementById('csCashoutAmount');
+
+  // Определяем фазу
+  var phase = crashState ? crashState.phase : 'idle';
+  var running = phase === 'running';
+  var crashed = phase === 'crashed' || phase === 'cashout';
+
+  // Старт/Забрать
+  if (running) {
+    startBtn.style.display = 'none';
+    var myBet = null;
+    if (crashState.bets) {
+      for (var i = 0; i < crashState.bets.length; i++) {
+        if (crashState.bets[i].name === myName) {
+          myBet = crashState.bets[i];
+          break;
+        }
+      }
+    }
+    // Если моя ставка не в топ-100 (сервер), используем локальный флаг
+    var useBet = null;
+    if (myBet && !myBet.cashouted) useBet = myBet;
+    else if (_myBetLocal && !myBet) useBet = { bet: _myBetLocal, cashouted: false };
+
+    if (useBet) {
+      cashBtn.classList.add('show');
+      cashBtn.disabled = false;
+      var potential = Math.round(useBet.bet * crashState.multiplier);
+      cashAmt.textContent = potential.toLocaleString('ru-RU');
+    } else {
+      cashBtn.classList.remove('show');
+      cashBtn.disabled = true;
+    }
+  } else {
+    cashBtn.classList.remove('show');
+    cashBtn.disabled = true;
+    startBtn.style.display = 'block';
+    startBtn.disabled = (phase === 'waiting');
+    if (phase === 'waiting') startBtn.innerHTML = '⏳ Приём ставок...';
+    else startBtn.innerHTML = '🚀 Старт (ставка ' + crashSelectedBet + ' 💎)';
+  }
+
+  // Множитель и ракета
+if (crashState && (running || crashed)) {
+    statusEl.textContent = '';
+    window._waitStart = null;   // сброс ожидания
+    var m = crashState.multiplier || 1;
+    multEl.textContent = m.toFixed(2) + '×';
+    if (crashed) {
+      multEl.classList.add('crashed');
+      rocket.classList.add('boom');
+      rocket.textContent = '💥';
+      statusEl.textContent = 'Взорвалась на ×' + (crashState.crashPoint || m).toFixed(2);
+      var maxM = Math.max(2, crashState.crashPoint || 2);
+      var p = Math.min(1, (m - 1) / (maxM - 1));
+      rocket.style.left = (10 + p * 70) + '%';
+      rocket.style.bottom = (10 + p * 65) + '%';
+      rocket.style.transform = 'none';
+    } else {
+      multEl.classList.remove('crashed');
+      rocket.classList.remove('boom');
+      rocket.textContent = '🚀';
+      var maxM2 = Math.max(2, crashState.multiplier * 1.2);
+      var p2 = Math.min(1, (m - 1) / (maxM2 - 1));
+      rocket.style.left = (10 + p2 * 70) + '%';
+      rocket.style.bottom = (10 + p2 * 65) + '%';
+      rocket.style.transform = 'none';
+    }
+ } else if (phase === 'waiting') {
+    multEl.textContent = '1.00×';
+    multEl.classList.remove('crashed');
+    rocket.classList.remove('boom');
+    rocket.textContent = '🚀';
+    rocket.style.left = '20px';
+    rocket.style.bottom = '20px';
+    // Локальный отсчёт 3→2→1 через интервал
+    if (!window._waitStart) window._waitStart = Date.now();
+    var elapsedWait = Math.floor((Date.now() - window._waitStart) / 1000);
+    var left = Math.max(0, 3 - elapsedWait);
+    statusEl.textContent = 'До начала: ' + left + ' сек';
+  } else {
+    multEl.textContent = '1.00×';
+    multEl.classList.remove('crashed');
+    rocket.classList.remove('boom');
+    rocket.textContent = '🚀';
+    rocket.style.left = '20px';
+    rocket.style.bottom = '20px';
+    statusEl.textContent = crashState ? '' : 'Нажми «Старт», чтобы начать раунд';
+  }
+
+  // Список игроков
+  var betsEl = document.getElementById('csBets');
+  if (betsEl) {
+    var hash = '';
+    if (crashState && crashState.bets) {
+      for (var hi = 0; hi < crashState.bets.length; hi++) {
+        hash += crashState.bets[hi].name + ':' + crashState.bets[hi].cashouted + ':' + (crashState.bets[hi].payout || 0) + ';';
+      }
+    }
+    if (betsEl._lastHash === hash) {
+      // ничего не перерисовываем
+    } else {
+      betsEl._lastHash = hash;
+      betsEl.innerHTML = '';
+      if (crashState && crashState.bets && crashState.bets.length > 0) {
+        for (var j = 0; j < crashState.bets.length; j++) {
+          var b = crashState.bets[j];
+          var row = document.createElement('div');
+          var cls = 'cs-bet-row-item';
+          if (b.cashouted) cls += ' win';
+          else if (crashed) cls += ' lose';
+          row.className = cls;
+          var multTxt = '';
+          if (b.cashouted && b.cashMult) {
+            multTxt = '<span class="cs-bmult win">×' + b.cashMult.toFixed(2) + ' → ' + (b.payout || 0).toLocaleString('ru-RU') + '</span>';
+          } else if (crashed) {
+            multTxt = '<span class="cs-bmult lose">— проиграл</span>';
+          } else {
+            multTxt = '<span class="cs-bmult" style="color:#888;">в игре</span>';
+          }
+          row.innerHTML =
+            '<span class="cs-bname">' + escapeHtml(b.name) + '</span>' +
+            '<span><span class="cs-bval">' + b.bet + ' 💎</span>' + multTxt + '</span>';
+          betsEl.appendChild(row);
+        }
+      } else {
+        betsEl.innerHTML = '<div style="color:#666; font-size:12px; padding:8px 0;">Пока никто не поставил</div>';
+      }
+    }
+  }
+
+  // История
+  var histEl = document.getElementById('csHistory');
+  if (histEl) {
+    histEl.innerHTML = '';
+    var hist = (crashState && crashState.history) ? crashState.history : crashHistory;
+    if (hist && hist.length > 0) {
+      for (var h = 0; h < hist.length; h++) {
+        var it = hist[h];
+        var el = document.createElement('div');
+        var cls = 'cs-hchip';
+        if (it.mult < 2) cls += ' low';
+        else if (it.mult >= 5) cls += ' high';
+        el.className = cls;
+        el.textContent = '×' + (it.mult).toFixed(2);
+        histEl.appendChild(el);
+      }
+    } else {
+      histEl.innerHTML = '<div style="color:#666; font-size:12px;">Пока нет игр</div>';
+    }
+  }
+}
+
+// ---------- СВАЙП ВНИЗ greedy-sheet ----------
+(function() {
+  var sheet = document.getElementById('greedySheet');
+  if (!sheet) return;
+  var handle = sheet.querySelector('.gd-header') || sheet.querySelector('.gd-handle');
+  if (!handle) return;
+  var startY = 0, currentY = 0, dragging = false;
+  function onStart(e) {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    sheet.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    currentY = e.touches ? e.touches[0].clientY : e.clientY;
+    var delta = currentY - startY;
+    if (delta > 0) {
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = 'translateY(' + delta + 'px)';
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    var delta = currentY - startY;
+    sheet.style.transition = '';
+    if (delta > 80) {
+      sheet.style.transform = '';
+      closeGreedySheet();
+    } else {
+      sheet.style.transform = '';
+    }
+  }
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('touchmove', onMove, { passive: false });
+  handle.addEventListener('touchend', onEnd);
+  handle.addEventListener('touchcancel', onEnd);
+  handle.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+})();
+
+// ---------- СВАЙП ВНИЗ yummy-sheet ----------
+(function() {
+  var sheet = document.getElementById('yummySheet');
+  if (!sheet) return;
+  var handle = sheet.querySelector('.ys-header') || sheet.querySelector('.ys-handle');
+  if (!handle) return;
+  var startY = 0, currentY = 0, dragging = false;
+  function onStart(e) {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    sheet.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    currentY = e.touches ? e.touches[0].clientY : e.clientY;
+    var delta = currentY - startY;
+    if (delta > 0) {
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = 'translateY(' + delta + 'px)';
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    var delta = currentY - startY;
+    sheet.style.transition = '';
+    if (delta > 80) {
+      sheet.style.transform = '';
+      closeYummySheet();
+    } else {
+      sheet.style.transform = '';
+    }
+  }
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('touchmove', onMove, { passive: false });
+  handle.addEventListener('touchend', onEnd);
+  handle.addEventListener('touchcancel', onEnd);
+  handle.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+})();
+
+// ---------- СВАЙП ВНИЗ crash-sheet ----------
+(function() {
+  var sheet = document.getElementById('crashSheet');
+  if (!sheet) return;
+  var handle = sheet.querySelector('.cs-header') || sheet.querySelector('.cs-handle');
+  if (!handle) return;
+  var startY = 0, currentY = 0, dragging = false;
+  function onStart(e) {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    sheet.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    currentY = e.touches ? e.touches[0].clientY : e.clientY;
+    var delta = currentY - startY;
+    if (delta > 0) {
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = 'translateY(' + delta + 'px)';
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    var delta = currentY - startY;
+    sheet.style.transition = '';
+    if (delta > 80) {
+      sheet.style.transform = '';
+      closeCrashSheet();
+    } else {
+      sheet.style.transform = '';
+    }
+  }
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('touchmove', onMove, { passive: false });
+  handle.addEventListener('touchend', onEnd);
+  handle.addEventListener('touchcancel', onEnd);
+  handle.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+})();
+
+// ---------- СВАЙП ВНИЗ для панели подарков ----------
+(function() {
+  var sheet = document.getElementById('giftSheet');
+  if (!sheet) return;
+  var handle = sheet.querySelector('.gs-handle');
+  if (!handle) handle = sheet.querySelector('.gs-top');
+  if (!handle) return;
+
+  var startY = 0, currentY = 0, dragging = false;
+
+  function onStart(e) {
+    dragging = true;
+    startY = e.touches ? e.touches[0].clientY : e.clientY;
+    sheet.style.transition = 'none';
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    currentY = e.touches ? e.touches[0].clientY : e.clientY;
+    var delta = currentY - startY;
+    if (delta > 0) {
+      if (e.cancelable) e.preventDefault();
+      sheet.style.transform = 'translateY(' + delta + 'px)';
+    }
+  }
+  function onEnd() {
+    if (!dragging) return;
+    dragging = false;
+    var delta = currentY - startY;
+    sheet.style.transition = '';
+    if (delta > 80) {
+      sheet.style.transform = '';
+      sheet.classList.remove('open');
+    } else {
+      sheet.style.transform = '';
+    }
+  }
+  handle.addEventListener('touchstart', onStart, { passive: true });
+  handle.addEventListener('touchmove', onMove, { passive: false });
+  handle.addEventListener('touchend', onEnd);
+  handle.addEventListener('touchcancel', onEnd);
+  handle.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+})();
+
+// ---------- КОШЕЛЁК ----------
+var myBalanceValue = 1000;
+var TOPUP_PACKS = [
+  { diamonds: 100,   price: 100,   bonus: 0 },
+  { diamonds: 500,   price: 450,   bonus: 10 },
+  { diamonds: 1000,  price: 850,   bonus: 15 },
+  { diamonds: 5000,  price: 4000,  bonus: 20 },
+  { diamonds: 10000, price: 7500,  bonus: 25 },
+  { diamonds: 50000, price: 35000, bonus: 30 }
+];
+
+function openTopup(needed, missing) {
+  var modal = document.getElementById('topupModal');
+  if (!modal) return;
+    // Закрываем панель подарков, чтобы не мешала
+  var giftSheet = document.getElementById('giftSheet');
+  if (giftSheet) giftSheet.classList.remove('open');
+  var info = document.getElementById('topupInfo');
+  if (needed && missing) {
+    document.getElementById('topupCurrent').textContent = myBalanceValue;
+    document.getElementById('topupNeeded').textContent = needed;
+    document.getElementById('topupMissing').textContent = missing;
+    info.style.display = 'block';
+  } else {
+    info.style.display = 'none';
+  }
+  renderTopupPacks();
+  modal.classList.add('open');
+}
+
+function closeTopup() {
+  var modal = document.getElementById('topupModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function renderTopupPacks() {
+  var grid = document.getElementById('topupPacks');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (var i = 0; i < TOPUP_PACKS.length; i++) {
+    (function(p) {
+      var el = document.createElement('div');
+      el.className = 'topup-pack';
+      el.setAttribute('data-diamonds', p.diamonds);
+      el.innerHTML =
+        '<div class="pack-diamonds">💎 ' + p.diamonds.toLocaleString('ru-RU') + '</div>' +
+        '<div class="pack-price">' + p.price.toLocaleString('ru-RU') + ' ₽</div>' +
+        (p.bonus > 0 ? '<div class="pack-bonus">+' + p.bonus + '% бонус</div>' : '');
+      el.onclick = function() {
+        var all = grid.querySelectorAll('.topup-pack');
+        for (var k = 0; k < all.length; k++) all[k].classList.remove('active');
+        el.classList.add('active');
+        document.getElementById('topupCustomInput').value = p.diamonds;
+        updateCustomPrice();
+      };
+      grid.appendChild(el);
+    })(TOPUP_PACKS[i]);
+  }
+}
+
+function updateCustomPrice() {
+  var input = document.getElementById('topupCustomInput');
+  if (!input) return;
+  var val = parseInt(input.value) || 0;
+  document.getElementById('topupCustomPrice').textContent = val.toLocaleString('ru-RU');
+}
+
+function doTopup() {
+  var input = document.getElementById('topupCustomInput');
+  var amount = parseInt(input.value) || 0;
+  if (amount < 1) {
+    alert('Введите сумму');
+    return;
+  }
+  socket.emit('topup', { amount: amount });
+}
+
+socket.on('balance_update', function(data) {
+  myBalanceValue = data.balance;
+  var el = document.getElementById('myBalance');
+  if (el) el.textContent = data.balance.toLocaleString('ru-RU');
+  crashBalance = data.balance;
+  var cb = document.getElementById('csBalance');
+  if (cb) cb.textContent = crashBalance.toLocaleString('ru-RU');
+  var hb = document.getElementById('historyBalance');
+  if (hb) hb.textContent = data.balance.toLocaleString('ru-RU');
+  var yb = document.getElementById('ysBalance');
+  if (yb) yb.textContent = data.balance.toLocaleString('ru-RU');
+  var gb = document.getElementById('gdBalance');
+  if (gb) gb.textContent = data.balance.toLocaleString('ru-RU');
+});
+
+// Обновление уровня
+socket.on('user_level', function(data) {
+  var badge = document.getElementById('gsLevelBadge');
+  var text = document.getElementById('gsProgressText');
+  var fill = document.getElementById('gsProgressFill');
+
+  if (badge) {
+    badge.textContent = '💎 ' + data.level;
+    var colors = getLevelColors(data.level);
+    badge.style.background = colors.badge;
+    badge.style.color = colors.text;
+    badge.style.boxShadow = colors.glow;
+  }
+
+  if (text) {
+    if (data.level >= 100) text.textContent = 'Максимальный уровень';
+    else text.textContent = '+' + data.remaining.toLocaleString('ru-RU') + ' до Lv.' + (data.level + 1);
+  }
+
+  if (fill) {
+    var colors2 = getLevelColors(data.level);
+    fill.style.background = colors2.fill;
+    fill.style.width = data.percent + '%';
+  }
+});
+function getLevelColors(level) {
+  // Возвращает: badge (фон), text (цвет текста), glow (тень), fill (градиент полоски)
+  if (level >= 90) {
+    // 🔥 Легендарный — огненный
+    return {
+      badge: 'linear-gradient(135deg, #ff3b5c, #ff9800, #ffd54f)',
+      text: '#fff',
+      glow: '0 0 12px rgba(255,59,92,0.8)',
+      fill: 'linear-gradient(90deg, #ff3b5c, #ff9800, #ffd54f)'
+    };
+  }
+  if (level >= 70) {
+    // 👑 Божественный — фиолетово-золотой
+    return {
+      badge: 'linear-gradient(135deg, #9c27b0, #ffd54f)',
+      text: '#fff',
+      glow: '0 0 10px rgba(156,39,176,0.7)',
+      fill: 'linear-gradient(90deg, #9c27b0, #ffd54f)'
+    };
+  }
+  if (level >= 50) {
+    // 🏆 Золотой
+    return {
+      badge: 'linear-gradient(135deg, #ffd54f, #f57c00)',
+      text: '#000',
+      glow: '0 0 10px rgba(255,213,79,0.6)',
+      fill: 'linear-gradient(90deg, #ffd54f, #f57c00)'
+    };
+  }
+  if (level >= 40) {
+    // 🟣 Фиолетовый
+    return {
+      badge: 'linear-gradient(135deg, #9c27b0, #673ab7)',
+      text: '#fff',
+      glow: '0 0 8px rgba(156,39,176,0.5)',
+      fill: 'linear-gradient(90deg, #9c27b0, #673ab7)'
+    };
+  }
+  if (level >= 30) {
+    // 🔵 Синий
+    return {
+      badge: 'linear-gradient(135deg, #2196f3, #1565c0)',
+      text: '#fff',
+      glow: '0 0 8px rgba(33,150,243,0.5)',
+      fill: 'linear-gradient(90deg, #2196f3, #1565c0)'
+    };
+  }
+  if (level >= 20) {
+    // 🟢 Зелёный
+    return {
+      badge: 'linear-gradient(135deg, #43e97b, #38f9d7)',
+      text: '#003',
+      glow: '0 0 8px rgba(67,233,123,0.5)',
+      fill: 'linear-gradient(90deg, #43e97b, #38f9d7)'
+    };
+  }
+  if (level >= 10) {
+    // ⚪ Серебряный
+    return {
+      badge: 'linear-gradient(135deg, #b0bec5, #78909c)',
+      text: '#fff',
+      glow: '0 0 6px rgba(176,190,197,0.5)',
+      fill: 'linear-gradient(90deg, #b0bec5, #78909c)'
+    };
+  }
+  // 🔘 Бронзовый (1–9)
+  return {
+    badge: 'linear-gradient(135deg, #cd7f32, #8b4513)',
+    text: '#fff',
+    glow: '0 0 6px rgba(205,127,50,0.4)',
+    fill: 'linear-gradient(90deg, #cd7f32, #8b4513)'
+  };
+}
+
+// Ошибка баланса
+socket.on('balance_error', function(data) {
+  openTopup(data.needed, data.missing);
+});
+
+// ---------- YUMMY ----------
+var yummySelectedBet = 50;
+var yummySpinLock = false;
+var yummyHistoryData = [];
+
+function openYummySheet() {
+  document.getElementById('yummySheet').classList.add('open');
+  socket.emit('yummy_get');
+  updateYummyBalance();
+}
+function closeYummySheet() {
+  document.getElementById('yummySheet').classList.remove('open');
+}
+function selectYummyBet(bet) {
+  if (yummySpinLock) return;
+  yummySelectedBet = bet;
+  var els = document.querySelectorAll('#ysBetRow .ys-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  var btn = document.getElementById('ysSpinBtn');
+  if (btn) btn.innerHTML = '🎰 Крутить (ставка <span id="ysSpinBet">' + bet + '</span> 💎)';
+}
+function updateYummyBalance() {
+  var el = document.getElementById('ysBalance');
+  if (el) el.textContent = myBalanceValue.toLocaleString('ru-RU');
+}
+function showYummyError(msg) {
+  var el = document.getElementById('ysError');
+  if (!el) return;
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+function spinYummy() {
+  if (yummySpinLock) return;
+  yummySpinLock = true;
+  var btn = document.getElementById('ysSpinBtn');
+  if (btn) btn.disabled = true;
+
+  // Анимация: символы мелькают
+  var reels = [
+    document.getElementById('ysReel1'),
+    document.getElementById('ysReel2'),
+    document.getElementById('ysReel3')
+  ];
+  var symbols = ['🍬', '🍭', '🍫', '🍩', '🧁', '🍒'];
+  for (var ri = 0; ri < reels.length; ri++) {
+    reels[ri].classList.add('spinning');
+    reels[ri].classList.remove('win');
+    reels[ri].textContent = symbols[Math.floor(Math.random() * symbols.length)];
+  }
+  document.getElementById('ysResult').textContent = '';
+  document.getElementById('ysResult').className = 'ys-result';
+
+  // Мелькание
+  var flickerTimer = setInterval(function() {
+    for (var fi = 0; fi < reels.length; fi++) {
+      reels[fi].textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    }
+  }, 80);
+
+  window._yummyFlicker = flickerTimer;
+  window._yummyReels = reels;
+
+  // Сначала join (чтобы сервер точно нас знал), потом спин
+  if (myName) {
+    socket.emit('join', {
+      name: myName,
+      roomId: roomId,
+      host: hostName,
+      gender: roomGender,
+      baseViewers: 0,
+      diamonds: diamonds
+    });
+  }
+  setTimeout(function() {
+    socket.emit('yummy_spin', { bet: yummySelectedBet });
+  }, 150);
+
+  // Fallback: если сервер не ответил за 3 секунды — остановим
+  window._yummyFallback = setTimeout(function() {
+    if (!yummySpinLock) return;
+    if (window._yummyFlicker) {
+      clearInterval(window._yummyFlicker);
+      window._yummyFlicker = null;
+    }
+    var rls = window._yummyReels;
+    var syms = ['🍬','🍭','🍫','🍩','🧁','🍒'];
+    for (var fi = 0; fi < rls.length; fi++) {
+      rls[fi].classList.remove('spinning');
+      rls[fi].textContent = syms[Math.floor(Math.random()*syms.length)];
+    }
+    document.getElementById('ysResult').className = 'ys-result lose';
+    document.getElementById('ysResult').textContent = '⚠️ Сервер не ответил. Повторите.';
+    yummySpinLock = false;
+    var b = document.getElementById('ysSpinBtn');
+    if (b) b.disabled = false;
+  }, 3000);
+}
+function finishSpin(result) {
+  var reels = window._yummyReels;
+  // Подсветить выигрышные
+  if (result.mult > 0) {
+    for (var i = 0; i < reels.length; i++) {
+      reels[i].classList.add('win');
+    }
+  }
+
+  var resultEl = document.getElementById('ysResult');
+  if (result.mult === 20) {
+    resultEl.className = 'ys-result jackpot';
+    resultEl.textContent = '🎉 ДЖЕКПОТ! ×20 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else if (result.mult === 5) {
+    resultEl.className = 'ys-result win';
+    resultEl.textContent = '🔥 Три в ряд! ×5 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else if (result.mult === 2) {
+    resultEl.className = 'ys-result win';
+    resultEl.textContent = '✨ Два в ряд! ×2 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else {
+    resultEl.className = 'ys-result lose';
+    resultEl.textContent = '😢 Не повезло';
+  }
+
+  yummySpinLock = false;
+  var btn = document.getElementById('ysSpinBtn');
+  if (btn) btn.disabled = false;
+  updateYummyBalance();
+}
+
+socket.on('yummy_result', function(result) {
+  if (window._yummyFallback) {
+    clearTimeout(window._yummyFallback);
+    window._yummyFallback = null;
+  }
+  if (window._yummyFlicker) {
+    clearInterval(window._yummyFlicker);
+    window._yummyFlicker = null;
+  }
+
+  var reels = window._yummyReels || [
+    document.getElementById('ysReel1'),
+    document.getElementById('ysReel2'),
+    document.getElementById('ysReel3')
+  ];
+
+  var i = 0;
+  function stopNext() {
+    if (i >= reels.length) {
+      finishSpin(result);
+      return;
+    }
+    var r = reels[i];
+    r.classList.remove('spinning');
+    r.textContent = result.symbols[i];
+    i++;
+    setTimeout(stopNext, 220);
+  }
+  stopNext();
+});
+
+socket.on('yummy_history', function(list) {
+  yummyHistoryData = list || [];
+  renderYummyHistory();
+});
+socket.on('yummy_error', function(data) {
+  if (window._yummyFallback) {
+    clearTimeout(window._yummyFallback);
+    window._yummyFallback = null;
+  }
+  if (window._yummyFlicker) {
+    clearInterval(window._yummyFlicker);
+    window._yummyFlicker = null;
+  }
+  var reels = window._yummyReels || [];
+  for (var i = 0; i < reels.length; i++) reels[i].classList.remove('spinning');
+  yummySpinLock = false;
+  var btn = document.getElementById('ysSpinBtn');
+  if (btn) btn.disabled = false;
+  showYummyError(data.message || 'Ошибка');
+});
+
+function renderYummyHistory() {
+  var el = document.getElementById('ysHistory');
+  if (!el) return;
+  if (!yummyHistoryData.length) {
+    el.innerHTML = '<div style="color:#666;font-size:12px;">Пока нет игр</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < yummyHistoryData.length; i++) {
+    var h = yummyHistoryData[i];
+    var chip = document.createElement('div');
+    var cls = 'ys-hchip';
+    if (h.mult === 20) cls += ' jackpot';
+    else if (h.mult > 0) cls += ' win';
+    else cls += ' lose';
+    chip.className = cls;
+    chip.textContent = h.symbols.join('') + (h.mult > 0 ? ' ×' + h.mult : '');
+    el.appendChild(chip);
+  }
+}
+// ---------- GREEDY ----------
+var gdSelectedBet = 50;
+var gdSpinLock = false;
+var gdHistoryData = [];
+var GD_PRIZES = [
+  { emoji: '🍔', mult: 0.3, color: '#ff6b9d' },
+  { emoji: '🍰', mult: 0.7, color: '#4dd8e8' },
+  { emoji: '🍩', mult: 1.2, color: '#ffd54f' },
+  { emoji: '🍒', mult: 0.0, color: '#9c27b0' },
+  { emoji: '🍕', mult: 1.5, color: '#43e97b' },
+  { emoji: '🌮', mult: 0.0, color: '#e91e63' },
+  { emoji: '🍦', mult: 3.0, color: '#ff9800' },
+  { emoji: '🍓', mult: 10.0, color: '#2196f3' }
+];
+var GD_SECTORS = 8;
+var GD_SECTOR_ANGLE = 360 / GD_SECTORS;  // 45°
+var gdCurrentRotation = 0;
+
+function gdPolar(cx, cy, r, angleDeg) {
+  var a = (angleDeg - 90) * Math.PI / 180;
+  return {
+    x: cx + r * Math.cos(a),
+    y: cy + r * Math.sin(a)
+  };
+}
+
+function buildGreedyWheel() {
+  var svg = document.getElementById('gdWheel');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  var cx = 150, cy = 150, r = 145;
+  var half = GD_SECTOR_ANGLE / 2;
+
+  for (var i = 0; i < GD_SECTORS; i++) {
+    var startAngle = i * GD_SECTOR_ANGLE - half;
+    var endAngle = startAngle + GD_SECTOR_ANGLE;
+
+    var p1 = gdPolar(cx, cy, r, startAngle);
+    var p2 = gdPolar(cx, cy, r, endAngle);
+
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    var d = 'M ' + cx + ' ' + cy +
+            ' L ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2) +
+            ' A ' + r + ' ' + r + ' 0 0 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2) +
+            ' Z';
+    path.setAttribute('d', d);
+    path.setAttribute('fill', GD_PRIZES[i].color);
+    path.setAttribute('stroke', '#1a1208');
+    path.setAttribute('stroke-width', '2');
+    svg.appendChild(path);
+
+    // Текст в секторе
+    var midAngle = i * GD_SECTOR_ANGLE;
+    var textPos = gdPolar(cx, cy, r * 0.68, midAngle);
+    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', textPos.x.toFixed(2));
+    text.setAttribute('y', textPos.y.toFixed(2));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '28');
+    text.setAttribute('fill', '#fff');
+    text.setAttribute('transform', 'rotate(' + midAngle + ' ' + textPos.x.toFixed(2) + ' ' + textPos.y.toFixed(2) + ')');
+    text.textContent = GD_PRIZES[i].emoji;
+    svg.appendChild(text);
+
+    // Множитель под эмодзи
+    var multText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    var multPos = gdPolar(cx, cy, r * 0.92, midAngle);
+    multText.setAttribute('x', multPos.x.toFixed(2));
+    multText.setAttribute('y', multPos.y.toFixed(2));
+    multText.setAttribute('text-anchor', 'middle');
+    multText.setAttribute('dominant-baseline', 'middle');
+    multText.setAttribute('font-size', '13');
+    multText.setAttribute('font-weight', '900');
+    multText.setAttribute('fill', '#fff');
+    multText.setAttribute('transform', 'rotate(' + midAngle + ' ' + multPos.x.toFixed(2) + ' ' + multPos.y.toFixed(2) + ')');
+    multText.textContent = GD_PRIZES[i].mult > 0 ? '×' + GD_PRIZES[i].mult : '—';
+    svg.appendChild(multText);
+  }
+
+  // Внешний бордюр
+  var border = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  border.setAttribute('cx', cx);
+  border.setAttribute('cy', cy);
+  border.setAttribute('r', r);
+  border.setAttribute('fill', 'none');
+  border.setAttribute('stroke', '#ffd54f');
+  border.setAttribute('stroke-width', '6');
+  svg.appendChild(border);
+
+}
+
+function openGreedySheet() {
+  document.getElementById('greedySheet').classList.add('open');
+  buildGreedyWheel();
+  socket.emit('greedy_get');
+  gdUpdateBalance();
+}
+
+function closeGreedySheet() {
+  document.getElementById('greedySheet').classList.remove('open');
+}
+
+function gdUpdateBalance() {
+  var el = document.getElementById('gdBalance');
+  if (el) el.textContent = myBalanceValue.toLocaleString('ru-RU');
+}
+
+function selectGreedyBet(bet) {
+  if (gdSpinLock) return;
+  gdSelectedBet = bet;
+  var els = document.querySelectorAll('#gdbetRow .gd-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  var btn = document.getElementById('gdSpinBtn');
+  if (btn) btn.innerHTML = '🎡 Крутить (ставка <span id="gdSpinBet">' + bet + '</span> 💎)';
+}
+
+function gdShowError(msg) {
+  var el = document.getElementById('gdError');
+  if (!el) return;
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+var gdSpinToken = 0;
+
+function spinGreedy() {
+  if (gdSpinLock) return;
+  gdSpinLock = true;
+  gdSpinToken++;
+  var thisToken = gdSpinToken;
+  var btn = document.getElementById('gdSpinBtn');
+  if (btn) btn.disabled = true;
+  document.getElementById('gdResult').textContent = '';
+  document.getElementById('gdResult').className = 'gd-result';
+
+  if (myName) {
+    socket.emit('join', {
+      name: myName,
+      roomId: roomId,
+      host: hostName,
+      gender: roomGender,
+      baseViewers: 0,
+      diamonds: diamonds
+    });
+  }
+  setTimeout(function() {
+    if (thisToken !== gdSpinToken) return;  // уже другой спин
+    socket.emit('greedy_spin', { bet: gdSelectedBet });
+  }, 150);
+
+  // Страховка: если через 8 секунд ничего не пришло — разблокируем
+  setTimeout(function() {
+    if (thisToken !== gdSpinToken) return;
+    if (!gdSpinLock) return;
+    console.log('[GREEDY] timeout, unlock');
+    gdSpinLock = false;
+    if (btn) btn.disabled = false;
+  }, 8000);
+}
+
+var gdAnimTimer = null;
+
+function gdFinishSpin(result) {
+  var svg = document.getElementById('gdWheel');
+  if (!svg) return;
+
+  // Отменяем предыдущий таймер, если был
+  if (gdAnimTimer) clearTimeout(gdAnimTimer);
+
+  var sector = result.sector;
+
+  // Сколько нужно докрутить: сектор должен оказаться под стрелкой сверху (угол 0°)
+  // sector 0 — уже 0°, sector 1 — 45°, ..., sector N — N*45°
+  // Стрелка смотрит вниз, на центр — значит она указывает на верхний сектор (0°)
+  // Хотим: gdCurrentRotation (mod 360) === 360 - sectorAngle
+  // Мы хотим, чтобы сектор sector оказался под стрелкой сверху (угол 0°).
+  // Сектор sector изначально на угле sector*45° (0° = верх, по часовой).
+  // Чтобы его перевести на 0°, надо повернуть колесо на -sector*45°.
+  // Сектор sector изначально на угле sector*45° (0° = верх).
+  // Чтобы он оказался на 0° (под стрелкой), надо повернуть колесо
+  // на -sector*45° по логике углов, или на sector*45° по логике rotate().
+  // Проверено эмпирически: rotate(45° по часовой) уводит сектор 0 вправо,
+  // значит чтобы сектор N оказался сверху, надо повернуть на N*45° ПО ЧАСОВОЙ.
+  var targetRotation = (360 - sector * GD_SECTOR_ANGLE) % 360;
+
+  var currentAngle = ((gdCurrentRotation % 360) + 360) % 360;
+  var delta = targetRotation - currentAngle;
+  while (delta < 0) delta += 360;
+
+  // Прибавляем 5-7 полных оборотов для зрелищности
+  var turns = 5 + Math.floor(Math.random() * 3);
+  delta += 360 * turns;
+
+  // Накапливаем угол — НЕ сбрасываем. Браузер сам поймёт, куда крутить
+  gdCurrentRotation += delta;
+
+  // Небольшая задержка, чтобы браузер применил transform и запустил анимацию
+  setTimeout(function() {
+    svg.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.25, 1)';
+    svg.style.transform = 'rotate(' + gdCurrentRotation + 'deg)';
+    // Проверка: применился ли transform
+    var applied = svg.style.transform;
+    if (applied.indexOf('rotate') === -1) {
+      // fallback — через атрибут (не анимируется, но работает везде)
+      svg.setAttribute('transform', 'rotate(' + gdCurrentRotation + ' 150 150)');
+    }
+  }, 20);
+
+  gdAnimTimer = setTimeout(function() {
+    gdAnimTimer = null;
+    var resultEl = document.getElementById('gdResult');
+    if (result.mult === 10) {
+      resultEl.className = 'gd-result jackpot';
+      resultEl.textContent = '🎉 ДЖЕКПОТ! ×10 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+    } else if (result.payout > 0) {
+      var isProfit = result.payout > result.bet;
+      resultEl.className = 'gd-result ' + (isProfit ? 'win' : 'lose');
+      resultEl.textContent = result.emoji + ' ×' + result.mult + ' → ' + (isProfit ? '+' : '') + result.payout.toLocaleString('ru-RU') + ' 💎';
+    } else {
+      resultEl.className = 'gd-result lose';
+      resultEl.textContent = '😢 Пусто. Попробуй ещё.';
+    }
+    gdSpinLock = false;
+    var btn = document.getElementById('gdSpinBtn');
+    if (btn) btn.disabled = false;
+    gdUpdateBalance();
+  }, 4200);
+}
+
+socket.on('greedy_result', function(result) {
+  console.log('[GREEDY] result:', result, 'lock=', gdSpinLock);
+  if (!gdSpinLock) {
+    // Результат пришёл, но мы не в спине — игнорируем
+    console.log('[GREEDY] ignored, no lock');
+    return;
+  }
+  gdFinishSpin(result);
+});
+
+socket.on('greedy_error', function(data) {
+  gdSpinLock = false;
+  var btn = document.getElementById('gdSpinBtn');
+  if (btn) btn.disabled = false;
+  gdShowError(data.message || 'Ошибка');
+});
+
+socket.on('greedy_history', function(list) {
+  gdHistoryData = list || [];
+  renderGreedyHistory();
+});
+
+function renderGreedyHistory() {
+  var el = document.getElementById('gdHistory');
+  if (!el) return;
+  if (!gdHistoryData.length) {
+    el.innerHTML = '<div style="color:#666;font-size:12px;">Пока нет игр</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < gdHistoryData.length; i++) {
+    var h = gdHistoryData[i];
+    var chip = document.createElement('div');
+    var cls = 'gd-hchip';
+    if (h.mult === 10) cls += ' jackpot';
+    else if (h.mult > 0) cls += ' win';
+    else cls += ' lose';
+    chip.className = cls;
+    chip.innerHTML = h.emoji + (h.mult > 0 ? ' ×' + h.mult : '');
+    el.appendChild(chip);
+  }
+}
+// ---------- ИСТОРИЯ ТРАНЗАКЦИЙ ----------
+var myTransactions = [];
+
+socket.on('transactions', function(list) {
+  myTransactions = list || [];
+  renderHistory();
+});
+
+function openHistory() {
+  // Закрываем панель подарков, чтобы не мешала
+  var gs = document.getElementById('giftSheet');
+  if (gs) gs.classList.remove('open');
+  document.getElementById('historyBalance').textContent = myBalanceValue.toLocaleString('ru-RU');
+  document.getElementById('historyModal').classList.add('open');
+  socket.emit('get_transactions');
+  renderHistory();
+}
+
+function closeHistory() {
+  document.getElementById('historyModal').classList.remove('open');
+}
+
+function renderHistory() {
+  var list = document.getElementById('historyList');
+  if (!list) return;
+  list.innerHTML = '';
+  if (!myTransactions.length) {
+    list.innerHTML = '<div class="history-empty">Пока нет транзакций</div>';
+    return;
+  }
+  for (var i = 0; i < myTransactions.length; i++) {
+    var t = myTransactions[i];
+    var row = document.createElement('div');
+    row.className = 'history-row';
+
+    var icon = '💎';
+    if (t.type === 'topup') icon = '➕';
+    else if (t.type === 'gift_sent') icon = '🎁';
+    else if (t.type === 'gift_received') icon = '💰';
+    else if (t.type === 'crash_bet') icon = '🚀';
+    else if (t.type === 'crash_win') icon = '🏆';
+    else if (t.type === 'lottery_start') icon = '🎉';
+    else if (t.type === 'lottery_win') icon = '🥇';
+    else if (t.type === 'lottery_refund') icon = '↩️';
+	else if (t.type === 'yummy_bet') icon = '🎰';
+    else if (t.type === 'yummy_win') icon = '🍒';
+	else if (t.type === 'greedy_bet') icon = '🎡';
+    else if (t.type === 'greedy_win') icon = '🎉';
+    else if (t.type === 'quest_daily') icon = '🎯';
+    else if (t.type === 'quest_weekly') icon = '🏆';
+
+    var sign = t.amount >= 0 ? '+' : '';
+    var cls = t.amount >= 0 ? 'plus' : 'minus';
+    var timeStr = formatTime(t.ts);
+
+    row.innerHTML =
+      '<div class="history-icon ' + t.type + '">' + icon + '</div>' +
+      '<div class="history-info">' +
+        '<div class="history-note">' + escapeHtml(t.note || t.type) + '</div>' +
+        '<div class="history-time">' + timeStr + '</div>' +
+      '</div>' +
+      '<div class="history-amount ' + cls + '">' + sign + t.amount.toLocaleString('ru-RU') + '</div>';
+
+    list.appendChild(row);
+  }
+}
+
+function formatTime(ts) {
+  var d = new Date(ts);
+  var now = new Date();
+  var diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'только что';
+  if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+  var dd = String(d.getDate()).padStart(2, '0');
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  var hh = String(d.getHours()).padStart(2, '0');
+  var mi = String(d.getMinutes()).padStart(2, '0');
+  return dd + '.' + mm + ' ' + hh + ':' + mi;
+}
+
+// Успешное пополнение
+socket.on('topup_success', function(data) {
+  closeTopup();
+  var el = document.getElementById('myBalance');
+  if (el) el.textContent = myBalanceValue.toLocaleString('ru-RU');
+});
+
+// ---------- ЗАПРЕТ ЗУМА ----------
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length > 1) e.preventDefault();
+}, { passive: false });
+function openPrivateChat() {
+  if (!currentProfileViewer) return;
+  var name = currentProfileViewer.name;
+  if (!name || name === myName) return;
+  // Запоминаем в известные
+  var known = JSON.parse(localStorage.getItem('pm_known_users') || '[]');
+  if (known.indexOf(name) === -1) {
+    known.push(name);
+    localStorage.setItem('pm_known_users', JSON.stringify(known));
+  }
+  window.location.href = '/chat.html?with=' + encodeURIComponent(name);
+}
+
+</script>
+</body>
+</html>

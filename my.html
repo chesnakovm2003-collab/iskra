@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Я · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+
+  .my-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f5f5f5;
+    min-height: 100%;
+    position: relative;
+    padding-bottom: 90px;
+  }
+
+  .my-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .my-header .ic {
+    font-size: 22px;
+    cursor: pointer;
+    color: #333;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-family: inherit;
+  }
+  .my-header .ic:active { background: rgba(0,0,0,0.1); }
+
+  .my-avatar-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0 16px;
+    position: relative;
+  }
+  .my-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: #333 center/cover;
+    border: 4px solid #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    cursor: pointer;
+    position: relative;
+    transition: 0.15s;
+  }
+  .my-avatar:active { transform: scale(0.96); }
+  .my-crown {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 32px;
+    filter: drop-shadow(0 2px 6px rgba(255, 165, 0, 0.8));
+    pointer-events: none;
+  }
+
+  .my-name {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 900;
+    margin-bottom: 20px;
+  }
+
+  .my-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 0 16px 20px;
+  }
+  .my-stat { text-align: center; }
+  .my-stat-num {
+    font-size: 18px;
+    font-weight: 900;
+    color: #222;
+  }
+  .my-stat-label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .my-squares {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 0 16px 20px;
+  }
+  .my-square {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: 0.15s;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .my-square:active { transform: scale(0.95); }
+  .my-square .sq-icon {
+    font-size: 22px;
+  }
+  .my-square.level { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); }
+  .my-square.vip { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #fff; }
+  .my-square.clan { background: linear-gradient(135deg, #8b4513, #d4a574); }
+  .my-square.earn { background: linear-gradient(135deg, #4dd8e8, #2196f3); }
+
+  .my-list {
+    background: #f5f5f5;
+    padding: 0 16px;
+  }
+  .my-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 4px;
+    cursor: pointer;
+    border-bottom: 1px solid #e8e8e8;
+    transition: 0.15s;
+  }
+  .my-item:last-child { border-bottom: none; }
+  .my-item:active { background: rgba(0,0,0,0.03); }
+  .my-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .my-item-icon.game { background: linear-gradient(135deg, #ff9800, #ff5722); }
+  .my-item-icon.creative { background: linear-gradient(135deg, #4dd8e8, #2196f3); }
+  .my-item-icon.events { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); }
+  .my-item-icon.wallet { background: linear-gradient(135deg, #e91e63, #ff80ab); }
+  .my-item-icon.tools { background: linear-gradient(135deg, #ffc107, #ff9800); }
+  .my-item-icon.post { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); }
+  .my-item-icon.svip { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .my-item-icon.tasks { background: linear-gradient(135deg, #ffd54f, #ff9800); }
+  .my-item-icon.fan { background: linear-gradient(135deg, #ff80ab, #e91e63); }
+  .my-item-icon.participants { background: linear-gradient(135deg, #ffd54f, #f57c00); }
+  .my-item-icon.rating { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); }
+  .my-item-icon.help { background: linear-gradient(135deg, #e91e63, #f06292); }
+  .my-item-icon.security { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+  .my-item-name {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 700;
+    color: #222;
+  }
+  .my-item-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #888;
+  }
+  .my-item-badge {
+    font-size: 10px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: #fff;
+  }
+  .my-item-badge.new { background: #ff3b5c; }
+  .my-item-badge.gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; }
+  .my-item-badge.green { background: #43a047; }
+  .my-item-arrow {
+    color: #ccc;
+    font-size: 18px;
+    margin-left: 4px;
+  }
+  .my-item .red-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff3b5c;
+    border-radius: 50%;
+  }
+
+  .my-nav {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-width: 484px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 24px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    z-index: 20;
+  }
+  .my-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: #999;
+    font-size: 10px;
+    font-weight: 600;
+    flex: 1;
+    padding: 6px 0;
+    cursor: pointer;
+  }
+  .my-nav-item.active { color: #222; }
+  .my-nav-item .ico { font-size: 20px; }
+  .my-nav-item .circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    box-shadow: 0 4px 14px rgba(77, 216, 232, 0.4);
+  }
+</style>
+</head>
+<body>
+
+<div class="my-page">
+
+  <div class="my-header">
+    <button class="ic" onclick="goSettings()">⚙️</button>
+    <button class="ic" onclick="goFriends()">👥</button>
+    <button class="ic" onclick="logout()" title="Сменить пользователя">🚪</button>
+  </div>
+
+  <div class="my-avatar-wrap">
+    <div class="my-avatar" id="myAvatar" onclick="openMyBigProfile()">
+      <img src="/brand/spark-avatar.png" alt="" style="width:100%;height:100%;object-fit:contain;padding:8px;border-radius:50%;">
+    </div>
+    <div class="my-crown" id="myCrown" style="display:none;">👑</div>
+  </div>
+
+  <div class="my-name" id="myNameDisplay">Имя</div>
+
+  <div class="my-stats">
+    <div class="my-stat">
+      <div class="my-stat-num" id="myFriends">0</div>
+      <div class="my-stat-label">Друзья</div>
+    </div>
+    <div class="my-stat">
+      <div class="my-stat-num" id="myFollowing">0</div>
+      <div class="my-stat-label">подписки</div>
+    </div>
+    <div class="my-stat">
+      <div class="my-stat-num" id="myFollowers">0</div>
+      <div class="my-stat-label">Подписчики ⭐</div>
+    </div>
+  </div>
+
+  <div class="my-squares">
+    <div class="my-square level" onclick="wip('Уровень')">
+      <span class="sq-icon">💎</span>
+      <span>Lv.56</span>
+    </div>
+    <div class="my-square vip" onclick="wip('Купить VIP')">
+      <span class="sq-icon">V</span>
+      <span>Купить VIP</span>
+    </div>
+    <div class="my-square clan" onclick="wip('Дом Ангелов')">
+      <span class="sq-icon">🏠</span>
+      <span>Дом Ангелов</span>
+    </div>
+    <div class="my-square earn" onclick="wip('Зарабатывайте')">
+      <span class="sq-icon">💰</span>
+      <span>Зарабатывайте</span>
+    </div>
+  </div>
+
+  <div class="my-list">
+
+    <div class="my-item" onclick="wip('Развлекательный центр')">
+      <div class="my-item-icon game">🎮</div>
+      <div class="my-item-name">Развлекательный центр</div>
+      <div class="my-item-right">
+        <span class="my-item-badge gold">x1</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Творческий Центр')">
+      <div class="my-item-icon creative">📊</div>
+      <div class="my-item-name">Творческий Центр</div>
+      <div class="my-item-right">
+        <span>прибыль $28.1</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Центр мероприятий')">
+      <div class="my-item-icon events">📢</div>
+      <div class="my-item-name">Центр мероприятий</div>
+      <div class="my-item-right">
+        <span class="my-item-badge new">NEW</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="goWallet()">
+      <div class="my-item-icon wallet">💰</div>
+      <div class="my-item-name">Кошелёк</div>
+      <div class="my-item-right">
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+    <div class="my-item" onclick="openPmPriceModal()">
+      <div class="my-item-icon fan">💬</div>
+      <div class="my-item-name">Цена личных сообщений</div>
+      <div class="my-item-right">
+        <span id="pmPriceBadge" style="color:#e91e63;font-weight:800;">0 💎</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Инструменты')">
+      <div class="my-item-icon tools">📦</div>
+      <div class="my-item-name">Инструменты</div>
+      <div class="my-item-right">
+        <span>29</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Пост')">
+      <div class="my-item-icon post">📋</div>
+      <div class="my-item-name">Пост</div>
+      <div class="my-item-right">
+        <span class="red-dot"></span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('SVIP')">
+      <div class="my-item-icon svip">👑</div>
+      <div class="my-item-name">SVIP</div>
+      <div class="my-item-right">
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="window.location.href='/quests.html'">
+      <div class="my-item-icon tasks">✅</div>
+      <div class="my-item-name">Центр заданий</div>
+      <div class="my-item-right">
+        <span class="my-item-badge gold">Король</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Фан группа')">
+      <div class="my-item-icon fan">💗</div>
+      <div class="my-item-name">Фан группа</div>
+      <div class="my-item-right">
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Центр участников')">
+      <div class="my-item-icon participants">👥</div>
+      <div class="my-item-name">Центр участников</div>
+      <div class="my-item-right">
+        <span class="my-item-badge new">NEW</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Рейтинг')">
+      <div class="my-item-icon rating">📊</div>
+      <div class="my-item-name">Рейтинг</div>
+      <div class="my-item-right">
+        <span class="my-item-badge gold">STAR LIST</span>
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Помощь и Обратная связь')">
+      <div class="my-item-icon help">❓</div>
+      <div class="my-item-name">Помощь и Обратная связь</div>
+      <div class="my-item-right">
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+    <div class="my-item" onclick="wip('Центр безопасности')">
+      <div class="my-item-icon security">🛡</div>
+      <div class="my-item-name">Центр безопасности</div>
+      <div class="my-item-right">
+        <span class="my-item-arrow">›</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="my-nav">
+    <div class="my-nav-item" onclick="goHome()">
+      <span class="ico">🏠</span>
+      <span>Live</span>
+    </div>
+    <div class="my-nav-item">
+      <span class="ico">▶</span>
+      <span>Видео</span>
+    </div>
+    <div class="my-nav-item" onclick="goLive()" style="cursor:pointer;">
+      <div class="circle">➕</div>
+    </div>
+    <div class="my-nav-item" onclick="window.location.href='/chats.html'" style="cursor:pointer;">
+      <span class="ico">💬</span>
+      <span>Чаты</span>
+    </div>
+    <div class="my-nav-item active">
+      <span class="ico">👤</span>
+      <span>Я</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<div id="pmPriceModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;padding:22px 20px;width:320px;max-width:92%;box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+    <div style="font-size:18px;font-weight:900;margin-bottom:6px;">💬 Цена личных сообщений</div>
+    <div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.5;">
+      Сколько 💎 платит человек, чтобы написать тебе в личку.<br>
+      Тебе идёт 70%, платформе — 30%.
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;" id="pmPriceOptions">
+      <button class="pm-price-btn" data-cost="0"   onclick="selectPmPrice(0)">Бесплатно</button>
+      <button class="pm-price-btn" data-cost="5"   onclick="selectPmPrice(5)">5 💎</button>
+      <button class="pm-price-btn" data-cost="10"  onclick="selectPmPrice(10)">10 💎</button>
+      <button class="pm-price-btn" data-cost="50"  onclick="selectPmPrice(50)">50 💎</button>
+      <button class="pm-price-btn" data-cost="100" onclick="selectPmPrice(100)">100 💎</button>
+      <button class="pm-price-btn" data-cost="500" onclick="selectPmPrice(500)">500 💎</button>
+    </div>
+    <button onclick="savePmPrice()" style="width:100%;background:linear-gradient(135deg,#4dd8e8,#2bb8d0);color:#fff;border:none;padding:14px;border-radius:14px;font-size:15px;font-weight:900;cursor:pointer;font-family:inherit;">Сохранить</button>
+    <button onclick="closePmPriceModal()" style="width:100%;background:transparent;color:#888;border:none;padding:10px;font-size:13px;cursor:pointer;font-family:inherit;margin-top:6px;">Отмена</button>
+  </div>
+</div>
+
+<style>
+  .pm-price-btn {
+    background: #f0f0f0;
+    border: 2px solid transparent;
+    color: #222;
+    font-size: 13px;
+    font-weight: 800;
+    padding: 12px 4px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .pm-price-btn.active {
+    background: linear-gradient(135deg, rgba(77,216,232,0.2), rgba(43,184,208,0.2));
+    border-color: #4dd8e8;
+    color: #007a8a;
+    box-shadow: 0 0 10px rgba(77,216,232,0.5);
+  }
+</style>
+<script>
+var socket = io();
+
+var myName = sessionStorage.getItem('myName');
+
+if (!myName) {
+  var name = prompt('Введите ваше имя:');
+  if (name && name.trim()) {
+    myName = name.trim();
+    sessionStorage.setItem('myName', myName);
+  } else {
+    myName = 'Гость';
+  }
+}
+
+document.getElementById('myNameDisplay').textContent = myName;
+socket.on('connect', function() {
+  socket.emit('join', {
+    name: myName,
+    roomId: 'my_page',
+    host: myName,
+    gender: 'male',
+    baseViewers: 0,
+    diamonds: 0
+  });
+  setTimeout(function() {
+    socket.emit('pm_chat_cost_get');
+  }, 300);
+});
+
+function getAvatarGradient(name) {
+  var colors = [
+    'linear-gradient(135deg, #ff6b9d, #c44569)',
+    'linear-gradient(135deg, #4dd8e8, #2bb8d0)',
+    'linear-gradient(135deg, #ffd54f, #f57c00)',
+    'linear-gradient(135deg, #9c27b0, #673ab7)',
+    'linear-gradient(135deg, #43e97b, #38f9d7)',
+    'linear-gradient(135deg, #f093fb, #f5576c)'
+  ];
+  var sum = 0;
+  for (var i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return colors[sum % colors.length];
+}
+
+document.getElementById('myAvatar').style.background = getAvatarGradient(myName);
+document.getElementById('myAvatar').style.backgroundSize = 'cover';
+
+document.getElementById('myFriends').textContent = Math.floor(Math.random() * 200) + 10;
+document.getElementById('myFollowing').textContent = Math.floor(Math.random() * 500) + 20;
+document.getElementById('myFollowers').textContent = (Math.floor(Math.random() * 50) + 1) + 'k';
+
+function openMyBigProfile() {
+  var myProfile = {
+    name: myName,
+    isBot: false,
+    isMe: true,
+    level: 56,
+    isVip: false,
+    hasDonated: false,
+    totalDiamonds: 0,
+    gender: 'male'
+  };
+  sessionStorage.setItem('profileViewer', JSON.stringify(myProfile));
+  window.location.href = '/profile.html';
+}
+
+function wip(name) {
+  alert('🔧 "' + name + '" — в разработке');
+}
+
+function goSettings() {
+  alert('🔧 Настройки — в разработке');
+}
+
+function goFriends() {
+  alert('🔧 Друзья — в разработке');
+}
+
+function goHome() {
+  window.location.href = '/';
+}
+// ---------- ЦЕНА ЛИЧНЫХ СООБЩЕНИЙ ----------
+var pmSelectedPrice = 0;
+var pmCurrentPrice = 0;
+
+function openPmPriceModal() {
+  // Запрашиваем текущую цену у сервера
+  socket.emit('pm_chat_cost_get');
+  document.getElementById('pmPriceModal').style.display = 'flex';
+  // По умолчанию подсветим 0
+  selectPmPrice(pmCurrentPrice);
+}
+
+function closePmPriceModal() {
+  document.getElementById('pmPriceModal').style.display = 'none';
+}
+
+function selectPmPrice(cost) {
+  pmSelectedPrice = cost;
+  var btns = document.querySelectorAll('.pm-price-btn');
+  for (var i = 0; i < btns.length; i++) {
+    if (parseInt(btns[i].getAttribute('data-cost')) === cost) btns[i].classList.add('active');
+    else btns[i].classList.remove('active');
+  }
+}
+
+function savePmPrice() {
+  pmModalJustSaved = true;
+  socket.emit('pm_chat_cost_set', { cost: pmSelectedPrice });
+}
+
+var pmModalJustSaved = false;
+
+socket.on('pm_chat_cost', function(data) {
+  pmCurrentPrice = data.cost || 0;
+  var badge = document.getElementById('pmPriceBadge');
+  if (badge) {
+    badge.textContent = pmCurrentPrice > 0 ? (pmCurrentPrice + ' 💎') : 'Бесплатно';
+  }
+  var modal = document.getElementById('pmPriceModal');
+  if (modal && modal.style.display === 'flex') {
+    selectPmPrice(pmCurrentPrice);
+    if (pmModalJustSaved) {
+      pmModalJustSaved = false;
+      setTimeout(function() {
+        closePmPriceModal();
+        alert('Цена сохранена: ' + (pmCurrentPrice > 0 ? pmCurrentPrice + ' 💎 за сообщение' : 'Бесплатно'));
+      }, 200);
+    }
+  }
+});
+
+
+function goWallet() {
+  window.location.href = '/wallet.html';
+}
+
+function logout() {
+  var current = sessionStorage.getItem('myName') || '?';
+  if (!confirm('Выйти из аккаунта ' + current + '?')) return;
+  sessionStorage.removeItem('myName');
+  sessionStorage.removeItem('lastRoomId');
+  sessionStorage.removeItem('lastRoomHost');
+  window.location.href = '/';
+}
+
+function goLive() {
+  var mn = sessionStorage.getItem('myName') || 'Гость';
+  var newRoomId = 'my_' + Date.now();
+  window.location.href =
+    '/room.html?room=' + newRoomId +
+    '&host=' + encodeURIComponent(mn) +
+    '&title=' + encodeURIComponent('Мой эфир') +
+    '&diamonds=0' +
+    '&viewers=5' +
+    '&gender=male';
+}
+</script>
+</body>
+</html>

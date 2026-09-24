@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Профиль · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+
+  .profile-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f5f5f5;
+    min-height: 100%;
+    position: relative;
+    padding-bottom: 90px;
+  }
+
+  /* ============ ШАПКА ============ */
+  .pp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .pp-back {
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+  }
+  .pp-header-name {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1.2;
+  }
+  .pp-header-name .id {
+    font-size: 11px;
+    color: #999;
+    font-weight: 500;
+  }
+  .pp-share {
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    position: relative;
+  }
+
+  /* ============ БОЛЬШОЕ ФОТО ============ */
+  .pp-photo {
+    width: 100%;
+    height: 380px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .pp-photo .shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.5) 100%);
+  }
+
+  /* ============ КАРУСЕЛЬ ПРЕВЬЮ ============ */
+  .pp-carousel {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px;
+    background: #f5f5f5;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .pp-carousel::-webkit-scrollbar { display: none; }
+  .pp-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .pp-thumb.active {
+    border-color: #4dd8e8;
+  }
+
+  /* ============ ПАНЕЛЬ ИНФО ============ */
+  .pp-info {
+    background: linear-gradient(180deg, #e8f4f8 0%, #d4eef5 30%, #c5e7f2 100%);
+    padding: 16px 16px 20px;
+    position: relative;
+  }
+
+  .pp-name-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .pp-name {
+    font-size: 22px;
+    font-weight: 900;
+    color: #222;
+  }
+  .pp-verified {
+    width: 18px;
+    height: 18px;
+    background: #4dd8e8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 900;
+  }
+  .pp-gender {
+    width: 18px;
+    height: 18px;
+    background: #4dd8e8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+  }
+  .pp-id-row {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pp-id-row .copy {
+    background: rgba(0,0,0,0.08);
+    border: none;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Статистика */
+  .pp-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 14px;
+  }
+  .pp-stat {
+    text-align: left;
+  }
+  .pp-stat-num {
+    font-size: 20px;
+    font-weight: 900;
+    color: #222;
+  }
+  .pp-stat-label {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+  }
+
+  /* Бейджи */
+  .pp-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .pp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .pp-badge.gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; }
+  .pp-badge.green { background: #43a047; color: #fff; }
+  .pp-badge.blue { background: #4dd8e8; color: #003; }
+  .pp-badge.pink { background: linear-gradient(135deg, #ff80ab, #e91e63); color: #fff; }
+  .pp-badge.purple { background: linear-gradient(135deg, #9c27b0, #673ab7); color: #fff; }
+  .pp-badge.dark { background: #333; color: #fff; }
+
+  /* Клан */
+  .pp-clan {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .pp-clan-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #8b4513, #d4a574);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .pp-clan-info {
+    flex: 1;
+  }
+  .pp-clan-info .clan-name {
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pp-clan-info .clan-rank {
+    font-size: 12px;
+    color: #cd7f32;
+    margin-top: 2px;
+  }
+
+  /* Вклад */
+  .pp-contribution {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .pp-contribution .cont-num {
+    background: #ffd54f;
+    color: #000;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  /* Плашки уровня */
+  .pp-plates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pp-plate {
+    padding: 14px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+    cursor: pointer;
+  }
+  .pp-plate-gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; }
+  .pp-plate-dark { background: linear-gradient(135deg, #004d40, #00695c); color: #fff; }
+
+  /* Кнопки */
+  .pp-actions {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pp-action {
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    border: 2px solid transparent;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .pp-action:active { transform: scale(0.95); }
+  .pp-subscribe {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    border: none;
+  }
+  .pp-subscribe.subscribed {
+    background: #e0e0e0;
+    color: #666;
+  }
+  .pp-chat {
+    background: #fff;
+    color: #222;
+    border-color: #ddd;
+  }
+
+  /* Табы */
+  .pp-tabs {
+    display: flex;
+    gap: 24px;
+    padding: 12px 16px 0;
+    background: #f5f5f5;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .pp-tab {
+    padding-bottom: 10px;
+    color: #888;
+    cursor: pointer;
+    position: relative;
+  }
+  .pp-tab.active {
+    color: #222;
+  }
+  .pp-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: #4dd8e8;
+    border-radius: 3px;
+  }
+
+  /* Личная информация */
+  .pp-section {
+    padding: 16px;
+    background: #f5f5f5;
+  }
+  .pp-section-title {
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .pp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .pp-tag {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+  }
+
+  /* Соц сети */
+  .pp-social {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #e5e5e5;
+    cursor: pointer;
+  }
+  .pp-social:last-child { border-bottom: none; }
+  .pp-social-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+  }
+  .pp-social-icon.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+  .pp-social-icon.youtube { background: #ff0000; }
+  .pp-social-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .pp-social-action {
+    font-size: 12px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Нижняя навигация */
+  .pp-nav {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    max-width: 484px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 24px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 4px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    z-index: 20;
+  }
+  .pp-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: #999;
+    font-size: 10px;
+    font-weight: 600;
+    flex: 1;
+    padding: 6px 0;
+    cursor: pointer;
+  }
+  .pp-nav-item.active { color: #222; }
+  .pp-nav-item .ico {
+    font-size: 20px;
+  }
+  .pp-nav-item .circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    box-shadow: 0 4px 14px rgba(77, 216, 232, 0.4);
+  }
+</style>
+</head>
+<body>
+
+<div class="profile-page">
+
+  <!-- Шапка -->
+  <div class="pp-header">
+    <button class="pp-back" onclick="history.back()">←</button>
+    <div class="pp-header-name">
+      <span id="topName">Имя</span>
+      <span class="id" id="topId">ID</span>
+    </div>
+      <button class="pp-share" onclick="shareProfile()">
+      ➤
+    </button>
+  </div>
+
+  <!-- Большое фото -->
+  <div class="pp-photo" id="ppPhoto">
+    <div class="shade"></div>
+  </div>
+
+  <!-- Карусель превью -->
+  <div class="pp-carousel" id="ppCarousel"></div>
+
+  <!-- Информация -->
+  <div class="pp-info">
+
+    <div class="pp-name-row">
+      <div class="pp-name" id="ppName">Имя</div>
+      <div class="pp-verified">✓</div>
+      <div class="pp-gender" id="ppGender">♂</div>
+    </div>
+
+    <div class="pp-id-row">
+      <span>ID: <span id="ppId">user_000</span></span>
+      <button class="copy" onclick="copyId()">📋</button>
+      <span style="margin-left:auto; color:#4dd8e8; font-weight:700;">В Космосе</span>
+    </div>
+
+    <div class="pp-stats">
+      <div class="pp-stat">
+        <div class="pp-stat-num" id="ppFollowers">0</div>
+        <div class="pp-stat-label">Подписчики</div>
+      </div>
+      <div class="pp-stat">
+        <div class="pp-stat-num" id="ppFollowing">0</div>
+        <div class="pp-stat-label">подписки</div>
+      </div>
+      <div class="pp-stat">
+        <div class="pp-stat-num" id="ppBeans">0</div>
+        <div class="pp-stat-label">Бобы</div>
+      </div>
+      <div class="pp-stat">
+        <div class="pp-stat-num" id="ppDiamonds">0</div>
+        <div class="pp-stat-label">Алмазы</div>
+      </div>
+    </div>
+
+    <div class="pp-badges" id="ppBadges"></div>
+
+    <div class="pp-clan" id="ppClan" style="display:none;">
+      <div class="pp-clan-icon">🏠</div>
+      <div class="pp-clan-info">
+        <div class="clan-name" id="clanName">Дом Ангелов</div>
+        <div class="clan-rank" id="clanRank">🛡️ Бронзовый III</div>
+      </div>
+    </div>
+
+    <div class="pp-contribution" id="ppContribution" style="display:none;">
+      🥇 Вклад: <span class="cont-num" id="contNum">0</span>
+    </div>
+
+    <div class="pp-plates">
+      <div class="pp-plate pp-plate-gold" id="ppLevel">💎 Lv.0</div>
+      <div class="pp-plate pp-plate-dark" onclick="alert('Зал Почета')">🏆 Зал Почета</div>
+    </div>
+
+    <div class="pp-actions">
+      <button class="pp-action pp-subscribe" id="ppSubscribeBtn" onclick="toggleSubscribe()">➕ Подписаться</button>
+      <button class="pp-action pp-chat" onclick="openChatFromProfile()">💬 Чат</button>
+    </div>
+
+  </div>
+
+  <!-- Табы -->
+  <div class="pp-tabs">
+    <div class="pp-tab active">Личная информация</div>
+    <div class="pp-tab" onclick="alert('Статус')">Статус</div>
+    <div class="pp-tab" onclick="alert('Честь')">Честь</div>
+  </div>
+
+   <!-- Личная информация -->
+  <div class="pp-section">
+    <div class="pp-section-title">Основная информация</div>
+    <div class="pp-tags" id="ppMainTags"></div>
+
+    <div class="pp-section-title">Личный значок</div>
+    <div class="pp-tags" id="ppBadgeTags"></div>
+
+    <div class="pp-section-title" style="margin-top: 8px;">Соц Сеть</div>
+    <div class="pp-social" onclick="alert('Instagram')">
+      <div class="pp-social-icon instagram">📷</div>
+      <div class="pp-social-name">Instagram</div>
+      <div class="pp-social-action">Присоединиться ›</div>
+    </div>
+    <div class="pp-social" onclick="alert('YouTube')">
+      <div class="pp-social-icon youtube">▶</div>
+      <div class="pp-social-name">YouTube</div>
+      <div class="pp-social-action">Присоединиться ›</div>
+    </div>
+  </div>
+
+  <!-- Нижняя навигация -->
+  <div class="pp-nav">
+    <div class="pp-nav-item" onclick="goHome()">
+      <span class="ico">🏠</span>
+      <span>Live</span>
+    </div>
+    <div class="pp-nav-item">
+      <span class="ico">▶</span>
+      <span>Видео</span>
+    </div>
+    <div class="pp-nav-item">
+      <div class="circle">➕</div>
+    </div>
+    <div class="pp-nav-item">
+      <span class="ico">💬</span>
+      <span>Чаты</span>
+    </div>
+    <div class="pp-nav-item active">
+      <span class="ico">👤</span>
+      <span>Я</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---------- Загружаем данные юзера из sessionStorage ----------
+var viewer = null;
+try {
+  viewer = JSON.parse(sessionStorage.getItem('profileViewer'));
+} catch(e) {
+  viewer = null;
+}
+
+if (!viewer) {
+  // Если ничего нет — идём назад
+  alert('Профиль не найден');
+  window.location.href = '/';
+}
+
+// ---------- Заполняем страницу ----------
+if (viewer) {
+  // Скрываем кнопку подписки если это я сам
+  var myName = sessionStorage.getItem('myName');
+  if (viewer.name === myName) {
+    var subBtn = document.getElementById('ppSubscribeBtn');
+    if (subBtn) subBtn.style.display = 'none';
+  }
+  // Имя
+  document.getElementById('ppName').textContent = viewer.name;
+  document.getElementById('topName').textContent = viewer.name;
+
+  // ID
+  var id = viewer.isBot
+    ? ('bot_' + viewer.name.replace(/[^a-zA-Z0-9]/g, ''))
+    : ('user_' + viewer.name.replace(/[^a-zA-Z0-9]/g, ''));
+  document.getElementById('ppId').textContent = id;
+  document.getElementById('topId').textContent = id;
+
+  // Пол
+  var femaleNames = ['Мария', 'Катя', 'Оля', 'Аня', 'Лена', 'Соня', 'Юля', 'Даша', 'Мила', 'Ксюша', 'Вика', 'Алина', 'Настя', 'Валя', 'Таня', 'Наталья', 'Женя', 'Кристина', 'Алёна', 'Полина'];
+  var isFemale = false;
+  for (var i = 0; i < femaleNames.length; i++) {
+    if (viewer.name.indexOf(femaleNames[i]) === 0) {
+      isFemale = true;
+      break;
+    }
+  }
+  document.getElementById('ppGender').textContent = isFemale ? '♀' : '♂';
+
+  // Большое фото — градиент
+  var photoEl = document.getElementById('ppPhoto');
+  photoEl.style.background = getAvatarGradient(viewer.name);
+  photoEl.style.backgroundSize = 'cover';
+  // Если это я — показываем маскота поверх
+  if (viewer.isMe) {
+    var img = document.createElement('img');
+    img.src = '/brand/spark-main.png';
+    img.alt = '';
+    img.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:70%;height:70%;object-fit:contain;filter:drop-shadow(0 0 40px rgba(255,152,0,0.6));z-index:2;';
+    photoEl.appendChild(img);
+  }
+
+  // Уровень
+  var level = viewer.level || 30;
+  document.getElementById('ppLevel').textContent = '💎 Lv.' + level;
+
+  // Бейджи
+  var badges = document.getElementById('ppBadges');
+  if (viewer.isVip) {
+    badges.innerHTML += '<div class="pp-badge gold">👑 VIP</div>';
+  }
+  if (viewer.hasDonated) {
+    badges.innerHTML += '<div class="pp-badge pink">💎 ДОНАТ</div>';
+  }
+  if (level >= 60) {
+    badges.innerHTML += '<div class="pp-badge purple">👑 Король</div>';
+  }
+  badges.innerHTML += '<div class="pp-badge green">Lv.' + level + '</div>';
+  if (viewer.gender === 'female') {
+    badges.innerHTML += '<div class="pp-badge pink">🌸 Красотка</div>';
+  } else {
+    badges.innerHTML += '<div class="pp-badge blue">🎮 Геймер</div>';
+  }
+
+  // Статистика
+  var followers = Math.floor(Math.random() * 5000) + 500 + (level * 50);
+  var following = Math.floor(Math.random() * 500) + 50 + (level * 5);
+  var beans = Math.floor(Math.random() * 500000) + 10000 + (level * 1000);
+  var diamondsStat = viewer.totalDiamonds || 0;
+
+  document.getElementById('ppFollowers').textContent = formatStat(followers);
+  document.getElementById('ppFollowing').textContent = formatStat(following);
+  document.getElementById('ppBeans').textContent = formatStat(beans);
+  document.getElementById('ppDiamonds').textContent = formatStat(diamondsStat);
+
+  // Карусель превью (5 случайных градиентов)
+  // Карусель превью (5 случайных градиентов)
+  var carousel = document.getElementById('ppCarousel');
+  for (var i = 0; i < 5; i++) {
+    var thumb = document.createElement('div');
+    thumb.className = 'pp-thumb' + (i === 0 ? ' active' : '');
+    thumb.style.background = getAvatarGradient(viewer.name + i);
+    carousel.appendChild(thumb);
+  }
+
+  // ---------- Уникальные теги по имени ----------
+  var seed = 0;
+  for (var s = 0; s < viewer.name.length; s++) seed += viewer.name.charCodeAt(s);
+
+  var COUNTRIES = [
+    '📍 Россия 🇷🇺',
+    '📍 Казахстан 🇰🇿',
+    '📍 Украина 🇺🇦',
+    '📍 Беларусь 🇧🇾',
+    '📍 Узбекистан 🇺🇿',
+    '📍 Турция 🇹🇷',
+    '📍 Германия 🇩🇪',
+    '📍 США 🇺🇸',
+    '📍 Франция 🇫🇷',
+    '📍 Испания 🇪🇸',
+    '📍 Италия 🇮🇹',
+    '📍 Китай 🇨🇳'
+  ];
+
+  var LANGUAGES = [
+    '🌐 русский',
+    '🌐 English',
+    '🌐 Türkçe',
+    '🌐 Deutsch',
+    '🌐 Español',
+    '🌐 Français',
+    '🌐 中文'
+  ];
+
+  var EMOJIS = ['😀', '😎', '🥰', '😎', '🔥', '✨', '🌸', '🎮', '🎵', '🌟'];
+
+  var LANGS_SHORT = ['RU', 'TR', 'EN', 'DE', 'ES', 'FR', 'CN', 'UA', 'KZ'];
+
+  var PERSONALITY_TAGS = [
+    'Надежный друг',
+    'Лучезарный',
+    'Позитивный',
+    'Заряженный',
+    'Высокий',
+    'Образованный',
+    'Свой в доску',
+    'Душа компании',
+    'Юморист',
+    'Романтик',
+    'Загадочный',
+    'Искренний'
+  ];
+
+  // Выбираем по seed (по имени)
+  var mainTags = document.getElementById('ppMainTags');
+  mainTags.innerHTML = '';
+
+  var country = COUNTRIES[seed % COUNTRIES.length];
+  var language = LANGUAGES[(seed * 2) % LANGUAGES.length];
+  var emoji = EMOJIS[(seed * 3) % EMOJIS.length];
+  var langShort1 = LANGS_SHORT[(seed * 5) % LANGS_SHORT.length];
+  var langShort2 = LANGS_SHORT[(seed * 7) % LANGS_SHORT.length];
+
+  mainTags.innerHTML =
+    '<div class="pp-tag">' + country + '</div>' +
+    '<div class="pp-tag">' + language + '</div>' +
+    '<div class="pp-tag">' + emoji + '</div>' +
+    '<div class="pp-tag">🔍 ' + langShort1 + ', ' + langShort2 + '</div>';
+
+  // Личные значки — 3-5 штук, разные у каждого
+  var badgeTags = document.getElementById('ppBadgeTags');
+  badgeTags.innerHTML = '';
+
+  var badgeCount = 3 + (seed % 3);  // 3, 4 или 5
+  var usedIndexes = [];
+
+  for (var b = 0; b < badgeCount; b++) {
+    var idx = (seed * (b + 1) + b) % PERSONALITY_TAGS.length;
+
+    // Не повторяем
+    var tries = 0;
+    while (usedIndexes.indexOf(idx) !== -1 && tries < 20) {
+      idx = (idx + 1) % PERSONALITY_TAGS.length;
+      tries++;
+    }
+    usedIndexes.push(idx);
+
+    badgeTags.innerHTML += '<div class="pp-tag">' + PERSONALITY_TAGS[idx] + '</div>';
+  }
+}
+
+// ---------- Функции ----------
+function getAvatarGradient(name) {
+  var colors = [
+    'linear-gradient(135deg, #ff6b9d, #c44569)',
+    'linear-gradient(135deg, #4dd8e8, #2bb8d0)',
+    'linear-gradient(135deg, #ffd54f, #f57c00)',
+    'linear-gradient(135deg, #9c27b0, #673ab7)',
+    'linear-gradient(135deg, #43e97b, #38f9d7)',
+    'linear-gradient(135deg, #f093fb, #f5576c)'
+  ];
+  var sum = 0;
+  for (var i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return colors[sum % colors.length];
+}
+
+function formatStat(n) {
+  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n / 1000).toFixed(2) + 'K';
+  return n;
+}
+
+function copyId() {
+  var id = document.getElementById('ppId').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(id).then(function() {
+      alert('ID скопирован: ' + id);
+    }).catch(function() {
+      alert('ID: ' + id);
+    });
+  } else {
+    alert('ID: ' + id);
+  }
+}
+
+function shareProfile() {
+  if (navigator.share) {
+    navigator.share({
+      title: viewer ? viewer.name : 'Профиль',
+      text: 'Смотри профиль в Mini Live',
+      url: window.location.href
+    }).catch(function() {});
+  } else {
+    alert('Поделиться: ' + window.location.href);
+  }
+}
+
+function toggleSubscribe() {
+  var btn = document.getElementById('ppSubscribeBtn');
+  if (!btn) return;
+
+  if (btn.classList.contains('subscribed')) {
+    btn.textContent = '➕ Подписаться';
+    btn.classList.remove('subscribed');
+  } else {
+    btn.textContent = '✓ Вы подписаны';
+    btn.classList.add('subscribed');
+  }
+}
+function openChatFromProfile() {
+  if (!viewer) return;
+  if (!viewer.name) return;
+  var myName = sessionStorage.getItem('myName');
+  if (viewer.name === myName) {
+    alert('Это вы сами');
+    return;
+  }
+  var known = JSON.parse(localStorage.getItem('pm_known_users') || '[]');
+  if (known.indexOf(viewer.name) === -1) {
+    known.push(viewer.name);
+    localStorage.setItem('pm_known_users', JSON.stringify(known));
+  }
+  window.location.href = '/chat.html?with=' + encodeURIComponent(viewer.name);
+}
+function goHome() {
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>
