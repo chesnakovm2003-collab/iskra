@@ -12,7 +12,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^4.7.2",
-	"@ydbjs/core": "^0.9.0",
-    "@ydbjs/query": "^0.9.0"
+"@ydbjs/core": "^6.3.1",
+"@ydbjs/query": "^6.3.1"
   }
 }
