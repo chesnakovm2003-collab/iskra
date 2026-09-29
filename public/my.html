@@ -651,6 +651,8 @@ function logout() {
   window.location.href = '/login.html';
 }
 
+var MIN_LEVEL_TO_STREAM = 10;
+
 function goLive() {
   var mn = localStorage.getItem('iskra_name');
   if (!mn) {
@@ -658,14 +660,61 @@ function goLive() {
     window.location.href = '/login.html';
     return;
   }
-  var newRoomId = 'my_' + Date.now();
-  window.location.href =
-    '/room.html?room=' + newRoomId +
-    '&host=' + encodeURIComponent(mn) +
-    '&title=' + encodeURIComponent('Мой эфир') +
-    '&diamonds=0' +
-    '&viewers=5' +
-    '&gender=male';
+
+  // Проверяем уровень
+  var tmpSocket = io();
+  var answered = false;
+
+  tmpSocket.on('connect', function() {
+    tmpSocket.emit('join', {
+      name: mn,
+      roomId: 'lobby_for_check',
+      host: mn,
+      gender: 'male',
+      baseViewers: 0,
+      diamonds: 0
+    });
+  });
+
+  tmpSocket.on('user_level', function(data) {
+    if (answered) return;
+    answered = true;
+    tmpSocket.disconnect();
+
+    var lvl = data.level || 1;
+    if (lvl < MIN_LEVEL_TO_STREAM) {
+      alert(
+        '🔒 Открыть свой эфир можно с уровня ' + MIN_LEVEL_TO_STREAM + '.\n\n' +
+        'У вас сейчас: уровень ' + lvl + '.\n' +
+        'Осталось набрать: ' + (data.remaining || 0).toLocaleString('ru-RU') + ' 💎'
+      );
+      return;
+    }
+
+    var newRoomId = 'my_' + Date.now();
+    window.location.href =
+      '/room.html?room=' + newRoomId +
+      '&host=' + encodeURIComponent(mn) +
+      '&title=' + encodeURIComponent('Мой эфир') +
+      '&diamonds=0' +
+      '&viewers=5' +
+      '&gender=male';
+  });
+
+  setTimeout(function() {
+    if (answered) return;
+    answered = true;
+    tmpSocket.disconnect();
+    // Если сервер не ответил — пускаем всё равно
+    var newRoomId = 'my_' + Date.now();
+    window.location.href =
+      '/room.html?room=' + newRoomId +
+      '&host=' + encodeURIComponent(mn) +
+      '&title=' + encodeURIComponent('Мой эфир') +
+      '&diamonds=0' +
+      '&viewers=5' +
+      '&gender=male';
+  }, 3000);
 }
 </script>
 </body>
