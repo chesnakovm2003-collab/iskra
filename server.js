@@ -1629,6 +1629,45 @@ io.on('connection', function(socket) {
     socket.emit('pm_chat_cost', { cost: chatCostByUser[user.name] || 0 });
   });
 
+  socket.on('rating_get', function(data) {
+    var period = data.period || 'day';
+    var result = [];
+
+    // Собираем всех, кто получал подарки (все ведущие)
+    var names = {};
+    for (var name in donationsAllTime) {
+      if (donationsAllTime[name] > 0) names[name] = true;
+    }
+    for (var name2 in donationsByRoom) {
+      var room = donationsByRoom[name2];
+      for (var n in room) names[n] = true;
+    }
+
+    // Для каждого считаем сумму за период
+    for (var userName in names) {
+      var amount = 0;
+      if (period === 'day') amount = donationsDaily[userName] || 0;
+      else if (period === 'week') amount = donationsWeekly[userName] || 0;
+      else if (period === 'month') amount = donationsMonthly[userName] || 0;
+      else amount = donationsAllTime[userName] || 0;
+
+      if (amount > 0) {
+        result.push({
+          name: userName,
+          amount: amount,
+          level: 30
+        });
+      }
+    }
+
+    // Сортируем по убыванию
+    result.sort(function(a, b) { return b.amount - a.amount; });
+
+    // Ограничиваем топ-100
+    result = result.slice(0, 100);
+
+    socket.emit('rating_data', result);
+  });
   socket.on('quests_get', function() {
     var user = online.get(socket.id);
     if (!user) return;
