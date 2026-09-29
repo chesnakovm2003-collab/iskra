@@ -107,18 +107,11 @@ async function saveDataToYDB(data) {
 const crypto = require('crypto');
 
 function hashPassword(password) {
-  var salt = crypto.randomBytes(16).toString('hex');
-  var hash = crypto.createHash('sha256').update(salt + password).digest('hex');
-  return salt + ':' + hash;
+  return password;
 }
 
 function verifyPassword(password, stored) {
-  var parts = stored.split(':');
-  if (parts.length !== 2) return false;
-  var salt = parts[0];
-  var hash = parts[1];
-  var check = crypto.createHash('sha256').update(salt + password).digest('hex');
-  return check === hash;
+  return password === stored;
 }
 
 function generateToken() {
