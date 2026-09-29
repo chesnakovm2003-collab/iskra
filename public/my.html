@@ -499,16 +499,12 @@
 <script>
 var socket = io();
 
-var myName = sessionStorage.getItem('myName');
+var myName = localStorage.getItem('iskra_name');
+var myLogin = localStorage.getItem('iskra_login');
+var myToken = localStorage.getItem('iskra_token');
 
-if (!myName) {
-  var name = prompt('Введите ваше имя:');
-  if (name && name.trim()) {
-    myName = name.trim();
-    sessionStorage.setItem('myName', myName);
-  } else {
-    myName = 'Гость';
-  }
+if (!myName || !myToken) {
+  window.location.href = '/login.html';
 }
 
 document.getElementById('myNameDisplay').textContent = myName;
@@ -634,12 +630,25 @@ function goWallet() {
 }
 
 function logout() {
-  var current = sessionStorage.getItem('myName') || '?';
+  var current = localStorage.getItem('iskra_name') || '?';
   if (!confirm('Выйти из аккаунта ' + current + '?')) return;
-  sessionStorage.removeItem('myName');
-  sessionStorage.removeItem('lastRoomId');
-  sessionStorage.removeItem('lastRoomHost');
-  window.location.href = '/';
+
+  var token = localStorage.getItem('iskra_token');
+  if (token) {
+    var sock = io();
+    sock.on('connect', function() {
+      sock.emit('logout', { token: token });
+      setTimeout(function() {
+        sock.disconnect();
+      }, 500);
+    });
+  }
+
+  localStorage.removeItem('iskra_token');
+  localStorage.removeItem('iskra_login');
+  localStorage.removeItem('iskra_name');
+  sessionStorage.clear();
+  window.location.href = '/login.html';
 }
 
 function goLive() {
