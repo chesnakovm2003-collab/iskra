@@ -9,10 +9,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "express": "^4.17.1",
-    "socket.io": "^4.7.2",
-"@ydbjs/core": "^6.3.0",
-"@ydbjs/query": "^6.3.0"
-  }
+"dependencies": {
+  "express": "^4.17.1",
+  "socket.io": "^4.7.2",
+  "@ydbjs/core": "^6.3.0",
+  "@ydbjs/query": "^6.3.0",
+  "@ydbjs/auth-yandex-cloud": "^0.2.0"
+}
 }
