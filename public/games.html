@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Развлекательный центр · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .games-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #f5f5f5;
+    min-height: 100%;
+    padding-bottom: 40px;
+  }
+  .gm-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #f5f5f5;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    gap: 12px;
+    border-bottom: 1px solid #eee;
+  }
+  .gm-back {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,0.05);
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #333;
+  }
+  .gm-title { font-size: 18px; font-weight: 800; flex: 1; }
+
+  .gm-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px;
+  }
+  .gm-card {
+    border-radius: 18px;
+    padding: 18px 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.15s;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  }
+  .gm-card:active { transform: scale(0.95); }
+  .gm-card .gm-icon {
+    font-size: 52px;
+    margin-bottom: 8px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+  }
+  .gm-card .gm-name {
+    font-size: 15px;
+    font-weight: 900;
+    margin-bottom: 4px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .gm-card .gm-desc {
+    font-size: 11px;
+    opacity: 0.9;
+    line-height: 1.3;
+  }
+  .gm-card.lottery {
+    background: linear-gradient(135deg, #ff9800, #e91e63);
+  }
+  .gm-card.crash {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #003;
+  }
+  .gm-card.crash .gm-name,
+  .gm-card.crash .gm-desc { text-shadow: none; }
+  .gm-card.greedy {
+    background: linear-gradient(135deg, #ffd54f, #ff9800);
+    color: #2a1c08;
+  }
+  .gm-card.greedy .gm-name,
+  .gm-card.greedy .gm-desc { text-shadow: none; }
+  .gm-card.yummy {
+    background: linear-gradient(135deg, #ff80ab, #ffd54f);
+    color: #2a0a3a;
+  }
+  .gm-card.yummy .gm-name,
+  .gm-card.yummy .gm-desc { text-shadow: none; }
+  .gm-card.soon {
+    background: #e0e0e0;
+    color: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  .gm-card.soon:active { transform: none; }
+  .gm-card .gm-badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+  }
+
+  .gm-section-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 20px 16px 0;
+  }
+
+  .gm-hint {
+    margin: 16px;
+    padding: 12px 14px;
+    background: #eaf7fa;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #2b7a8a;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="games-page">
+  <div class="gm-header">
+    <button class="gm-back" onclick="history.back()">←</button>
+    <div class="gm-title">🎮 Развлекательный центр</div>
+  </div>
+
+  <div class="gm-section-title">Продвижение эфира</div>
+  <div class="gm-grid">
+    <div class="gm-card lottery" onclick="openGame('lottery')">
+      <div class="gm-icon">🎟</div>
+      <div class="gm-name">Fan Lottery</div>
+      <div class="gm-desc">Запусти лотерею,<br>собери зрителей</div>
+    </div>
+    <div class="gm-card soon">
+      <div class="gm-icon">🅼</div>
+      <div class="gm-name">Mystery Shop</div>
+      <div class="gm-desc">Скоро</div>
+      <div class="gm-badge">SOON</div>
+    </div>
+  </div>
+
+  <div class="gm-section-title">Азартные игры</div>
+  <div class="gm-grid">
+    <div class="gm-card crash" onclick="openGame('crash')">
+      <div class="gm-icon">🚀</div>
+      <div class="gm-name">Crash</div>
+      <div class="gm-desc">Успей забрать<br>до взрыва</div>
+    </div>
+    <div class="gm-card greedy" onclick="openGame('greedy')">
+      <div class="gm-icon">🎡</div>
+      <div class="gm-name">Greedy Wheel</div>
+      <div class="gm-desc">Крути колесо —<br>лови приз</div>
+    </div>
+    <div class="gm-card yummy" onclick="openGame('yummy')">
+      <div class="gm-icon">🍬</div>
+      <div class="gm-name">Yummy</div>
+      <div class="gm-desc">Три в ряд —<br>и джекпот</div>
+    </div>
+  </div>
+
+  <div class="gm-hint">
+    💡 Игры открываются <b>внутри эфира</b>. Нажми на игру — тебя перекинет в комнату, где можно сразу начать играть. Если не хочешь заходить в чужой эфир — открой свой через «+» на главной.
+  </div>
+</div>
+
+<script>
+function openGame(gameId) {
+  // Запоминаем, какую игру надо открыть в комнате
+  sessionStorage.setItem('autoOpenGame', gameId);
+
+  // Открываем последнюю комнату, где был пользователь,
+  // или дефолтную
+  var lastRoom = sessionStorage.getItem('lastRoomId') || 'room_0';
+  var lastHost = sessionStorage.getItem('lastRoomHost') || 'Ведущий';
+
+  window.location.href = '/room.html?room=' + lastRoom +
+                        '&host=' + encodeURIComponent(lastHost);
+}
+</script>
+</body>
+</html>

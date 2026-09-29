@@ -5201,6 +5201,20 @@ function openPrivateChat() {
   }
   window.location.href = '/chat.html?with=' + encodeURIComponent(name);
 }
+// ---------- АВТО-ОТКРЫТИЕ ИГРЫ ИЗ РАЗВЛЕКАТЕЛЬНОГО ЦЕНТРА ----------
+(function() {
+  var autoGame = sessionStorage.getItem('autoOpenGame');
+  if (!autoGame) return;
+  sessionStorage.removeItem('autoOpenGame');
+
+  // Ждём, пока комната загрузится (2 секунды)
+  setTimeout(function() {
+    if (autoGame === 'lottery') openLotterySheet();
+    else if (autoGame === 'crash') openCrashSheet();
+    else if (autoGame === 'greedy') openGreedySheet();
+    else if (autoGame === 'yummy') openYummySheet();
+  }, 2000);
+})();
 
 </script>
 </body>
