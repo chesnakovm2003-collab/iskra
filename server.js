@@ -15,34 +15,40 @@ const { query } = require('@ydbjs/query');
 const { ServiceAccountCredentialsProvider } = require('@ydbjs/auth-yandex-cloud');
 
 const YDB_ENDPOINT = process.env.YDB_ENDPOINT || '';
-const YDB_ACCESS_KEY_ID = process.env.YDB_ACCESS_KEY_ID || '';
-const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
+const YDB_SA_KEY = process.env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS || '';
 
-if (!YDB_ENDPOINT || !YDB_ACCESS_KEY_ID || !YDB_SECRET_KEY) {
+if (!YDB_ENDPOINT || !YDB_SA_KEY) {
   console.log('⚠️ YDB: не все переменные окружения заданы!');
   console.log('YDB_ENDPOINT:', YDB_ENDPOINT ? '✓' : '✗');
-  console.log('YDB_ACCESS_KEY_ID:', YDB_ACCESS_KEY_ID ? '✓' : '✗');
-  console.log('YDB_SECRET_KEY:', YDB_SECRET_KEY ? '✓' : '✗');
+  console.log('YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS:', YDB_SA_KEY ? '✓' : '✗');
 }
 
 let ydbDriver = null;
 let ydbReady = false;
 
+let ydbDriver = null;
+let ydbSql = null;
+let ydbReady = false;
+
 async function initYDB() {
   try {
-const YDB_ACCESS_KEY_ID = process.env.YDB_ACCESS_KEY_ID || '';
-const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
+    ydbDriver = new Driver(YDB_ENDPOINT, {
+      credentialsProvider: ServiceAccountCredentialsProvider.fromEnv()
+    });
 
-    await ydbDriver.query(`
+    await ydbDriver.ready;
+    ydbSql = query(ydbDriver);
+
+    await ydbSql`
       CREATE TABLE IF NOT EXISTS iskra_data (
         key Utf8,
         value Json,
         updated_at Timestamp,
         PRIMARY KEY (key)
       );
-    `);
+    `;
 
-    await ydbDriver.query(`
+    await ydbSql`
       CREATE TABLE IF NOT EXISTS iskra_users (
         login Utf8,
         password Utf8,
@@ -50,9 +56,9 @@ const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
         createdAt Timestamp,
         PRIMARY KEY (login)
       );
-    `);
+    `;
 
-    await ydbDriver.query(`
+    await ydbSql`
       CREATE TABLE IF NOT EXISTS iskra_sessions (
         token Utf8,
         login Utf8,
@@ -60,10 +66,10 @@ const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
         expiresAt Timestamp,
         PRIMARY KEY (token)
       );
-    `);
+    `;
 
     ydbReady = true;
-    console.log('✅ YDB подключена, таблица готова');
+    console.log('✅ YDB подключена, таблицы готовы');
     await loadAllDataFromYDB();
   } catch(e) {
     console.error('❌ Ошибка подключения к YDB:', e.message);
@@ -72,11 +78,11 @@ const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
 }
 
 async function loadDataFromYDB() {
-  if (!ydbReady || !ydbDriver) return {};
+  if (!ydbReady || !ydbSql) return {};
   try {
-    var result = await ydbDriver.query(`
+    var result = await ydbSql`
       SELECT value FROM iskra_data WHERE key = 'main';
-    `);
+    `;
     var rows = result.resultSets[0]?.rows || [];
     if (rows.length === 0) return {};
     var value = rows[0].value;
@@ -88,13 +94,13 @@ async function loadDataFromYDB() {
 }
 
 async function saveDataToYDB(data) {
-  if (!ydbReady || !ydbDriver) return;
+  if (!ydbReady || !ydbSql) return;
   try {
     var jsonStr = JSON.stringify(data);
-    await ydbDriver.query(`
+    await ydbSql`
       UPSERT INTO iskra_data (key, value, updated_at)
-      VALUES ('main', CAST(@json AS Json), CurrentUtcTimestamp());
-    `, { json: jsonStr });
+      VALUES ('main', CAST(${jsonStr} AS Json), CurrentUtcTimestamp());
+    `;
   } catch(e) {
     console.error('Ошибка записи в YDB:', e.message);
   }
@@ -137,12 +143,12 @@ function isValidName(name) {
 }
 
 async function createUserInYDB(login, passwordHash, displayName) {
-  if (!ydbReady || !ydbDriver) return false;
+  if (!ydbReady || !ydbSql) return false;
   try {
-    await ydbDriver.query(`
+    await ydbSql`
       INSERT INTO iskra_users (login, password, displayName, createdAt)
-      VALUES (@login, @password, @displayName, CurrentUtcTimestamp());
-    `, { login: login, password: passwordHash, displayName: displayName });
+      VALUES (${login}, ${passwordHash}, ${displayName}, CurrentUtcTimestamp());
+    `;
     return true;
   } catch(e) {
     console.error('Ошибка создания пользователя:', e.message);
@@ -151,12 +157,12 @@ async function createUserInYDB(login, passwordHash, displayName) {
 }
 
 async function getUserFromYDB(login) {
-  if (!ydbReady || !ydbDriver) return null;
+  if (!ydbReady || !ydbSql) return null;
   try {
-    var result = await ydbDriver.query(`
+    var result = await ydbSql`
       SELECT login, password, displayName, createdAt
-      FROM iskra_users WHERE login = @login;
-    `, { login: login });
+      FROM iskra_users WHERE login = ${login};
+    `;
     var rows = result.resultSets[0]?.rows || [];
     if (rows.length === 0) return null;
     var row = rows[0];
@@ -173,13 +179,13 @@ async function getUserFromYDB(login) {
 }
 
 async function createSessionInYDB(token, login) {
-  if (!ydbReady || !ydbDriver) return false;
+  if (!ydbReady || !ydbSql) return false;
   try {
     var expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    await ydbDriver.query(`
+    await ydbSql`
       INSERT INTO iskra_sessions (token, login, createdAt, expiresAt)
-      VALUES (@token, @login, CurrentUtcTimestamp(), @expiresAt);
-    `, { token: token, login: login, expiresAt: expiresAt });
+      VALUES (${token}, ${login}, CurrentUtcTimestamp(), ${expiresAt});
+    `;
     return true;
   } catch(e) {
     console.error('Ошибка создания сессии:', e.message);
@@ -188,12 +194,12 @@ async function createSessionInYDB(token, login) {
 }
 
 async function getSessionFromYDB(token) {
-  if (!ydbReady || !ydbDriver) return null;
+  if (!ydbReady || !ydbSql) return null;
   try {
-    var result = await ydbDriver.query(`
+    var result = await ydbSql`
       SELECT token, login, expiresAt
-      FROM iskra_sessions WHERE token = @token;
-    `, { token: token });
+      FROM iskra_sessions WHERE token = ${token};
+    `;
     var rows = result.resultSets[0]?.rows || [];
     if (rows.length === 0) return null;
     var row = rows[0];
@@ -207,11 +213,11 @@ async function getSessionFromYDB(token) {
 }
 
 async function deleteSessionFromYDB(token) {
-  if (!ydbReady || !ydbDriver) return;
+  if (!ydbReady || !ydbSql) return;
   try {
-    await ydbDriver.query(`
-      DELETE FROM iskra_sessions WHERE token = @token;
-    `, { token: token });
+    await ydbSql`
+      DELETE FROM iskra_sessions WHERE token = ${token};
+    `;
   } catch(e) {
     console.error('Ошибка удаления сессии:', e.message);
   }
