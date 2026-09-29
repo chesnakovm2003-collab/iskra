@@ -153,11 +153,14 @@ async function getUserFromYDB(login) {
       SELECT login, password, displayName, createdAt
       FROM iskra_users WHERE login = ${login};
     `;
-    // YDB возвращает массив объектов
+    console.log('[getUser] type:', typeof result);
+    console.log('[getUser] is array:', Array.isArray(result));
+    console.log('[getUser] length:', result ? result.length : 'null');
+    console.log('[getUser] value:', JSON.stringify(result).substring(0, 300));
     if (!result || result.length === 0) return null;
     var row = result[0];
+    console.log('[getUser] row:', row);
     if (!row || !row.login) return null;
-    return {
       login: row.login,
       password: row.password,
       displayName: row.displayName,
