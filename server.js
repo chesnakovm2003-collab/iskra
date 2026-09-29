@@ -11,6 +11,8 @@ try {
 
 // ---------- ПОДКЛЮЧЕНИЕ К YDB ----------
 const { Driver } = require('@ydbjs/core');
+const { query } = require('@ydbjs/query');
+const { ServiceAccountCredentialsProvider } = require('@ydbjs/auth-yandex-cloud');
 
 const YDB_ENDPOINT = process.env.YDB_ENDPOINT || '';
 const YDB_ACCESS_KEY_ID = process.env.YDB_ACCESS_KEY_ID || '';
@@ -28,13 +30,8 @@ let ydbReady = false;
 
 async function initYDB() {
   try {
-    ydbDriver = new Driver(YDB_ENDPOINT, {
-      credentials: {
-        type: 'accessKey',
-        accessKeyId: YDB_ACCESS_KEY_ID,
-        secretKey: YDB_SECRET_KEY
-      }
-    });
+const YDB_ACCESS_KEY_ID = process.env.YDB_ACCESS_KEY_ID || '';
+const YDB_SECRET_KEY = process.env.YDB_SECRET_KEY || '';
 
     await ydbDriver.query(`
       CREATE TABLE IF NOT EXISTS iskra_data (
