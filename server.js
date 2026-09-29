@@ -77,12 +77,12 @@ async function initYDB() {
 async function loadDataFromYDB() {
   if (!ydbReady || !ydbSql) return {};
   try {
-    var result = await ydbSql`
-      SELECT value FROM iskra_data WHERE key = 'main';
-    `;
-    var rows = result[0]?.rows || [];
-    if (rows.length === 0) return {};
-    var value = rows[0].value;
+var result = await ydbSql`
+  SELECT value FROM iskra_data WHERE key = 'main';
+`;
+if (!result || result.length === 0) return {};
+var value = result[0].value;
+if (!value) return {};
     return typeof value === 'string' ? JSON.parse(value) : value;
   } catch(e) {
     console.error('Ошибка чтения из YDB:', e.message);
@@ -176,13 +176,10 @@ async function getUserFromYDB(login) {
       SELECT login, password, displayName, createdAt
       FROM iskra_users WHERE login = ${login};
     `;
-    console.log('[getUser] result type:', typeof result);
-    console.log('[getUser] result:', JSON.stringify(result).substring(0, 500));
-    var rows = result[0]?.rows || [];
-    console.log('[getUser] rows length:', rows.length);
-    if (rows.length === 0) return null;
-    var row = rows[0];
-    console.log('[getUser] row keys:', Object.keys(row));
+    // YDB возвращает массив объектов
+    if (!result || result.length === 0) return null;
+    var row = result[0];
+    if (!row || !row.login) return null;
     return {
       login: row.login,
       password: row.password,
@@ -213,13 +210,13 @@ async function createSessionInYDB(token, login) {
 async function getSessionFromYDB(token) {
   if (!ydbReady || !ydbSql) return null;
   try {
-    var result = await ydbSql`
-      SELECT token, login, expiresAt
-      FROM iskra_sessions WHERE token = ${token};
-    `;
-    var rows = result[0]?.rows || [];
-    if (rows.length === 0) return null;
-    var row = rows[0];
+var result = await ydbSql`
+  SELECT token, login, expiresAt
+  FROM iskra_sessions WHERE token = ${token};
+`;
+if (!result || result.length === 0) return null;
+var row = result[0];
+if (!row || !row.token) return null;
     var exp = new Date(row.expiresAt).getTime();
     if (exp < Date.now()) return null;
     return { token: row.token, login: row.login, expiresAt: row.expiresAt };
