@@ -15,12 +15,12 @@ const { query } = require('@ydbjs/query');
 const { ServiceAccountCredentialsProvider } = require('@ydbjs/auth-yandex-cloud');
 
 const YDB_ENDPOINT = process.env.YDB_ENDPOINT || '';
-const YDB_SA_KEY = process.env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS || '';
+const YDB_SA_KEY_JSON = process.env.YDB_SA_KEY_JSON || '';
 
-if (!YDB_ENDPOINT || !YDB_SA_KEY) {
+if (!YDB_ENDPOINT || !YDB_SA_KEY_JSON) {
   console.log('⚠️ YDB: не все переменные окружения заданы!');
   console.log('YDB_ENDPOINT:', YDB_ENDPOINT ? '✓' : '✗');
-  console.log('YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS:', YDB_SA_KEY ? '✓' : '✗');
+  console.log('YDB_SA_KEY_JSON:', YDB_SA_KEY_JSON ? '✓' : '✗');
 }
 
 let ydbDriver = null;
@@ -29,10 +29,12 @@ let ydbReady = false;
 
 async function initYDB() {
   try {
-    ydbDriver = new Driver(YDB_ENDPOINT, {
-      credentialsProvider: ServiceAccountCredentialsProvider.fromEnv()
-    });
+    // Парсим JSON-ключ из переменной окружения
+    var saKeyData = JSON.parse(YDB_SA_KEY_JSON);
 
+    ydbDriver = new Driver(YDB_ENDPOINT, {
+      credentialsProvider: new ServiceAccountCredentialsProvider(saKeyData)
+    });
     await ydbDriver.ready;
     ydbSql = query(ydbDriver);
 
