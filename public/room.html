@@ -2946,15 +2946,18 @@ document.getElementById('roomTitle').textContent = roomTitle;
 document.title = roomTitle + ' · Iskra';
 
 var socket = io();
-var myName = sessionStorage.getItem('myName') || null;
+var myName = localStorage.getItem('iskra_name') || null;
+var myToken = localStorage.getItem('iskra_token');
+
+if (!myName || !myToken) {
+  window.location.href = '/login.html';
+}
 
 // Авто-join, если имя уже сохранено
 socket.on('connect', function() {
-  var savedName = sessionStorage.getItem('myName');
-  if (savedName) {
-    myName = savedName;
+  if (myName) {
     socket.emit('join', {
-      name: savedName,
+      name: myName,
       roomId: roomId,
       host: hostName,
       gender: roomGender,
