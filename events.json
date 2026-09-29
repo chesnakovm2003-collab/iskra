@@ -1,0 +1,117 @@
+[
+  {
+    "id": "halloween_2026",
+    "title": "Хэллоуин-марафон",
+    "emoji": "🎃",
+    "color": "#ff6b35",
+    "cover": "/events/halloween.png",
+    "description": "Собирай алмазы — получай приз!",
+    "startDate": "2026-10-29T00:00:00",
+    "endDate": "2026-11-05T00:00:00",
+    "goals": {
+      "host": { "target": 50000 },
+      "viewer": { "target": 20000 }
+    },
+    "rewards": {
+      "top1": { "gems": 10000, "badge": "👑 Король Хэллоуина", "gift": "ghost" },
+      "top2": { "gems": 7000,  "badge": "🥈 Принц тьмы", "gift": "ghost" },
+      "top3": { "gems": 5000,  "badge": "🥉 Герой ночи", "gift": "ghost" },
+      "top4_5": { "gems": 3000, "badge": "🌟 Звезда Хэллоуина" },
+      "top6_20": { "gems": 500, "badge": "✨ Участник" },
+      "all": { "badge": "🎃 Участник" }
+    },
+    "gifts": ["ghost", "hallow_pumpkin", "hallow_witch", "hallow_bat", "hallow_spider"]
+  },
+  {
+    "id": "autumn_2026",
+    "title": "Осенний листопад",
+    "emoji": "🍂",
+    "color": "#f57c00",
+    "cover": "/events/autumn.png",
+    "description": "Золотая осень — золотые призы!",
+    "startDate": "2026-11-05T00:00:00",
+    "endDate": "2026-11-12T00:00:00",
+    "goals": {
+      "host": { "target": 45000 },
+      "viewer": { "target": 18000 }
+    },
+    "rewards": {
+      "top1": { "gems": 9000, "badge": "👑 Король осени", "gift": "leaf" },
+      "top2": { "gems": 6000, "badge": "🥈 Принц листвы", "gift": "leaf" },
+      "top3": { "gems": 4000, "badge": "🥉 Герой осени", "gift": "leaf" },
+      "top4_5": { "gems": 2500, "badge": "🌟 Звезда осени" },
+      "top6_20": { "gems": 400, "badge": "✨ Участник" },
+      "all": { "badge": "🍂 Участник" }
+    },
+    "gifts": ["leaf", "autumn_mushroom", "autumn_hedgehog", "autumn_pumpkin", "autumn_acorn"]
+  },
+  {
+    "id": "cyberpunk_2026",
+    "title": "Кибер-неделя",
+    "emoji": "🤖",
+    "color": "#9c27b0",
+    "cover": "/events/cyberpunk.png",
+    "description": "Добро пожаловать в будущее!",
+    "startDate": "2026-11-12T00:00:00",
+    "endDate": "2026-11-19T00:00:00",
+    "goals": {
+      "host": { "target": 60000 },
+      "viewer": { "target": 25000 }
+    },
+    "rewards": {
+      "top1": { "gems": 12000, "badge": "👑 Кибер-король", "gift": "cybereye" },
+      "top2": { "gems": 8000,  "badge": "🥈 Кибер-принц", "gift": "cybereye" },
+      "top3": { "gems": 5000,  "badge": "🥉 Кибер-герой", "gift": "cybereye" },
+      "top4_5": { "gems": 3000, "badge": "🌟 Кибер-звезда" },
+      "top6_20": { "gems": 500, "badge": "✨ Участник" },
+      "all": { "badge": "🤖 Участник" }
+    },
+    "gifts": ["cybereye", "cyber_robot", "cyber_chip", "cyber_neon", "cyber_gamepad"]
+  },
+  {
+    "id": "music_2026",
+    "title": "Музыкальная битва",
+    "emoji": "🎵",
+    "color": "#e91e63",
+    "cover": "/events/music.png",
+    "description": "Зажигай сцену — собирай ноты!",
+    "startDate": "2026-11-19T00:00:00",
+    "endDate": "2026-11-26T00:00:00",
+    "goals": {
+      "host": { "target": 55000 },
+      "viewer": { "target": 22000 }
+    },
+    "rewards": {
+      "top1": { "gems": 11000, "badge": "👑 Рок-звезда", "gift": "microphone" },
+      "top2": { "gems": 7000,  "badge": "🥈 Поп-идол", "gift": "microphone" },
+      "top3": { "gems": 4500,  "badge": "🥉 Хит-мейкер", "gift": "microphone" },
+      "top4_5": { "gems": 2800, "badge": "🌟 Звезда сцены" },
+      "top6_20": { "gems": 450, "badge": "✨ Участник" },
+      "all": { "badge": "🎵 Участник" }
+    },
+    "gifts": ["microphone", "music_headphones", "music_notes", "music_synth", "music_drum"]
+  },
+  {
+    "id": "newyear_2026",
+    "title": "Новогодний марафон",
+    "emoji": "🎄",
+    "color": "#4dd8e8",
+    "cover": "/events/newyear.png",
+    "description": "С Новым годом! Собирай подарки!",
+    "startDate": "2026-12-20T00:00:00",
+    "endDate": "2027-01-10T00:00:00",
+    "goals": {
+      "host": { "target": 100000 },
+      "viewer": { "target": 40000 }
+    },
+    "rewards": {
+      "top1": { "gems": 20000, "badge": "👑 Дед Мороз", "gift": "tree" },
+      "top2": { "gems": 12000, "badge": "🥈 Снегурочка", "gift": "tree" },
+      "top3": { "gems": 8000,  "badge": "🥉 Снеговик", "gift": "tree" },
+      "top4_5": { "gems": 5000, "badge": "🌟 Новогодняя звезда" },
+      "top6_20": { "gems": 800, "badge": "✨ Участник" },
+      "all": { "badge": "🎄 Участник" }
+    },
+    "gifts": ["tree", "ny_santa", "ny_snowman", "ny_gift", "ny_snowflake"]
+  }
+]

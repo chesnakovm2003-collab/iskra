@@ -314,7 +314,19 @@
 </style>
 </head>
 <body>
-
+  <!-- Баннер активного ивента -->
+  <div id="eventBanner" style="display:none; margin: 0 12px 10px; border-radius: 16px; overflow: hidden; position: relative; min-height: 120px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,0.4);" onclick="window.location.href='/events.html'">
+    <div id="eventBannerCover" style="position:absolute; inset:0; background-size:cover; background-position:center;"></div>
+    <div style="position:absolute; inset:0; background:linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 100%);"></div>
+    <div style="position:relative; padding:16px; color:#fff;">
+      <div id="eventBannerBadge" style="display:inline-block; background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); padding:3px 10px; border-radius:10px; font-size:10px; font-weight:900; margin-bottom:6px; letter-spacing:0.5px;">🔥 АКТИВНЫЙ ИВЕНТ</div>
+      <div id="eventBannerTitle" style="font-size:18px; font-weight:900; margin-bottom:4px; text-shadow:0 2px 6px rgba(0,0,0,0.8);"></div>
+      <div id="eventBannerTimer" style="font-size:12px; font-weight:800; color:#ffd54f; margin-bottom:8px;"></div>
+      <div style="height:6px; background:rgba(255,255,255,0.2); border-radius:3px; overflow:hidden;">
+        <div id="eventBannerProgress" style="height:100%; width:0%; background:linear-gradient(90deg, #ffd54f, #ff9800); border-radius:3px; transition:width 0.5s;"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="top-header">
     <div class="logo">
@@ -684,6 +696,66 @@ function startMyStream() {
 function goMyPage() {
   window.location.href = '/my.html';
 }
+// ---------- БАННЕР ИВЕНТА ----------
+(function() {
+  var bannerSocket = io();
+  var myName = sessionStorage.getItem('myName') || 'Гость';
+  var bannerEvent = null;
+  var bannerTimer = null;
+
+  bannerSocket.on('connect', function() {
+    bannerSocket.emit('join', {
+      name: myName,
+      roomId: 'banner_page',
+      host: myName,
+      gender: 'male',
+      baseViewers: 0,
+      diamonds: 0
+    });
+    setTimeout(function() {
+      bannerSocket.emit('events_get');
+    }, 300);
+  });
+
+  bannerSocket.on('events_data', function(data) {
+    if (data.active) {
+      bannerEvent = data.active;
+      renderBanner();
+    }
+  });
+
+  function renderBanner() {
+    if (!bannerEvent) return;
+    var b = document.getElementById('eventBanner');
+    if (!b) return;
+    b.style.display = 'block';
+    document.getElementById('eventBannerCover').style.backgroundImage = 'url(' + bannerEvent.cover + ')';
+    document.getElementById('eventBannerTitle').textContent = bannerEvent.emoji + ' ' + bannerEvent.title;
+    updateBannerTimer();
+    if (bannerTimer) clearInterval(bannerTimer);
+    bannerTimer = setInterval(updateBannerTimer, 1000);
+  }
+
+  function updateBannerTimer() {
+    if (!bannerEvent) return;
+    var end = new Date(bannerEvent.endDate).getTime();
+    var left = Math.max(0, end - Date.now());
+    var days = Math.floor(left / 86400000);
+    var hours = Math.floor((left % 86400000) / 3600000);
+    var el = document.getElementById('eventBannerTimer');
+    if (!el) return;
+    if (days > 0) el.textContent = '⏱ Осталось: ' + days + ' д ' + hours + ' ч';
+    else {
+      var mins = Math.floor((left % 3600000) / 60000);
+      el.textContent = '⏱ Осталось: ' + hours + ' ч ' + mins + ' мин';
+    }
+    var goal = bannerEvent.goal || bannerEvent.goals.host.target;
+    var progress = bannerEvent.progress || 0;
+    var percent = goal > 0 ? Math.min(100, Math.round(progress / goal * 100)) : 0;
+    var bar = document.getElementById('eventBannerProgress');
+    if (bar) bar.style.width = percent + '%';
+  }
+})();
 
 </script>
 </body>

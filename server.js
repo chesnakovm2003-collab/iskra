@@ -1,4 +1,12 @@
 const fs = require('fs');
+// ---------- ИВЕНТЫ ----------
+var EVENTS_LIST = [];
+try {
+  var eventsRaw = fs.readFileSync('events.json', 'utf8');
+  EVENTS_LIST = JSON.parse(eventsRaw);
+} catch(e) {
+  console.log('events.json не найден или сломан:', e.message);
+}
 
 // ---------- Сохранение данных ----------
 const DATA_FILE = 'data.json';
@@ -294,6 +302,32 @@ function getQuestsProgress(host) {
       done: w.coins >= 3000 && w.seconds >= 15 * 3600 && w.activeDays.length >= 5
     }
   };
+}
+// ---------- ЛОГИКА ИВЕНТОВ ----------
+function getActiveEvent() {
+  var now = Date.now();
+  for (var i = 0; i < EVENTS_LIST.length; i++) {
+    var ev = EVENTS_LIST[i];
+    var start = new Date(ev.startDate).getTime();
+    var end = new Date(ev.endDate).getTime();
+    if (now >= start && now < end) return ev;
+  }
+  return null;
+}
+
+function getEventProgress(ev) {
+  // Считаем общий прогресс: сумма всех подарков, отправленных за период ивента
+  var start = new Date(ev.startDate).getTime();
+  var end = new Date(ev.endDate).getTime();
+  // Пока используем donationsAllTime как приблизительную оценку
+  // В будущем можно считать точнее по транзакциям
+  var total = 0;
+  for (var name in donationsAllTime) {
+    total += donationsAllTime[name] || 0;
+  }
+  // Ограничиваем целью, чтобы прогресс не улетал в космос
+  var goal = ev.goals.host.target;
+  return Math.min(total, goal);
 }
 function getLevelProgress(donatedTotal) {
   var level = getUserLevel(donatedTotal);
@@ -1629,6 +1663,30 @@ io.on('connection', function(socket) {
     socket.emit('pm_chat_cost', { cost: chatCostByUser[user.name] || 0 });
   });
 
+  socket.on('events_get', function() {
+    var active = getActiveEvent();
+    var result = { events: EVENTS_LIST, active: null };
+
+    if (active) {
+      result.active = {
+        id: active.id,
+        title: active.title,
+        emoji: active.emoji,
+        color: active.color,
+        cover: active.cover,
+        description: active.description,
+        startDate: active.startDate,
+        endDate: active.endDate,
+        goals: active.goals,
+        rewards: active.rewards,
+        gifts: active.gifts,
+        progress: getEventProgress(active),
+        goal: active.goals.host.target
+      };
+    }
+
+    socket.emit('events_data', result);
+  });
   socket.on('rating_get', function(data) {
     var period = data.period || 'day';
     var result = [];

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Ивенты · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .ev-page {
+    max-width: 500px;
+    margin: 0 auto;
+    background: #0a0a0a;
+    min-height: 100%;
+    padding-bottom: 40px;
+  }
+  .ev-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #0a0a0a;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    gap: 12px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .ev-back {
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+  }
+  .ev-title { font-size: 18px; font-weight: 800; flex: 1; }
+
+  .ev-active {
+    margin: 16px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .ev-active-cover {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+  }
+  .ev-active-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, transparent 30%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0.95) 100%);
+  }
+  .ev-active-content {
+    position: relative;
+    padding: 20px;
+    z-index: 2;
+  }
+  .ev-active-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .ev-active-title {
+    font-size: 26px;
+    font-weight: 900;
+    margin-bottom: 6px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  }
+  .ev-active-desc {
+    font-size: 13px;
+    color: #ddd;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+  .ev-timer {
+    font-size: 14px;
+    font-weight: 900;
+    color: #ffd54f;
+    margin-bottom: 12px;
+  }
+  .ev-progress-block {
+    margin-bottom: 14px;
+  }
+  .ev-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+  .ev-progress-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .ev-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffd54f, #ff9800);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .ev-goal-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #bbb;
+    margin-top: 4px;
+  }
+  .ev-active-btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #ffd54f, #ff9800);
+    color: #000;
+    border: none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    margin-top: 10px;
+  }
+  .ev-active-btn:active { transform: scale(0.97); }
+
+  .ev-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 22px 20px 10px;
+  }
+  .ev-list {
+    padding: 0 16px;
+  }
+  .ev-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #16161a;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid #222;
+  }
+  .ev-mini-cover {
+    width: 60px; height: 60px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+  .ev-mini-info { flex: 1; min-width: 0; }
+  .ev-mini-title {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ev-mini-date {
+    font-size: 11px;
+    color: #888;
+  }
+  .ev-mini-status {
+    font-size: 10px;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  .ev-mini-status.soon { background: #2a2a30; color: #aaa; }
+  .ev-mini-status.past { background: #333; color: #666; }
+
+  .ev-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="ev-page">
+  <div class="ev-header">
+    <button class="ev-back" onclick="history.back()">←</button>
+    <div class="ev-title">🎉 Ивенты</div>
+  </div>
+
+  <div id="evActive"></div>
+
+  <div id="evFutureWrap" style="display:none;">
+    <div class="ev-section-title">Скоро</div>
+    <div class="ev-list" id="evFuture"></div>
+  </div>
+
+  <div id="evPastWrap" style="display:none;">
+    <div class="ev-section-title">Прошедшие</div>
+    <div class="ev-list" id="evPast"></div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var myName = sessionStorage.getItem('myName') || 'Гость';
+var allEvents = [];
+var activeEvent = null;
+var timerInterval = null;
+
+socket.on('connect', function() {
+  socket.emit('join', {
+    name: myName,
+    roomId: 'events_page',
+    host: myName,
+    gender: 'male',
+    baseViewers: 0,
+    diamonds: 0
+  });
+  setTimeout(function() {
+    socket.emit('events_get');
+  }, 300);
+});
+
+socket.on('events_data', function(data) {
+  allEvents = data.events || [];
+  activeEvent = data.active || null;
+  renderEvents();
+});
+
+socket.on('events_progress', function(data) {
+  if (activeEvent) {
+    activeEvent.progress = data.progress;
+    activeEvent.goal = data.goal;
+    renderActive();
+  }
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function formatDate(iso) {
+  var d = new Date(iso);
+  var dd = String(d.getDate()).padStart(2, '0');
+  var mm = String(d.getMonth() + 1).padStart(2, '0');
+  return dd + '.' + mm + '.' + d.getFullYear();
+}
+
+function timeLeft(endIso) {
+  var end = new Date(endIso).getTime();
+  var now = Date.now();
+  var left = Math.max(0, end - now);
+  var days = Math.floor(left / 86400000);
+  var hours = Math.floor((left % 86400000) / 3600000);
+  var mins = Math.floor((left % 3600000) / 60000);
+  var secs = Math.floor((left % 60000) / 1000);
+  if (days > 0) return days + ' д ' + hours + ' ч';
+  if (hours > 0) return hours + ' ч ' + mins + ' мин';
+  return mins + ' мин ' + secs + ' сек';
+}
+
+function renderEvents() {
+  var now = Date.now();
+  var future = [];
+  var past = [];
+
+  for (var i = 0; i < allEvents.length; i++) {
+    var ev = allEvents[i];
+    var start = new Date(ev.startDate).getTime();
+    var end = new Date(ev.endDate).getTime();
+    if (ev.id === (activeEvent && activeEvent.id)) continue;
+    if (start > now) future.push(ev);
+    else if (end < now) past.push(ev);
+  }
+
+  renderActive();
+
+  if (future.length > 0) {
+    document.getElementById('evFutureWrap').style.display = 'block';
+    var fEl = document.getElementById('evFuture');
+    fEl.innerHTML = '';
+    for (var j = 0; j < future.length; j++) {
+      fEl.appendChild(makeMiniRow(future[j], 'soon'));
+    }
+  } else {
+    document.getElementById('evFutureWrap').style.display = 'none';
+  }
+
+  if (past.length > 0) {
+    document.getElementById('evPastWrap').style.display = 'block';
+    var pEl = document.getElementById('evPast');
+    pEl.innerHTML = '';
+    for (var k = past.length - 1; k >= 0; k--) {
+      pEl.appendChild(makeMiniRow(past[k], 'past'));
+    }
+  } else {
+    document.getElementById('evPastWrap').style.display = 'none';
+  }
+}
+
+function renderActive() {
+  var wrap = document.getElementById('evActive');
+  if (!activeEvent) {
+    wrap.innerHTML = '<div class="ev-empty">Сейчас нет активных ивентов.<br>Загляни позже — скоро будет новый!</div>';
+    return;
+  }
+  var ev = activeEvent;
+  var progress = ev.progress || 0;
+  var goal = ev.goal || ev.goals.host.target;
+  var percent = goal > 0 ? Math.min(100, Math.round(progress / goal * 100)) : 0;
+
+  wrap.innerHTML =
+    '<div class="ev-active">' +
+      '<div class="ev-active-cover" style="background-image:url(' + ev.cover + ');"></div>' +
+      '<div class="ev-active-gradient"></div>' +
+      '<div class="ev-active-content">' +
+        '<div class="ev-active-badge">' + ev.emoji + ' АКТИВНЫЙ ИВЕНТ</div>' +
+        '<div class="ev-active-title">' + escapeHtml(ev.title) + '</div>' +
+        '<div class="ev-active-desc">' + escapeHtml(ev.description) + '</div>' +
+        '<div class="ev-timer" id="evTimer">⏱ ' + timeLeft(ev.endDate) + '</div>' +
+        '<div class="ev-progress-block">' +
+          '<div class="ev-progress-label">' +
+            '<span>Общий прогресс</span>' +
+            '<span>' + percent + '%</span>' +
+          '</div>' +
+          '<div class="ev-progress-bar"><div class="ev-progress-fill" style="width:' + percent + '%"></div></div>' +
+          '<div class="ev-goal-row">' +
+            '<span>💎 ' + progress.toLocaleString('ru-RU') + '</span>' +
+            '<span>из ' + goal.toLocaleString('ru-RU') + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    var el = document.getElementById('evTimer');
+    if (el) el.textContent = '⏱ ' + timeLeft(ev.endDate);
+  }, 1000);
+}
+
+function makeMiniRow(ev, status) {
+  var row = document.createElement('div');
+  row.className = 'ev-mini';
+  var statusText = status === 'soon' ? 'Скоро' : 'Завершён';
+  row.innerHTML =
+    '<div class="ev-mini-cover" style="background-image:url(' + ev.cover + ');"></div>' +
+    '<div class="ev-mini-info">' +
+      '<div class="ev-mini-title">' + ev.emoji + ' ' + escapeHtml(ev.title) + '</div>' +
+      '<div class="ev-mini-date">' + formatDate(ev.startDate) + ' — ' + formatDate(ev.endDate) + '</div>' +
+    '</div>' +
+    '<div class="ev-mini-status ' + status + '">' + statusText + '</div>';
+  return row;
+}
+</script>
+</body>
+</html>
