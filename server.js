@@ -24,9 +24,6 @@ if (!YDB_ENDPOINT || !YDB_SA_KEY) {
 }
 
 let ydbDriver = null;
-let ydbReady = false;
-
-let ydbDriver = null;
 let ydbSql = null;
 let ydbReady = false;
 
