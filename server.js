@@ -119,22 +119,6 @@ function verifyPassword(password, stored) {
   var hash = parts[1];
   var check = crypto.scryptSync(password, salt, 64).toString('hex');
   return check === hash;
-  function verifyPassword(password, stored) {
-  console.log('[VERIFY] password length:', password ? password.length : 0);
-  console.log('[VERIFY] stored type:', typeof stored);
-  console.log('[VERIFY] stored value:', stored);
-  var parts = stored.split(':');
-  console.log('[VERIFY] parts:', parts.length);
-  if (parts.length !== 2) return false;
-  var salt = parts[0];
-  var hash = parts[1];
-  console.log('[VERIFY] salt:', salt);
-  console.log('[VERIFY] hash length:', hash.length);
-  var check = crypto.scryptSync(password, salt, 64).toString('hex');
-  console.log('[VERIFY] check length:', check.length);
-  console.log('[VERIFY] match:', check === hash);
-  return check === hash;
-}
 }
 
 function generateToken() {
