@@ -693,6 +693,54 @@ function startMyStream() {
   }, 3000);
 }
 
+// ---------- ПРОВЕРКА АВТОРИЗАЦИИ ----------
+(function() {
+  var token = localStorage.getItem('iskra_token');
+
+  // Если токена нет — сразу на вход
+  if (!token) {
+    window.location.href = '/login.html';
+    return;
+  }
+
+  // Проверяем токен через socket
+  var authSocket = io();
+  var authChecked = false;
+
+  authSocket.on('connect', function() {
+    authSocket.emit('check_session', { token: token });
+  });
+
+  authSocket.on('session_valid', function(data) {
+    if (authChecked) return;
+    authChecked = true;
+    localStorage.setItem('iskra_login', data.login);
+    localStorage.setItem('iskra_name', data.displayName);
+    // Сессия валидна — оставляем на этой странице
+    authSocket.disconnect();
+  });
+
+  authSocket.on('session_invalid', function() {
+    if (authChecked) return;
+    authChecked = true;
+    localStorage.removeItem('iskra_token');
+    localStorage.removeItem('iskra_login');
+    localStorage.removeItem('iskra_name');
+    window.location.href = '/login.html';
+  });
+
+  // Страховка: если сервер не ответил за 5 секунд — считаем, что не залогинен
+  setTimeout(function() {
+    if (authChecked) return;
+    authChecked = true;
+    authSocket.disconnect();
+    // Не редиректим — вдруг просто медленно. Но если токена нет — уже редиректнули.
+  }, 5000);
+})();
+
+function goMyPage() {
+  window.location.href = '/my.html';
+}
 function goMyPage() {
   window.location.href = '/my.html';
 }
