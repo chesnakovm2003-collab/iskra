@@ -78,6 +78,40 @@ const GIFTS = [
   { id: 'castle',   name: 'Замок',       icon: '/gifts/castle.png',   price: 10000, tier: 'big'   },
   { id: 'dragon',   name: 'Дракон',      icon: '/gifts/dragon.png',   price: 39999, tier: 'big'   },
   { id: 'fountain', name: 'Фонтан',      icon: '/gifts/fountain.png', price: 20, tier: 'big', random: true },
+    // ============ ИВЕНТ: ХЭЛЛОУИН ============
+  { id: 'ghost',          name: 'Призрак',       icon: '/gifts/ghost.png',          price: 10,    tier: 'small', event: 'halloween_2026' },
+  { id: 'hallow_pumpkin', name: 'Тыква',         icon: '/gifts/hallow_pumpkin.png', price: 100,   tier: 'small', event: 'halloween_2026' },
+  { id: 'hallow_witch',   name: 'Ведьма',        icon: '/gifts/hallow_witch.png',   price: 500,   tier: 'small', event: 'halloween_2026' },
+  { id: 'hallow_bat',     name: 'Летучая мышь',  icon: '/gifts/hallow_bat.png',     price: 1000,  tier: 'small', event: 'halloween_2026' },
+  { id: 'hallow_spider',  name: 'Паук',          icon: '/gifts/hallow_spider.png',  price: 5000,  tier: 'big',   event: 'halloween_2026' },
+
+  // ============ ИВЕНТ: ОСЕНЬ ============
+  { id: 'leaf',              name: 'Лист',        icon: '/gifts/leaf.png',              price: 10,    tier: 'small', event: 'autumn_2026' },
+  { id: 'autumn_mushroom',   name: 'Гриб',        icon: '/gifts/autumn_mushroom.png',   price: 100,   tier: 'small', event: 'autumn_2026' },
+  { id: 'autumn_hedgehog',   name: 'Ёжик',        icon: '/gifts/autumn_hedgehog.png',   price: 500,   tier: 'small', event: 'autumn_2026' },
+  { id: 'autumn_pumpkin',    name: 'Тыква осенняя', icon: '/gifts/autumn_pumpkin.png',  price: 1000,  tier: 'small', event: 'autumn_2026' },
+  { id: 'autumn_acorn',      name: 'Жёлудь',      icon: '/gifts/autumn_acorn.png',      price: 5000,  tier: 'big',   event: 'autumn_2026' },
+
+  // ============ ИВЕНТ: КИБЕРПАНК ============
+  { id: 'cybereye',        name: 'Кибер-глаз',  icon: '/gifts/cybereye.png',        price: 10,    tier: 'small', event: 'cyberpunk_2026' },
+  { id: 'cyber_robot',     name: 'Робот',       icon: '/gifts/cyber_robot.png',     price: 100,   tier: 'small', event: 'cyberpunk_2026' },
+  { id: 'cyber_chip',      name: 'Чип',         icon: '/gifts/cyber_chip.png',      price: 500,   tier: 'small', event: 'cyberpunk_2026' },
+  { id: 'cyber_neon',      name: 'Неон',        icon: '/gifts/cyber_neon.png',      price: 1000,  tier: 'small', event: 'cyberpunk_2026' },
+  { id: 'cyber_gamepad',   name: 'Геймпад',     icon: '/gifts/cyber_gamepad.png',   price: 5000,  tier: 'big',   event: 'cyberpunk_2026' },
+
+  // ============ ИВЕНТ: МУЗЫКА ============
+  { id: 'microphone',        name: 'Микрофон',   icon: '/gifts/microphone.png',        price: 10,    tier: 'small', event: 'music_2026' },
+  { id: 'music_headphones',  name: 'Наушники',   icon: '/gifts/music_headphones.png',  price: 100,   tier: 'small', event: 'music_2026' },
+  { id: 'music_notes',       name: 'Ноты',       icon: '/gifts/music_notes.png',       price: 500,   tier: 'small', event: 'music_2026' },
+  { id: 'music_synth',       name: 'Синтезатор', icon: '/gifts/music_synth.png',       price: 1000,  tier: 'small', event: 'music_2026' },
+  { id: 'music_drum',        name: 'Барабан',    icon: '/gifts/music_drum.png',        price: 5000,  tier: 'big',   event: 'music_2026' },
+
+  // ============ ИВЕНТ: НОВЫЙ ГОД ============
+  { id: 'tree',          name: 'Ёлка',       icon: '/gifts/tree.png',          price: 10,    tier: 'small', event: 'newyear_2026' },
+  { id: 'ny_santa',      name: 'Дед Мороз',  icon: '/gifts/ny_santa.png',      price: 100,   tier: 'small', event: 'newyear_2026' },
+  { id: 'ny_snowman',    name: 'Снеговик',   icon: '/gifts/ny_snowman.png',    price: 500,   tier: 'small', event: 'newyear_2026' },
+  { id: 'ny_gift',       name: 'Подарок',    icon: '/gifts/ny_gift.png',       price: 1000,  tier: 'small', event: 'newyear_2026' },
+  { id: 'ny_snowflake',  name: 'Снежинка',   icon: '/gifts/ny_snowflake.png',  price: 5000,  tier: 'big',   event: 'newyear_2026' },
 ];
 
 // ---------- Боты ----------
@@ -1285,7 +1319,13 @@ function crashCashout(roomId, userName, socketId) {
 
 // ---------- Socket.IO ----------
 io.on('connection', function(socket) {
-  socket.emit('gifts_list', GIFTS);
+  var activeEv = getActiveEvent();
+  var activeEventId = activeEv ? activeEv.id : null;
+  var filteredGifts = GIFTS.filter(function(g) {
+    if (!g.event) return true;
+    return g.event === activeEventId;
+  });
+  socket.emit('gifts_list', filteredGifts);
   socket.emit('all_subscriptions', subscriptions);
 
   socket.on('join', function(data) {
