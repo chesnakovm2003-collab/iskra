@@ -652,7 +652,12 @@ function logout() {
 }
 
 function goLive() {
-  var mn = sessionStorage.getItem('myName') || 'Гость';
+  var mn = localStorage.getItem('iskra_name');
+  if (!mn) {
+    alert('Сначала войди в аккаунт');
+    window.location.href = '/login.html';
+    return;
+  }
   var newRoomId = 'my_' + Date.now();
   window.location.href =
     '/room.html?room=' + newRoomId +
