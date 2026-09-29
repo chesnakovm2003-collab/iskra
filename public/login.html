@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Вход · Iskra</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 100%);
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 400px;
+    background: rgba(20, 20, 24, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 32px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .logo img {
+    width: 42px;
+    height: 42px;
+  }
+  .logo-text {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 24px;
+  }
+
+  .tabs {
+    display: flex;
+    background: rgba(255,255,255,0.05);
+    border-radius: 14px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #888;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(77,216,232,0.4);
+  }
+
+  .form {
+    display: none;
+  }
+  .form.active {
+    display: block;
+  }
+
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .field input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .field input:focus {
+    border-color: #4dd8e8;
+    background: rgba(77,216,232,0.08);
+  }
+  .field input::placeholder {
+    color: #555;
+  }
+
+  .btn {
+    width: 100%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    margin-top: 6px;
+    transition: 0.15s;
+    box-shadow: 0 6px 20px rgba(77,216,232,0.4);
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .error {
+    background: rgba(255,59,92,0.15);
+    border: 1px solid rgba(255,59,92,0.4);
+    color: #ff6b7d;
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .error.show {
+    display: block;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: #666;
+    margin-top: 16px;
+    text-align: center;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="login-box">
+  <div class="logo">
+    <img src="/brand/spark-icon.png" alt="">
+    <span class="logo-text">ISKRA</span>
+  </div>
+  <div class="subtitle">Зажги свой эфир</div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="login" onclick="switchTab('login')">Вход</div>
+    <div class="tab" data-tab="register" onclick="switchTab('register')">Регистрация</div>
+  </div>
+
+  <div class="error" id="errorBox"></div>
+
+  <!-- Форма входа -->
+  <div class="form active" id="loginForm">
+    <div class="field">
+      <label>Логин</label>
+      <input type="text" id="loginLogin" placeholder="Введи логин" maxlength="20" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Пароль</label>
+      <input type="password" id="loginPassword" placeholder="Введи пароль" autocomplete="current-password">
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Войти</button>
+  </div>
+
+  <!-- Форма регистрации -->
+  <div class="form" id="registerForm">
+    <div class="field">
+      <label>Логин (только буквы, цифры, _)</label>
+      <input type="text" id="regLogin" placeholder="Придумай логин" maxlength="20" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Имя (как тебя показывать)</label>
+      <input type="text" id="regName" placeholder="Введи имя" maxlength="20">
+    </div>
+    <div class="field">
+      <label>Пароль (минимум 4 символа)</label>
+      <input type="password" id="regPassword" placeholder="Придумай пароль" autocomplete="new-password">
+    </div>
+    <button class="btn" id="registerBtn" onclick="doRegister()">Создать аккаунт</button>
+  </div>
+
+  <div class="hint">
+    💡 Логин нужен для входа. Имя видно другим пользователям.<br>
+    Данные сохраняются — прогресс не потеряется.
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var currentTab = 'login';
+
+// Проверка сессии при загрузке
+var savedToken = localStorage.getItem('iskra_token');
+if (savedToken) {
+  socket.on('connect', function() {
+    socket.emit('check_session', { token: savedToken });
+  });
+}
+
+socket.on('connect', function() {
+  var token = localStorage.getItem('iskra_token');
+  if (token) {
+    socket.emit('check_session', { token: token });
+  }
+});
+
+// Если сессия валидна — редирект на главную
+socket.on('session_valid', function(data) {
+  localStorage.setItem('iskra_token', data.token);
+  localStorage.setItem('iskra_login', data.login);
+  localStorage.setItem('iskra_name', data.displayName);
+  window.location.href = '/';
+});
+
+// Если сессия невалидна — стираем токен
+socket.on('session_invalid', function() {
+  localStorage.removeItem('iskra_token');
+});
+
+// Успешная регистрация или вход
+socket.on('auth_success', function(data) {
+  localStorage.setItem('iskra_token', data.token);
+  localStorage.setItem('iskra_login', data.login);
+  localStorage.setItem('iskra_name', data.displayName);
+  window.location.href = '/';
+});
+
+// Ошибка авторизации
+socket.on('auth_error', function(data) {
+  showError(data.message || 'Ошибка');
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('registerBtn').disabled = false;
+});
+
+function switchTab(tab) {
+  currentTab = tab;
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) {
+    if (tabs[i].getAttribute('data-tab') === tab) tabs[i].classList.add('active');
+    else tabs[i].classList.remove('active');
+  }
+  document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+  document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+  hideError();
+}
+
+function showError(msg) {
+  var box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('show');
+}
+
+function hideError() {
+  document.getElementById('errorBox').classList.remove('show');
+}
+
+function doLogin() {
+  var login = document.getElementById('loginLogin').value.trim();
+  var password = document.getElementById('loginPassword').value;
+
+  if (!login || !password) {
+    showError('Введите логин и пароль');
+    return;
+  }
+
+  hideError();
+  document.getElementById('loginBtn').disabled = true;
+  socket.emit('login', { login: login, password: password });
+}
+
+function doRegister() {
+  var login = document.getElementById('regLogin').value.trim();
+  var name = document.getElementById('regName').value.trim();
+  var password = document.getElementById('regPassword').value;
+
+  if (!login || !name || !password) {
+    showError('Заполните все поля');
+    return;
+  }
+
+  hideError();
+  document.getElementById('registerBtn').disabled = true;
+  socket.emit('register', {
+    login: login,
+    password: password,
+    displayName: name
+  });
+}
+
+// Enter для отправки
+document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('regPassword').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') doRegister();
+});
+</script>
+</body>
+</html>
