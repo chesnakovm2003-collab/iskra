@@ -108,7 +108,7 @@ const crypto = require('crypto');
 
 function hashPassword(password) {
   var salt = crypto.randomBytes(16).toString('hex');
-  var hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  var hash = crypto.createHash('sha256').update(salt + password).digest('hex');
   return salt + ':' + hash;
 }
 
@@ -117,7 +117,7 @@ function verifyPassword(password, stored) {
   if (parts.length !== 2) return false;
   var salt = parts[0];
   var hash = parts[1];
-  var check = crypto.scryptSync(password, salt, 64).toString('hex');
+  var check = crypto.createHash('sha256').update(salt + password).digest('hex');
   return check === hash;
 }
 
