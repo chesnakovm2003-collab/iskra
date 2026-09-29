@@ -119,6 +119,22 @@ function verifyPassword(password, stored) {
   var hash = parts[1];
   var check = crypto.scryptSync(password, salt, 64).toString('hex');
   return check === hash;
+  function verifyPassword(password, stored) {
+  console.log('[VERIFY] password length:', password ? password.length : 0);
+  console.log('[VERIFY] stored type:', typeof stored);
+  console.log('[VERIFY] stored value:', stored);
+  var parts = stored.split(':');
+  console.log('[VERIFY] parts:', parts.length);
+  if (parts.length !== 2) return false;
+  var salt = parts[0];
+  var hash = parts[1];
+  console.log('[VERIFY] salt:', salt);
+  console.log('[VERIFY] hash length:', hash.length);
+  var check = crypto.scryptSync(password, salt, 64).toString('hex');
+  console.log('[VERIFY] check length:', check.length);
+  console.log('[VERIFY] match:', check === hash);
+  return check === hash;
+}
 }
 
 function generateToken() {
@@ -160,9 +176,13 @@ async function getUserFromYDB(login) {
       SELECT login, password, displayName, createdAt
       FROM iskra_users WHERE login = ${login};
     `;
-var rows = result[0]?.rows || [];
+    console.log('[getUser] result type:', typeof result);
+    console.log('[getUser] result:', JSON.stringify(result).substring(0, 500));
+    var rows = result[0]?.rows || [];
+    console.log('[getUser] rows length:', rows.length);
     if (rows.length === 0) return null;
     var row = rows[0];
+    console.log('[getUser] row keys:', Object.keys(row));
     return {
       login: row.login,
       password: row.password,
