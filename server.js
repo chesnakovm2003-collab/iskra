@@ -160,12 +160,13 @@ async function getUserFromYDB(login) {
     if (!result || result.length === 0) return null;
     var row = result[0];
     console.log('[getUser] row:', row);
-    if (!row || !row.login) return null;
-      login: row.login,
-      password: row.password,
-      displayName: row.displayName,
-      createdAt: row.createdAt
-    };
+if (!row || !row.login) return null;
+return {
+  login: row.login,
+  password: row.password,
+  displayName: row.displayName,
+  createdAt: row.createdAt
+};
   } catch(e) {
     console.error('Ошибка чтения пользователя:', e.message);
     return null;
