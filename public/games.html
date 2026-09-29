@@ -83,9 +83,6 @@
     opacity: 0.9;
     line-height: 1.3;
   }
-  .gm-card.lottery {
-    background: linear-gradient(135deg, #ff9800, #e91e63);
-  }
   .gm-card.crash {
     background: linear-gradient(135deg, #43e97b, #38f9d7);
     color: #003;
@@ -140,22 +137,150 @@
     color: #2b7a8a;
     line-height: 1.5;
   }
+
+  /* ============ МОДАЛКИ ИГР ============ */
+
+  .game-modal {
+    position: fixed;
+    left: 0; right: 0; bottom: 0; top: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .game-modal.open { display: flex; }
+  .gm-sheet {
+    width: 100%;
+    max-width: 500px;
+    max-height: 92vh;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: gmSlideUp 0.25s ease-out;
+  }
+  @keyframes gmSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .gm-sheet.crash-bg { background: #0f1419; border-top: 1px solid #2a2a2a; }
+  .gm-sheet.greedy-bg { background: #1a1208; border-top: 1px solid #4a3010; }
+  .gm-sheet.yummy-bg { background: #1a0f2e; border-top: 1px solid #3a1f5e; }
+
+  .gm-sheet-header {
+    padding: 6px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .gm-sheet-title {
+    font-size: 18px; font-weight: 900;
+    text-align: center;
+  }
+  .gm-sheet.crash-bg .gm-sheet-title {
+    background: linear-gradient(90deg, #4dd8e8, #43e97b);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .gm-sheet.greedy-bg .gm-sheet-title {
+    background: linear-gradient(90deg, #ffd54f, #ff9800);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .gm-sheet.yummy-bg .gm-sheet-title {
+    background: linear-gradient(90deg, #ff80ab, #ffd54f);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .gm-sheet-sub { text-align: center; font-size: 11px; color: #888; margin-top: 2px; }
+  .gm-sheet-close {
+    position: absolute;
+    top: 6px; right: 14px;
+    width: 32px; height: 32px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: inherit;
+  }
+  .gm-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    scrollbar-width: none;
+  }
+  .gm-sheet-body::-webkit-scrollbar { display: none; }
+
+  .gm-balance-row {
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  .crash-bg .gm-balance-row { background: #161c22; border: 1px solid #1f2833; }
+  .greedy-bg .gm-balance-row { background: #2a1c08; border: 1px solid #4a3010; }
+  .yummy-bg .gm-balance-row { background: #221636; border: 1px solid #3a1f5e; }
+  .gm-bal-label { font-size: 12px; color: #888; }
+  .gm-bal-val { font-size: 18px; font-weight: 900; color: #ffd54f; }
+
+  .gm-bet-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .gm-bet-row.four { grid-template-columns: repeat(4, 1fr); }
+  .gm-bet {
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: 0.15s;
+    font-family: inherit;
+    font-weight: 800;
+    padding: 10px 4px;
+  }
+  .crash-bg .gm-bet { background: #1d1d22; border: 2px solid #25252a; color: #ccc; font-size: 14px; }
+  .crash-bg .gm-bet.active { border-color: #4dd8e8; color: #fff; background: linear-gradient(135deg, rgba(77,216,232,0.25), rgba(67,233,123,0.25)); box-shadow: 0 0 10px rgba(77,216,232,0.5); }
+  .greedy-bg .gm-bet { background: #2a1c08; border: 2px solid #4a3010; color: #ccb080; font-size: 13px; }
+  .greedy-bg .gm-bet.active { border-color: #ffd54f; color: #fff; background: linear-gradient(135deg, rgba(255,213,79,0.25), rgba(255,152,0,0.25)); box-shadow: 0 0 10px rgba(255,213,79,0.6); }
+  .yummy-bg .gm-bet { background: #221636; border: 2px solid #3a1f5e; color: #ccc; font-size: 13px; }
+  .yummy-bg .gm-bet.active { border-color: #ff80ab; color: #fff; background: linear-gradient(135deg, rgba(255,128,171,0.25), rgba(255,213,79,0.25)); box-shadow: 0 0 10px rgba(255,128,171,0.5); }
+
+  .gm-error {
+    color: #ff3b5c;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+    min-height: 16px;
+  }
 </style>
 </head>
 <body>
-
 <div class="games-page">
   <div class="gm-header">
     <button class="gm-back" onclick="history.back()">←</button>
     <div class="gm-title">🎮 Развлекательный центр</div>
   </div>
 
-  <div class="gm-section-title">Продвижение эфира</div>
+  <div class="gm-section-title">Азартные игры</div>
   <div class="gm-grid">
-    <div class="gm-card lottery" onclick="openGame('lottery')">
-      <div class="gm-icon">🎟</div>
-      <div class="gm-name">Fan Lottery</div>
-      <div class="gm-desc">Запусти лотерею,<br>собери зрителей</div>
+    <div class="gm-card crash" onclick="openCrash()">
+      <div class="gm-icon">🚀</div>
+      <div class="gm-name">Crash</div>
+      <div class="gm-desc">Успей забрать<br>до взрыва</div>
+    </div>
+    <div class="gm-card greedy" onclick="openGreedy()">
+      <div class="gm-icon">🎡</div>
+      <div class="gm-name">Greedy Wheel</div>
+      <div class="gm-desc">Крути колесо —<br>лови приз</div>
+    </div>
+    <div class="gm-card yummy" onclick="openYummy()">
+      <div class="gm-icon">🍬</div>
+      <div class="gm-name">Yummy</div>
+      <div class="gm-desc">Три в ряд —<br>и джекпот</div>
     </div>
     <div class="gm-card soon">
       <div class="gm-icon">🅼</div>
@@ -165,43 +290,873 @@
     </div>
   </div>
 
-  <div class="gm-section-title">Азартные игры</div>
-  <div class="gm-grid">
-    <div class="gm-card crash" onclick="openGame('crash')">
-      <div class="gm-icon">🚀</div>
-      <div class="gm-name">Crash</div>
-      <div class="gm-desc">Успей забрать<br>до взрыва</div>
-    </div>
-    <div class="gm-card greedy" onclick="openGame('greedy')">
-      <div class="gm-icon">🎡</div>
-      <div class="gm-name">Greedy Wheel</div>
-      <div class="gm-desc">Крути колесо —<br>лови приз</div>
-    </div>
-    <div class="gm-card yummy" onclick="openGame('yummy')">
-      <div class="gm-icon">🍬</div>
-      <div class="gm-name">Yummy</div>
-      <div class="gm-desc">Три в ряд —<br>и джекпот</div>
-    </div>
-  </div>
-
   <div class="gm-hint">
-    💡 Игры открываются <b>внутри эфира</b>. Нажми на игру — тебя перекинет в комнату, где можно сразу начать играть. Если не хочешь заходить в чужой эфир — открой свой через «+» на главной.
+    💡 Играй на виртуальные алмазы. Реальные деньги не участвуют.
+    Пополнить баланс можно в панели подарков в эфире.
   </div>
 </div>
 
+<!-- ============ МОДАЛКА CRASH ============ -->
+<div class="game-modal" id="crashModal">
+  <div class="gm-sheet crash-bg">
+    <div class="gm-sheet-header">
+      <div class="gm-sheet-title">🚀 Crash</div>
+      <div class="gm-sheet-sub">Поставь ставку и вовремя забери выигрыш</div>
+      <button class="gm-sheet-close" onclick="closeCrash()">×</button>
+    </div>
+    <div class="gm-sheet-body">
+      <div class="gm-balance-row">
+        <div class="gm-bal-label">💎 Баланс</div>
+        <div class="gm-bal-val" id="crBalance">0</div>
+      </div>
+
+      <div class="gm-bet-row four" id="crBetRow">
+        <div class="gm-bet active" data-bet="1" onclick="crSelectBet(1)">1</div>
+        <div class="gm-bet" data-bet="10" onclick="crSelectBet(10)">10</div>
+        <div class="gm-bet" data-bet="100" onclick="crSelectBet(100)">100</div>
+        <div class="gm-bet" data-bet="1000" onclick="crSelectBet(1000)">1000</div>
+      </div>
+
+      <div class="gm-error" id="crError"></div>
+
+      <div class="cr-field">
+        <div class="cr-rocket" id="crRocket">🚀</div>
+        <div class="cr-mult" id="crMult">1.00×</div>
+        <div class="cr-status" id="crStatus"></div>
+      </div>
+
+      <button class="cr-btn cr-start" id="crStartBtn" onclick="crStart()">🚀 Старт (ставка <span id="crStartBet">1</span> 💎)</button>
+      <button class="cr-btn cr-cashout" id="crCashBtn" onclick="crCashout()">💰 Забрать <span id="crCashAmt">0</span> 💎</button>
+
+      <div class="cr-title">Игроки этой партии</div>
+      <div class="cr-bets" id="crBets"></div>
+
+      <div class="cr-title">Последние игры</div>
+      <div class="cr-history" id="crHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА GREEDY ============ -->
+<div class="game-modal" id="greedyModal">
+  <div class="gm-sheet greedy-bg">
+    <div class="gm-sheet-header">
+      <div class="gm-sheet-title">🎡 Greedy Wheel</div>
+      <div class="gm-sheet-sub">Крути колесо — забирай приз</div>
+      <button class="gm-sheet-close" onclick="closeGreedy()">×</button>
+    </div>
+    <div class="gm-sheet-body">
+      <div class="gm-balance-row">
+        <div class="gm-bal-label">💎 Баланс</div>
+        <div class="gm-bal-val" id="gdBalance">0</div>
+      </div>
+
+      <div class="gm-bet-row" id="gdBetRow">
+        <div class="gm-bet" data-bet="10" onclick="gdSelectBet(10)">10</div>
+        <div class="gm-bet active" data-bet="50" onclick="gdSelectBet(50)">50</div>
+        <div class="gm-bet" data-bet="100" onclick="gdSelectBet(100)">100</div>
+        <div class="gm-bet" data-bet="500" onclick="gdSelectBet(500)">500</div>
+        <div class="gm-bet" data-bet="1000" onclick="gdSelectBet(1000)">1000</div>
+      </div>
+
+      <div class="gm-error" id="gdError"></div>
+
+      <div class="gd-wheel-wrap">
+        <div class="gd-pointer">▼</div>
+        <svg class="gd-wheel" id="gdWheel" viewBox="0 0 300 300"></svg>
+        <div class="gd-center">GO</div>
+      </div>
+
+      <div class="gd-result" id="gdResult"></div>
+
+      <button class="gd-btn" id="gdSpinBtn" onclick="gdSpin()">🎡 Крутить (ставка <span id="gdSpinBet">50</span> 💎)</button>
+
+      <div class="gd-history-title">Последние игры</div>
+      <div class="gd-history" id="gdHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ МОДАЛКА YUMMY ============ -->
+<div class="game-modal" id="yummyModal">
+  <div class="gm-sheet yummy-bg">
+    <div class="gm-sheet-header">
+      <div class="gm-sheet-title">🍬 Yummy</div>
+      <div class="gm-sheet-sub">Три в ряд — и приз твой</div>
+      <button class="gm-sheet-close" onclick="closeYummy()">×</button>
+    </div>
+    <div class="gm-sheet-body">
+      <div class="gm-balance-row">
+        <div class="gm-bal-label">💎 Баланс</div>
+        <div class="gm-bal-val" id="ysBalance">0</div>
+      </div>
+
+      <div class="gm-bet-row" id="ysBetRow">
+        <div class="gm-bet" data-bet="10" onclick="ysSelectBet(10)">10</div>
+        <div class="gm-bet active" data-bet="50" onclick="ysSelectBet(50)">50</div>
+        <div class="gm-bet" data-bet="100" onclick="ysSelectBet(100)">100</div>
+        <div class="gm-bet" data-bet="500" onclick="ysSelectBet(500)">500</div>
+        <div class="gm-bet" data-bet="1000" onclick="ysSelectBet(1000)">1000</div>
+      </div>
+
+      <div class="gm-error" id="ysError"></div>
+
+      <div class="ys-reels">
+        <div class="ys-reel" id="ysReel1">🍬</div>
+        <div class="ys-reel" id="ysReel2">🍭</div>
+        <div class="ys-reel" id="ysReel3">🍫</div>
+      </div>
+
+      <div class="ys-result" id="ysResult"></div>
+
+      <button class="ys-btn" id="ysSpinBtn" onclick="ysSpin()">🎰 Крутить (ставка <span id="ysSpinBet">50</span> 💎)</button>
+
+      <div class="ys-history-title">Последние игры</div>
+      <div class="ys-history" id="ysHistory"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Crash */
+  .cr-field {
+    position: relative;
+    height: 180px;
+    background: linear-gradient(180deg, #0a0e12, #161c22);
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #1f2833;
+    margin-bottom: 12px;
+  }
+  .cr-rocket {
+    position: absolute;
+    font-size: 40px;
+    left: 20px;
+    bottom: 20px;
+    transition: left 0.15s linear, bottom 0.15s linear;
+    filter: drop-shadow(0 0 10px rgba(77,216,232,0.7));
+  }
+  .cr-rocket.boom { filter: drop-shadow(0 0 20px rgba(255,59,92,1)); }
+  .cr-mult {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-size: 40px; font-weight: 900;
+    color: #43e97b;
+    text-shadow: 0 0 20px rgba(67,233,123,0.7);
+    font-variant-numeric: tabular-nums;
+  }
+  .cr-mult.crashed { color: #ff3b5c; text-shadow: 0 0 20px rgba(255,59,92,0.9); }
+  .cr-status {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px; font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.7);
+    text-align: center;
+    padding: 0 20px;
+  }
+  .cr-btn {
+    width: 100%;
+    border: none;
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  .cr-start { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #003; box-shadow: 0 6px 20px rgba(67,233,123,0.4); }
+  .cr-start:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+  .cr-cashout { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #000; display: none; }
+  .cr-cashout.show { display: block; }
+  .cr-title { font-size: 12px; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 8px; }
+  .cr-bets { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; margin-bottom: 12px; }
+  .cr-bet-row-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #161c22; padding: 8px 12px; border-radius: 10px;
+    border: 1px solid #1f2833; font-size: 13px;
+  }
+  .cr-bet-row-item.win { border-color: rgba(67,233,123,0.5); }
+  .cr-bet-row-item.lose { border-color: rgba(255,59,92,0.4); opacity: 0.7; }
+  .cr-bname { font-weight: 700; color: #fff; }
+  .cr-bval { color: #ffd54f; font-weight: 800; }
+  .cr-bmult { font-weight: 900; margin-left: 8px; }
+  .cr-bmult.win { color: #43e97b; }
+  .cr-bmult.lose { color: #ff3b5c; }
+  .cr-history { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .cr-hchip {
+    flex-shrink: 0; padding: 5px 10px; border-radius: 12px;
+    font-size: 11px; font-weight: 800;
+    background: #1d1d22; color: #43e97b; border: 1px solid #25252a;
+  }
+  .cr-hchip.low { color: #ffb74d; }
+  .cr-hchip.high { color: #ff3b5c; }
+
+  /* Greedy */
+  .gd-wheel-wrap {
+    position: relative;
+    width: 280px; height: 300px;
+    margin: 0 auto 14px;
+  }
+  .gd-wheel {
+    width: 280px; height: 280px;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(255,152,0,0.5));
+    transition: transform 4s cubic-bezier(0.15, 0.85, 0.25, 1);
+    transform-origin: 140px 140px;
+    transform-box: fill-box;
+  }
+  .gd-pointer {
+    position: absolute;
+    top: -6px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 34px;
+    color: #ffd54f;
+    text-shadow: 0 0 12px rgba(255,213,79,0.9);
+    z-index: 3;
+    line-height: 1;
+  }
+  .gd-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ff3b5c, #c62828);
+    border: 4px solid #ffd54f;
+    box-shadow: 0 0 20px rgba(255,59,92,0.8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    color: #fff;
+    z-index: 2;
+    letter-spacing: 1px;
+  }
+  .gd-result {
+    text-align: center;
+    font-size: 16px; font-weight: 900;
+    min-height: 24px;
+    margin-bottom: 12px;
+  }
+  .gd-result.win { color: #ffd54f; text-shadow: 0 0 12px rgba(255,213,79,0.8); }
+  .gd-result.lose { color: #888; }
+  .gd-result.jackpot { color: #ff3b5c; font-size: 22px; text-shadow: 0 0 16px rgba(255,59,92,0.9); }
+  .gd-btn {
+    width: 100%; border: none; padding: 16px; border-radius: 16px;
+    font-size: 17px; font-weight: 900; cursor: pointer; font-family: inherit;
+    background: linear-gradient(135deg, #ffd54f, #ff9800);
+    color: #2a1c08;
+    box-shadow: 0 6px 20px rgba(255,152,0,0.5);
+    margin-bottom: 14px;
+  }
+  .gd-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+  .gd-history-title {
+    font-size: 12px; font-weight: 800; color: #b09060;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .gd-history { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .gd-hchip {
+    flex-shrink: 0; padding: 8px 10px; border-radius: 12px;
+    font-size: 16px; font-weight: 800;
+    background: #2a1c08; color: #ccb080; border: 1px solid #4a3010;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .gd-hchip.win { color: #43e97b; border-color: rgba(67,233,123,0.5); }
+  .gd-hchip.lose { color: #666; }
+  .gd-hchip.jackpot { color: #ffd54f; border-color: #ffd54f; }
+
+  /* Yummy */
+  .ys-reels {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .ys-reel {
+    aspect-ratio: 1;
+    background: #2a1a44;
+    border: 2px solid #4a2f6e;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; line-height: 1;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+  }
+  .ys-reel.spinning { animation: ysSpin 0.1s linear infinite; }
+  @keyframes ysSpin {
+    0% { transform: translateY(-4px); }
+    50% { transform: translateY(4px); }
+    100% { transform: translateY(-4px); }
+  }
+  .ys-reel.win {
+    border-color: #ffd54f;
+    box-shadow: 0 0 20px rgba(255,213,79,0.8);
+    animation: ysPulse 0.5s ease infinite;
+  }
+  @keyframes ysPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+  }
+  .ys-result { text-align: center; font-size: 16px; font-weight: 900; min-height: 24px; margin-bottom: 12px; }
+  .ys-result.win { color: #ffd54f; }
+  .ys-result.lose { color: #888; }
+  .ys-result.jackpot { color: #ff3b5c; font-size: 20px; }
+  .ys-btn {
+    width: 100%; border: none; padding: 16px; border-radius: 16px;
+    font-size: 17px; font-weight: 900; cursor: pointer; font-family: inherit;
+    background: linear-gradient(135deg, #ff80ab, #ffd54f);
+    color: #2a0a3a;
+    box-shadow: 0 6px 20px rgba(255,128,171,0.5);
+    margin-bottom: 14px;
+  }
+  .ys-btn:disabled { background: #333; color: #666; cursor: not-allowed; box-shadow: none; }
+  .ys-history-title { font-size: 12px; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .ys-history { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .ys-hchip {
+    flex-shrink: 0; padding: 8px 10px; border-radius: 12px;
+    font-size: 14px; font-weight: 800;
+    background: #221636; color: #ccc; border: 1px solid #3a1f5e;
+  }
+  .ys-hchip.win { color: #43e97b; border-color: rgba(67,233,123,0.5); }
+  .ys-hchip.lose { color: #666; }
+  .ys-hchip.jackpot { color: #ff3b5c; border-color: #ff3b5c; }
+</style>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-function openGame(gameId) {
-  // Запоминаем, какую игру надо открыть в комнате
-  sessionStorage.setItem('autoOpenGame', gameId);
+var socket = io();
+var myName = sessionStorage.getItem('myName') || 'Гость';
 
-  // Открываем последнюю комнату, где был пользователь,
-  // или дефолтную
-  var lastRoom = sessionStorage.getItem('lastRoomId') || 'room_0';
-  var lastHost = sessionStorage.getItem('lastRoomHost') || 'Ведущий';
+socket.on('connect', function() {
+  socket.emit('join', {
+    name: myName,
+    roomId: 'games_page',
+    host: myName,
+    gender: 'male',
+    baseViewers: 0,
+    diamonds: 0
+  });
+});
 
-  window.location.href = '/room.html?room=' + lastRoom +
-                        '&host=' + encodeURIComponent(lastHost);
+socket.on('balance_update', function(data) {
+  var bal = (data.balance || 0).toLocaleString('ru-RU');
+  document.getElementById('crBalance').textContent = bal;
+  document.getElementById('gdBalance').textContent = bal;
+  document.getElementById('ysBalance').textContent = bal;
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
 }
+
+// ============ CRASH ============
+var crBet = 1;
+var crState = null;
+var crHistory = [];
+var crLocalBet = null;
+
+function openCrash() {
+  document.getElementById('crashModal').classList.add('open');
+  socket.emit('crash_get');
+  renderCrash();
+}
+function closeCrash() {
+  document.getElementById('crashModal').classList.remove('open');
+}
+function crSelectBet(bet) {
+  if (crState && (crState.phase === 'waiting' || crState.phase === 'running')) return;
+  crBet = bet;
+  var els = document.querySelectorAll('#crBetRow .gm-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  document.getElementById('crStartBet').textContent = bet;
+}
+function crShowError(msg) {
+  var el = document.getElementById('crError');
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+function crStart() {
+  if (crState && (crState.phase === 'waiting' || crState.phase === 'running')) return;
+  crLocalBet = crBet;
+  socket.emit('crash_start', { bet: crBet });
+}
+function crCashout() {
+  crLocalBet = null;
+  socket.emit('crash_cashout');
+}
+
+socket.on('crash_balance', function(data) {
+  if (data.balance != null) {
+    var bal = data.balance.toLocaleString('ru-RU');
+    document.getElementById('crBalance').textContent = bal;
+  }
+  crHistory = data.history || [];
+  renderCrash();
+});
+
+socket.on('crash_state', function(state) {
+  crState = state;
+  if (!state || state.phase === 'crashed' || state.phase === 'cashout') {
+    crLocalBet = null;
+  }
+  renderCrash();
+});
+
+socket.on('crash_tick', function(tick) {
+  if (!crState) return;
+  crState.multiplier = tick.multiplier;
+  crState.phase = tick.phase;
+  var multEl = document.getElementById('crMult');
+  var rocket = document.getElementById('crRocket');
+  if (multEl) multEl.textContent = tick.multiplier.toFixed(2) + '×';
+  if (rocket && tick.phase === 'running') {
+    var maxM = Math.max(2, tick.multiplier * 1.2);
+    var p = Math.min(1, (tick.multiplier - 1) / (maxM - 1));
+    rocket.style.left = (10 + p * 70) + '%';
+    rocket.style.bottom = (10 + p * 65) + '%';
+  }
+  if (crState.bets && myName) {
+    for (var i = 0; i < crState.bets.length; i++) {
+      var bb = crState.bets[i];
+      if (bb.name === myName && !bb.cashouted) {
+        var amtEl = document.getElementById('crCashAmt');
+        if (amtEl) amtEl.textContent = Math.round(bb.bet * tick.multiplier).toLocaleString('ru-RU');
+        break;
+      }
+    }
+  }
+});
+
+socket.on('crash_error', function(data) {
+  crShowError(data.message || 'Ошибка');
+});
+
+function renderCrash() {
+  var multEl = document.getElementById('crMult');
+  var rocket = document.getElementById('crRocket');
+  var statusEl = document.getElementById('crStatus');
+  var startBtn = document.getElementById('crStartBtn');
+  var cashBtn = document.getElementById('crCashBtn');
+
+  var phase = crState ? crState.phase : 'idle';
+  var running = phase === 'running';
+  var crashed = phase === 'crashed' || phase === 'cashout';
+
+  if (running) {
+    startBtn.style.display = 'none';
+    var myBet = null;
+    if (crState.bets) {
+      for (var i = 0; i < crState.bets.length; i++) {
+        if (crState.bets[i].name === myName) { myBet = crState.bets[i]; break; }
+      }
+    }
+    var useBet = null;
+    if (myBet && !myBet.cashouted) useBet = myBet;
+    else if (crLocalBet && !myBet) useBet = { bet: crLocalBet, cashouted: false };
+
+    if (useBet) {
+      cashBtn.classList.add('show');
+      var potential = Math.round(useBet.bet * crState.multiplier);
+      document.getElementById('crCashAmt').textContent = potential.toLocaleString('ru-RU');
+    } else {
+      cashBtn.classList.remove('show');
+    }
+  } else {
+    cashBtn.classList.remove('show');
+    startBtn.style.display = 'block';
+    startBtn.disabled = (phase === 'waiting');
+    if (phase === 'waiting') startBtn.innerHTML = '⏳ Приём ставок...';
+    else startBtn.innerHTML = '🚀 Старт (ставка ' + crBet + ' 💎)';
+  }
+
+  if (crState && (running || crashed)) {
+    statusEl.textContent = '';
+    var m = crState.multiplier || 1;
+    multEl.textContent = m.toFixed(2) + '×';
+    if (crashed) {
+      multEl.classList.add('crashed');
+      rocket.classList.add('boom');
+      rocket.textContent = '💥';
+      statusEl.textContent = 'Взорвалась на ×' + (crState.crashPoint || m).toFixed(2);
+      var maxM = Math.max(2, crState.crashPoint || 2);
+      var p = Math.min(1, (m - 1) / (maxM - 1));
+      rocket.style.left = (10 + p * 70) + '%';
+      rocket.style.bottom = (10 + p * 65) + '%';
+    } else {
+      multEl.classList.remove('crashed');
+      rocket.classList.remove('boom');
+      rocket.textContent = '🚀';
+      var maxM2 = Math.max(2, crState.multiplier * 1.2);
+      var p2 = Math.min(1, (m - 1) / (maxM2 - 1));
+      rocket.style.left = (10 + p2 * 70) + '%';
+      rocket.style.bottom = (10 + p2 * 65) + '%';
+    }
+  } else if (phase === 'waiting') {
+    multEl.textContent = '1.00×';
+    multEl.classList.remove('crashed');
+    rocket.classList.remove('boom');
+    rocket.textContent = '🚀';
+    rocket.style.left = '20px';
+    rocket.style.bottom = '20px';
+    statusEl.textContent = 'Скоро старт...';
+  } else {
+    multEl.textContent = '1.00×';
+    multEl.classList.remove('crashed');
+    rocket.classList.remove('boom');
+    rocket.textContent = '🚀';
+    rocket.style.left = '20px';
+    rocket.style.bottom = '20px';
+    statusEl.textContent = 'Нажми «Старт»';
+  }
+
+  var betsEl = document.getElementById('crBets');
+  var hash = '';
+  if (crState && crState.bets) {
+    for (var hi = 0; hi < crState.bets.length; hi++) {
+      hash += crState.bets[hi].name + ':' + crState.bets[hi].cashouted + ':' + (crState.bets[hi].payout || 0) + ';';
+    }
+  }
+  if (betsEl._lastHash !== hash) {
+    betsEl._lastHash = hash;
+    betsEl.innerHTML = '';
+    if (crState && crState.bets && crState.bets.length > 0) {
+      for (var j = 0; j < crState.bets.length; j++) {
+        var b = crState.bets[j];
+        var row = document.createElement('div');
+        var cls = 'cr-bet-row-item';
+        if (b.cashouted) cls += ' win';
+        else if (crashed) cls += ' lose';
+        row.className = cls;
+        var multTxt = '';
+        if (b.cashouted && b.cashMult) {
+          multTxt = '<span class="cr-bmult win">×' + b.cashMult.toFixed(2) + ' → ' + (b.payout || 0).toLocaleString('ru-RU') + '</span>';
+        } else if (crashed) {
+          multTxt = '<span class="cr-bmult lose">— проиграл</span>';
+        } else {
+          multTxt = '<span class="cr-bmult" style="color:#888;">в игре</span>';
+        }
+        row.innerHTML =
+          '<span class="cr-bname">' + escapeHtml(b.name) + '</span>' +
+          '<span><span class="cr-bval">' + b.bet + ' 💎</span>' + multTxt + '</span>';
+        betsEl.appendChild(row);
+      }
+    } else {
+      betsEl.innerHTML = '<div style="color:#666; font-size:12px; padding:8px 0;">Пока никто не поставил</div>';
+    }
+  }
+
+  var histEl = document.getElementById('crHistory');
+  histEl.innerHTML = '';
+  var hist = (crState && crState.history) ? crState.history : crHistory;
+  if (hist && hist.length > 0) {
+    for (var h = 0; h < hist.length; h++) {
+      var it = hist[h];
+      var el = document.createElement('div');
+      var cls2 = 'cr-hchip';
+      if (it.mult < 2) cls2 += ' low';
+      else if (it.mult >= 5) cls2 += ' high';
+      el.className = cls2;
+      el.textContent = '×' + (it.mult).toFixed(2);
+      histEl.appendChild(el);
+    }
+  } else {
+    histEl.innerHTML = '<div style="color:#666; font-size:12px;">Пока нет игр</div>';
+  }
+}
+
+// ============ GREEDY ============
+var gdBet = 50;
+var gdLock = false;
+var gdRotation = 0;
+var GD_PRIZES = [
+  { emoji: '🍔', mult: 0.3, color: '#ff6b9d' },
+  { emoji: '🍰', mult: 0.7, color: '#4dd8e8' },
+  { emoji: '🍩', mult: 1.2, color: '#ffd54f' },
+  { emoji: '🍒', mult: 0.0, color: '#9c27b0' },
+  { emoji: '🍕', mult: 1.5, color: '#43e97b' },
+  { emoji: '🌮', mult: 0.0, color: '#e91e63' },
+  { emoji: '🍦', mult: 3.0, color: '#ff9800' },
+  { emoji: '🍓', mult: 10.0, color: '#2196f3' }
+];
+
+function gdPolar(cx, cy, r, angleDeg) {
+  var a = (angleDeg - 90) * Math.PI / 180;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+
+function buildWheel() {
+  var svg = document.getElementById('gdWheel');
+  if (!svg) return;
+  svg.innerHTML = '';
+  var cx = 140, cy = 140, r = 135;
+  for (var i = 0; i < 8; i++) {
+    var startAngle = i * 45 - 22.5;
+    var endAngle = startAngle + 45;
+    var p1 = gdPolar(cx, cy, r, startAngle);
+    var p2 = gdPolar(cx, cy, r, endAngle);
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    var d = 'M ' + cx + ' ' + cy + ' L ' + p1.x.toFixed(2) + ' ' + p1.y.toFixed(2) +
+            ' A ' + r + ' ' + r + ' 0 0 1 ' + p2.x.toFixed(2) + ' ' + p2.y.toFixed(2) + ' Z';
+    path.setAttribute('d', d);
+    path.setAttribute('fill', GD_PRIZES[i].color);
+    path.setAttribute('stroke', '#1a1208');
+    path.setAttribute('stroke-width', '2');
+    svg.appendChild(path);
+    var midAngle = i * 45;
+    var textPos = gdPolar(cx, cy, r * 0.68, midAngle);
+    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', textPos.x.toFixed(2));
+    text.setAttribute('y', textPos.y.toFixed(2));
+    text.setAttribute('text-anchor', 'middle');
+    text.setAttribute('dominant-baseline', 'middle');
+    text.setAttribute('font-size', '26');
+    text.setAttribute('fill', '#fff');
+    text.setAttribute('transform', 'rotate(' + midAngle + ' ' + textPos.x.toFixed(2) + ' ' + textPos.y.toFixed(2) + ')');
+    text.textContent = GD_PRIZES[i].emoji;
+    svg.appendChild(text);
+  }
+  var border = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  border.setAttribute('cx', cx);
+  border.setAttribute('cy', cy);
+  border.setAttribute('r', r);
+  border.setAttribute('fill', 'none');
+  border.setAttribute('stroke', '#ffd54f');
+  border.setAttribute('stroke-width', '6');
+  svg.appendChild(border);
+}
+
+function openGreedy() {
+  document.getElementById('greedyModal').classList.add('open');
+  buildWheel();
+  socket.emit('greedy_get');
+}
+function closeGreedy() {
+  document.getElementById('greedyModal').classList.remove('open');
+}
+function gdSelectBet(bet) {
+  if (gdLock) return;
+  gdBet = bet;
+  var els = document.querySelectorAll('#gdBetRow .gm-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  document.getElementById('gdSpinBet').textContent = bet;
+}
+function gdShowError(msg) {
+  var el = document.getElementById('gdError');
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+function gdSpin() {
+  if (gdLock) return;
+  gdLock = true;
+  document.getElementById('gdSpinBtn').disabled = true;
+  document.getElementById('gdResult').textContent = '';
+  document.getElementById('gdResult').className = 'gd-result';
+  socket.emit('greedy_spin', { bet: gdBet });
+  setTimeout(function() {
+    if (!gdLock) return;
+    gdLock = false;
+    document.getElementById('gdSpinBtn').disabled = false;
+  }, 8000);
+}
+
+socket.on('greedy_result', function(result) {
+  if (!gdLock) return;
+  var sector = result.sector;
+  var target = (360 - sector * 45) % 360;
+  var current = ((gdRotation % 360) + 360) % 360;
+  var delta = target - current;
+  while (delta < 0) delta += 360;
+  delta += 360 * (5 + Math.floor(Math.random() * 3));
+  gdRotation += delta;
+  var svg = document.getElementById('gdWheel');
+  svg.style.transform = 'rotate(' + gdRotation + 'deg)';
+  setTimeout(function() {
+    var resultEl = document.getElementById('gdResult');
+    if (result.mult === 10) {
+      resultEl.className = 'gd-result jackpot';
+      resultEl.textContent = '🎉 ДЖЕКПОТ! ×10 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+    } else if (result.payout > 0) {
+      resultEl.className = 'gd-result win';
+      resultEl.textContent = result.emoji + ' ×' + result.mult + ' → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+    } else {
+      resultEl.className = 'gd-result lose';
+      resultEl.textContent = '😢 Пусто';
+    }
+    gdLock = false;
+    document.getElementById('gdSpinBtn').disabled = false;
+  }, 4200);
+});
+
+socket.on('greedy_error', function(data) {
+  gdLock = false;
+  document.getElementById('gdSpinBtn').disabled = false;
+  gdShowError(data.message || 'Ошибка');
+});
+
+socket.on('greedy_history', function(list) {
+  var el = document.getElementById('gdHistory');
+  if (!el) return;
+  if (!list || !list.length) {
+    el.innerHTML = '<div style="color:#666;font-size:12px;">Пока нет игр</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < list.length; i++) {
+    var h = list[i];
+    var chip = document.createElement('div');
+    var cls = 'gd-hchip';
+    if (h.mult === 10) cls += ' jackpot';
+    else if (h.mult > 0) cls += ' win';
+    else cls += ' lose';
+    chip.className = cls;
+    chip.innerHTML = h.emoji + (h.mult > 0 ? ' ×' + h.mult : '');
+    el.appendChild(chip);
+  }
+});
+
+// ============ YUMMY ============
+var ysBet = 50;
+var ysLock = false;
+
+function openYummy() {
+  document.getElementById('yummyModal').classList.add('open');
+  socket.emit('yummy_get');
+}
+function closeYummy() {
+  document.getElementById('yummyModal').classList.remove('open');
+}
+function ysSelectBet(bet) {
+  if (ysLock) return;
+  ysBet = bet;
+  var els = document.querySelectorAll('#ysBetRow .gm-bet');
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-bet')) === bet) els[i].classList.add('active');
+    else els[i].classList.remove('active');
+  }
+  document.getElementById('ysSpinBet').textContent = bet;
+}
+function ysShowError(msg) {
+  var el = document.getElementById('ysError');
+  el.textContent = msg || '';
+  if (msg) setTimeout(function() { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+function ysSpin() {
+  if (ysLock) return;
+  ysLock = true;
+  document.getElementById('ysSpinBtn').disabled = true;
+
+  var reels = [
+    document.getElementById('ysReel1'),
+    document.getElementById('ysReel2'),
+    document.getElementById('ysReel3')
+  ];
+  var symbols = ['🍬','🍭','🍫','🍩','🧁','🍒'];
+  for (var ri = 0; ri < reels.length; ri++) {
+    reels[ri].classList.add('spinning');
+    reels[ri].classList.remove('win');
+  }
+  window._ysReels = reels;
+  window._ysFlicker = setInterval(function() {
+    for (var fi = 0; fi < reels.length; fi++) {
+      reels[fi].textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    }
+  }, 80);
+
+  socket.emit('yummy_spin', { bet: ysBet });
+
+  window._ysFallback = setTimeout(function() {
+    if (!ysLock) return;
+    if (window._ysFlicker) { clearInterval(window._ysFlicker); window._ysFlicker = null; }
+    for (var i = 0; i < reels.length; i++) reels[i].classList.remove('spinning');
+    ysLock = false;
+    document.getElementById('ysSpinBtn').disabled = false;
+    ysShowError('Сервер не ответил');
+  }, 5000);
+}
+
+socket.on('yummy_result', function(result) {
+  if (window._ysFallback) { clearTimeout(window._ysFallback); window._ysFallback = null; }
+  if (window._ysFlicker) { clearInterval(window._ysFlicker); window._ysFlicker = null; }
+
+  var reels = window._ysReels || [
+    document.getElementById('ysReel1'),
+    document.getElementById('ysReel2'),
+    document.getElementById('ysReel3')
+  ];
+  var i = 0;
+  function stopNext() {
+    if (i >= reels.length) {
+      finishYs(result, reels);
+      return;
+    }
+    reels[i].classList.remove('spinning');
+    reels[i].textContent = result.symbols[i];
+    i++;
+    setTimeout(stopNext, 220);
+  }
+  stopNext();
+});
+
+function finishYs(result, reels) {
+  if (result.mult > 0) {
+    for (var i = 0; i < reels.length; i++) reels[i].classList.add('win');
+  }
+  var el = document.getElementById('ysResult');
+  if (result.mult === 20) {
+    el.className = 'ys-result jackpot';
+    el.textContent = '🎉 ДЖЕКПОТ! ×20 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else if (result.mult === 5) {
+    el.className = 'ys-result win';
+    el.textContent = '🔥 Три в ряд! ×5 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else if (result.mult === 2) {
+    el.className = 'ys-result win';
+    el.textContent = '✨ Два в ряд! ×2 → +' + result.payout.toLocaleString('ru-RU') + ' 💎';
+  } else {
+    el.className = 'ys-result lose';
+    el.textContent = '😢 Не повезло';
+  }
+  ysLock = false;
+  document.getElementById('ysSpinBtn').disabled = false;
+}
+
+socket.on('yummy_error', function(data) {
+  if (window._ysFallback) { clearTimeout(window._ysFallback); window._ysFallback = null; }
+  if (window._ysFlicker) { clearInterval(window._ysFlicker); window._ysFlicker = null; }
+  var reels = window._ysReels || [];
+  for (var i = 0; i < reels.length; i++) reels[i].classList.remove('spinning');
+  ysLock = false;
+  document.getElementById('ysSpinBtn').disabled = false;
+  ysShowError(data.message || 'Ошибка');
+});
+
+socket.on('yummy_history', function(list) {
+  var el = document.getElementById('ysHistory');
+  if (!el) return;
+  if (!list || !list.length) {
+    el.innerHTML = '<div style="color:#666;font-size:12px;">Пока нет игр</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < list.length; i++) {
+    var h = list[i];
+    var chip = document.createElement('div');
+    var cls = 'ys-hchip';
+    if (h.mult === 20) cls += ' jackpot';
+    else if (h.mult > 0) cls += ' win';
+    else cls += ' lose';
+    chip.className = cls;
+    chip.textContent = h.symbols.join('') + (h.mult > 0 ? ' ×' + h.mult : '');
+    el.appendChild(chip);
+  }
+});
 </script>
 </body>
 </html>
