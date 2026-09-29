@@ -80,7 +80,7 @@ async function loadDataFromYDB() {
     var result = await ydbSql`
       SELECT value FROM iskra_data WHERE key = 'main';
     `;
-    var rows = result.resultSets[0]?.rows || [];
+    var rows = result[0]?.rows || [];
     if (rows.length === 0) return {};
     var value = rows[0].value;
     return typeof value === 'string' ? JSON.parse(value) : value;
@@ -160,7 +160,7 @@ async function getUserFromYDB(login) {
       SELECT login, password, displayName, createdAt
       FROM iskra_users WHERE login = ${login};
     `;
-    var rows = result.resultSets[0]?.rows || [];
+var rows = result[0]?.rows || [];
     if (rows.length === 0) return null;
     var row = rows[0];
     return {
@@ -197,7 +197,7 @@ async function getSessionFromYDB(token) {
       SELECT token, login, expiresAt
       FROM iskra_sessions WHERE token = ${token};
     `;
-    var rows = result.resultSets[0]?.rows || [];
+    var rows = result[0]?.rows || [];
     if (rows.length === 0) return null;
     var row = rows[0];
     var exp = new Date(row.expiresAt).getTime();
