@@ -3209,14 +3209,22 @@ function renderEvent(ev, isHistory) {
     html += escapeHtml(ev.text);
     div.innerHTML = html;
   } else if (ev.type === 'gift') {
+  } else if (ev.type === 'gift') {
     div.className = 'msg gift';
 
     var giftHtml = '';
     if (ev.isRandom) {
       if (ev.trains > 0) {
-        giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> отправил <b>' + escapeHtml(ev.name) + '</b>; 🚂 ×' + ev.trains + ', 💎 ' + ev.price;
+        giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> отправил <b>' + escapeHtml(ev.name) + '</b>; 🚂 ×' + ev.trains + ' → ведущему +' + (ev.trains * 1000).toLocaleString('ru-RU') + ' 💎';
       } else {
         giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> отправил <b>' + escapeHtml(ev.name) + '</b> 💎 ' + ev.price;
+      }
+      if (ev.refund > 0) {
+        var refundDiv = document.createElement('div');
+        refundDiv.className = 'msg gift';
+        refundDiv.style.background = 'rgba(67, 233, 123, 0.35)';
+        refundDiv.innerHTML = '🎉 <b>' + escapeHtml(ev.from) + '</b> получил возврат 💎 <b>' + ev.refund + '</b> с фонтана!';
+        body.appendChild(refundDiv);
       }
     } else {
       giftHtml = renderGiftIcon(ev.gift, 20) + ' <b>' + escapeHtml(ev.from) + '</b> подарил <b>' + escapeHtml(ev.name) + '</b> 💎 ' + (ev.price || '?');
@@ -3228,6 +3236,7 @@ function renderEvent(ev, isHistory) {
       else if (ev.tier === 'big') showBigGift(ev);
       else flyGift(ev.gift);
     }
+  } else if (ev.type === 'refund') {
   } else if (ev.type === 'refund') {
     div.className = 'msg gift';
     div.innerHTML = '🎉 <b>' + escapeHtml(ev.to) + '</b> получил 💎 <b>' + ev.amount + '</b> алмазов!';
