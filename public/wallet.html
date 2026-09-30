@@ -220,7 +220,7 @@
     <div class="wl-balance-value" id="walletBalance">0</div>
     <div class="wl-balance-sub">💎 алмазов · 1 💎 = 1 ₽</div>
     <div class="wl-balance-actions">
-      <button class="wl-btn" onclick="goTopup()">💎 Пополнить</button>
+      <button class="wl-btn" onclick="openTopup()">💎 Пополнить</button>
       <button class="wl-btn" onclick="goLive()">🎁 Подарить</button>
     </div>
   </div>
@@ -237,17 +237,39 @@
 
 </div>
 
+<!-- Модалка пополнения -->
+<div id="topupModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; border-radius:20px; padding:22px 20px; max-width:400px; width:100%;">
+    <div style="font-size:18px; font-weight:900; margin-bottom:4px; color:#222;">Пополнить баланс</div>
+    <div style="font-size:13px; color:#888; margin-bottom:16px;">Выбери сумму пополнения</div>
+
+    <div id="topupOptions" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px;">
+      <button class="topup-opt" onclick="doTopup(100)"  style="padding:14px; border:1px solid #e0e0e0; background:#fff; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">100 💎</button>
+      <button class="topup-opt" onclick="doTopup(500)"  style="padding:14px; border:1px solid #e0e0e0; background:#fff; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">500 💎</button>
+      <button class="topup-opt" onclick="doTopup(1000)" style="padding:14px; border:1px solid #e0e0e0; background:#fff; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">1 000 💎</button>
+      <button class="topup-opt" onclick="doTopup(5000)" style="padding:14px; border:1px solid #e0e0e0; background:#fff; border-radius:12px; font-size:15px; font-weight:800; cursor:pointer; font-family:inherit;">5 000 💎</button>
+    </div>
+
+    <div style="font-size:12px; color:#888; margin-bottom:8px;">Или введи свою сумму:</div>
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <input id="topupCustom" type="number" min="1" max="1000000" placeholder="Например, 300" style="flex:1; padding:12px 14px; border:1px solid #e0e0e0; border-radius:12px; font-size:15px; font-family:inherit; outline:none;">
+      <button onclick="doTopupCustom()" style="padding:12px 18px; background:linear-gradient(135deg,#4dd8e8,#2bb8d0); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; font-family:inherit;">Пополнить</button>
+    </div>
+
+    <button onclick="closeTopup()" style="width:100%; padding:12px; background:#f0f0f0; border:none; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer; font-family:inherit; color:#666;">Отмена</button>
+  </div>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 var socket = io();
-var myName = sessionStorage.getItem('myName') || 'Гость';
+var myName = localStorage.getItem('iskra_name') || 'Гость';
+var myLogin = localStorage.getItem('iskra_login') || '';
 var myBalance = 0;
 var myTransactions = [];
 
 // Подключаемся к сокету — притворяемся, что зашли в «служебную» комнату
 socket.on('connect', function() {
-  // Используем ту же комнату, что последняя открытая — из sessionStorage
-  var lastRoom = sessionStorage.getItem('lastRoomId') || 'default';
+  var lastRoom = sessionStorage.getItem('lastRoomId') || 'wallet_page';
   socket.emit('join', {
     name: myName,
     roomId: lastRoom,
@@ -269,6 +291,13 @@ socket.on('transactions', function(list) {
   renderTransactions();
 });
 
+socket.on('topup_success', function(data) {
+  // Баланс обновится через balance_update.
+  // А здесь запросим свежую историю транзакций.
+  setTimeout(function() {
+    socket.emit('get_transactions');
+  }, 300);
+});
 function renderTransactions() {
   var el = document.getElementById('walletList');
   if (!el) return;
@@ -340,8 +369,38 @@ function goLive() {
   var lastHost = sessionStorage.getItem('lastRoomHost') || 'Ведущий';
   window.location.href = '/room.html?room=' + lastRoom + '&host=' + encodeURIComponent(lastHost);
 }
-function goTopup() {
-  alert('Пополнение доступно в эфире — открой комнату и нажми 💎 в панели подарков');
+// ---------- Пополнение ----------
+function openTopup() {
+  var m = document.getElementById('topupModal');
+  if (m) m.style.display = 'flex';
+}
+
+function closeTopup() {
+  var m = document.getElementById('topupModal');
+  if (m) m.style.display = 'none';
+  var inp = document.getElementById('topupCustom');
+  if (inp) inp.value = '';
+}
+
+function doTopup(amount) {
+  if (!amount || amount < 1) return;
+  socket.emit('topup', { amount: amount });
+  closeTopup();
+}
+
+function doTopupCustom() {
+  var inp = document.getElementById('topupCustom');
+  if (!inp) return;
+  var val = parseInt(inp.value) || 0;
+  if (val < 1) {
+    alert('Введи сумму больше 0');
+    return;
+  }
+  if (val > 1000000) {
+    alert('Максимум 1 000 000 за раз');
+    return;
+  }
+  doTopup(val);
 }
 
 // После join — запросим историю
