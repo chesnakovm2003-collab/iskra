@@ -852,6 +852,30 @@ function joinLottery(roomId, userName, note) {
   return true;
 }
 
+// ---------- СПЕЦ-ЛОГИКА ФОНТАНА ----------
+// Возврат отправителю: 70% ничего, 25% +40, 5% +100
+function rollFountainRefund() {
+  var r = Math.random();
+  if (r < 0.70) return 0;
+  if (r < 0.95) return 40;
+  return 100;
+}
+
+// Выпал ли поезд: ~5% (примерно 1 из 20)
+function rollFountainTrain() {
+  return Math.random() < 0.05;
+}
+
+// Сколько поездов: чаще 1, реже больше
+function rollTrainCount() {
+  var r = Math.random();
+  if (r < 0.60) return 1;
+  if (r < 0.85) return 2;
+  if (r < 0.95) return 3;
+  if (r < 0.99) return 5;
+  return 10;
+}
+
 function emitGift(roomId, fromUser, gift) {
   var userName = fromUser.name;
   var price = gift.price;
@@ -869,10 +893,38 @@ function emitGift(roomId, fromUser, gift) {
   }
   pushTransaction(userName, 'gift_sent', -price, 'Подарок: ' + gift.name);
 
+  // ===== СПЕЦ-ЛОГИКА ФОНТАНА =====
+  var fountainRefund = 0;
+  var trainCount = 0;
+  if (gift.id === 'fountain') {
+    fountainRefund = rollFountainRefund();
+    if (fountainRefund > 0) {
+      addBalance(userName, fountainRefund);
+      pushTransaction(userName, 'fountain_refund', fountainRefund, 'Фонтан: возврат');
+      pushBalanceToUser(userName);
+    }
+    if (rollFountainTrain()) {
+      trainCount = rollTrainCount();
+      var hostName = roomHosts[roomId] || null;
+      if (hostName) {
+        var trainReward = trainCount * 1000;
+        addBalance(hostName, trainReward);
+        pushTransaction(hostName, 'train_reward', trainReward, 'Поезд ×' + trainCount + ' от ' + userName);
+        addQuestCoins(hostName, trainReward);
+        pushBalanceToUser(hostName);
+        io.to(roomId).emit('host_earnings', (roomBaseDiamonds[roomId] || 0) + (roomEarnings[roomId] || 0) + trainReward);
+      }
+    }
+  }
+  // ===== / СПЕЦ-ЛОГИКА ФОНТАНА =====
+
   pushEvent(roomId, {
     type: 'gift', from: userName, gift: gift.icon, giftId: gift.id,
     name: gift.name, price: price, tier: gift.tier,
-    isBot: fromUser.isBot, level: fromUser.level
+    isBot: fromUser.isBot, level: fromUser.level,
+    isRandom: gift.id === 'fountain',
+    trains: trainCount,
+    refund: fountainRefund
   });
 
   if (!donationsByRoom[roomId]) donationsByRoom[roomId] = {};
