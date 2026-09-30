@@ -913,6 +913,29 @@ function emitGift(roomId, fromUser, gift) {
         pushTransaction(hostName, 'train_reward', trainReward, 'Поезд ×' + trainCount + ' от ' + userName);
         addQuestCoins(hostName, trainReward);
         pushBalanceToUser(hostName);
+        // Добавляем поезд в earnings КОМНАТЫ, чтобы он не терялся
+        if (!roomEarnings[roomId]) roomEarnings[roomId] = 0;
+        roomEarnings[roomId] += trainReward;
+
+        // ===== ПОЕЗДА ИДУТ В ДОНАТ-РЕЙТИНГ ОТПРАВИТЕЛЯ =====
+        donationsDaily[userName] = (donationsDaily[userName] || 0) + trainReward;
+        donationsWeekly[userName] = (donationsWeekly[userName] || 0) + trainReward;
+        donationsMonthly[userName] = (donationsMonthly[userName] || 0) + trainReward;
+        donationsAllTime[userName] = (donationsAllTime[userName] || 0) + trainReward;
+
+        // И в комнатный донат
+        if (!donationsByRoom[roomId]) donationsByRoom[roomId] = {};
+        if (!donationsByRoom[roomId][userName]) donationsByRoom[roomId][userName] = 0;
+        donationsByRoom[roomId][userName] += trainReward;
+
+        // И уровень пользователя пересчитаем (чтобы в панели подарков прогресс обновился)
+        var levelData = getLevelProgress(donationsAllTime[userName] || 0);
+        online.forEach(function(u, sid) {
+          if (u.name === userName) io.to(sid).emit('user_level', levelData);
+        });
+
+        // Обновим список донатов
+        broadcastDonations(roomId);
       }
     }
   }
@@ -940,7 +963,7 @@ function emitGift(roomId, fromUser, gift) {
   roomEarnings[roomId] += price;
 
 var base = roomBaseDiamonds[roomId] || 0;
-io.to(roomId).emit('host_earnings', base + roomEarnings[roomId] + (typeof trainReward === 'number' ? trainReward : 0));
+io.to(roomId).emit('host_earnings', base + roomEarnings[roomId]);
 
   var hostName = roomHosts[roomId] || null;
   var hostShare = Math.floor(price * (1 - PLATFORM_COMMISSION));
