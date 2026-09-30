@@ -723,7 +723,7 @@ function broadcastOnline(roomId) {
     if (u.roomId === roomId) {
       viewersList.push({
         id: id, name: u.name, isBot: u.isBot,
-        level: u.level || randInt(20, 80),
+        level: (donationsAllTime[u.name] > 0) ? getUserLevel(donationsAllTime[u.name]) : (u.level || randInt(20, 80)),
         isVip: u.level > 70,
         diamonds: (donationsByRoom[roomId] && donationsByRoom[roomId][u.name]) || 0,
         hasDonated: !!(donationsByRoom[roomId] && donationsByRoom[roomId][u.name]),
@@ -744,7 +744,7 @@ function broadcastDonations(roomId) {
   var list = [];
   for (var name in roomDonations) {
     list.push({
-      name: name, level: 30,
+    name: name, level: getUserLevel(donationsAllTime[name] || 0),
       diamonds: roomDonations[name] || 0,
       daily: donationsDaily[name] || 0,
       weekly: donationsWeekly[name] || 0,
@@ -1348,7 +1348,7 @@ socket.on('login', async function(data) {
     var donationsList = [];
     for (var dn in roomDonations) {
       donationsList.push({
-        name: dn, level: 30,
+       name: dn, level: getUserLevel(donationsAllTime[dn] || 0),
         diamonds: roomDonations[dn] || 0,
         daily: donationsDaily[dn] || 0,
         weekly: donationsWeekly[dn] || 0,
@@ -1583,7 +1583,7 @@ socket.on('login', async function(data) {
       else if (period === 'month') amount = donationsMonthly[userName] || 0;
       else amount = donationsAllTime[userName] || 0;
       if (amount > 0) {
-        result.push({ name: userName, amount: amount, level: 30 });
+        result.push({ name: userName, amount: amount, level: getUserLevel(donationsAllTime[userName] || 0) });
       }
     }
     result.sort(function(a, b) { return b.amount - a.amount; });

@@ -509,6 +509,9 @@ if (!myName || !myToken) {
 }
 
 document.getElementById('myNameDisplay').textContent = myName;
+var myRealLevel = 1;
+var myRealDonated = 0;
+
 socket.on('connect', function() {
   socket.emit('join', {
     name: myName,
@@ -521,6 +524,12 @@ socket.on('connect', function() {
   setTimeout(function() {
     socket.emit('pm_chat_cost_get');
   }, 300);
+});
+
+socket.on('user_level', function(data) {
+  if (!data) return;
+  myRealLevel = data.level || 1;
+  myRealDonated = (data.current || 0) + (data.need || 0) * (data.percent || 0) / 100;
 });
 
 function getAvatarGradient(name) {
@@ -549,10 +558,10 @@ function openMyBigProfile() {
     name: myName,
     isBot: false,
     isMe: true,
-    level: 56,
+    level: myRealLevel,
     isVip: false,
-    hasDonated: false,
-    totalDiamonds: 0,
+    hasDonated: myRealDonated > 0,
+    totalDiamonds: myRealDonated,
     gender: 'male'
   };
   sessionStorage.setItem('profileViewer', JSON.stringify(myProfile));
