@@ -1152,6 +1152,7 @@ io.on('connection', function(socket) {
   });
 
   socket.on('login', async function(data) {
+  console.log('[LOGIN] called with:', JSON.stringify(data));
     var login = (data.login || '').trim();
     var password = data.password || '';
 
