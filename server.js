@@ -160,9 +160,17 @@ async function getUserFromYDB(login) {
     console.log('[getUser] length:', result ? result.length : 'null');
     console.log('[getUser] value:', JSON.stringify(result).substring(0, 300));
     if (!result || result.length === 0) return null;
-    var row = result[0];
-    console.log('[getUser] row:', row);
-    console.log('[getUser] ABOUT TO RETURN, row.login =', row && row.login);
+
+    // Результат от YDB может быть вложенным: [[{...}]]
+    // Достаём строку аккуратно, на любую глубину
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    if (!rows || rows.length === 0) return null;
+    var row = rows[0];
+
+    console.log('[getUser] final row:', row);
 if (!row || !row.login) { console.log('[getUser] RETURNING NULL'); return null; }
 console.log('[getUser] RETURNING USER OBJECT');
 return {
