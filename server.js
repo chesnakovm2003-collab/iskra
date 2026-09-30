@@ -1166,6 +1166,7 @@ io.on('connection', function(socket) {
       socket.emit('auth_error', { message: 'Неверный логин или пароль' });
       return;
     }
+	console.log('[LOGIN] user found, about to verify. typeof verifyPassword =', typeof verifyPassword);
 
     if (!verifyPassword(password, user.password)) {
       socket.emit('auth_error', { message: 'Неверный логин или пароль' });
