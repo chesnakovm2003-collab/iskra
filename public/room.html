@@ -3209,7 +3209,6 @@ function renderEvent(ev, isHistory) {
     html += escapeHtml(ev.text);
     div.innerHTML = html;
   } else if (ev.type === 'gift') {
-  } else if (ev.type === 'gift') {
     div.className = 'msg gift';
 
     var giftHtml = '';
@@ -3236,7 +3235,6 @@ function renderEvent(ev, isHistory) {
       else if (ev.tier === 'big') showBigGift(ev);
       else flyGift(ev.gift);
     }
-  } else if (ev.type === 'refund') {
   } else if (ev.type === 'refund') {
     div.className = 'msg gift';
     div.innerHTML = '🎉 <b>' + escapeHtml(ev.to) + '</b> получил 💎 <b>' + ev.amount + '</b> алмазов!';
