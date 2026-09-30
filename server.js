@@ -78,12 +78,20 @@ async function initYDB() {
 async function loadDataFromYDB() {
   if (!ydbReady || !ydbSql) return {};
   try {
-var result = await ydbSql`
-  SELECT value FROM iskra_data WHERE key = 'main';
-`;
-if (!result || result.length === 0) return {};
-var value = result[0].value;
-if (!value) return {};
+    var result = await ydbSql`
+      SELECT value FROM iskra_data WHERE key = 'main';
+    `;
+    if (!result || result.length === 0) return {};
+
+    // YDB может вернуть вложенный массив: [[{value: ...}]]
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    if (!rows || rows.length === 0) return {};
+
+    var value = rows[0].value;
+    if (!value) return {};
     return typeof value === 'string' ? JSON.parse(value) : value;
   } catch(e) {
     console.error('Ошибка чтения из YDB:', e.message);
@@ -155,30 +163,22 @@ async function getUserFromYDB(login) {
       SELECT login, password, displayName, createdAt
       FROM iskra_users WHERE login = ${login};
     `;
-    console.log('[getUser] type:', typeof result);
-    console.log('[getUser] is array:', Array.isArray(result));
-    console.log('[getUser] length:', result ? result.length : 'null');
-    console.log('[getUser] value:', JSON.stringify(result).substring(0, 300));
     if (!result || result.length === 0) return null;
 
-    // Результат от YDB может быть вложенным: [[{...}]]
-    // Достаём строку аккуратно, на любую глубину
     var rows = result;
     if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
       rows = rows[0];
     }
     if (!rows || rows.length === 0) return null;
-    var row = rows[0];
 
-    console.log('[getUser] final row:', row);
-if (!row || !row.login) { console.log('[getUser] RETURNING NULL'); return null; }
-console.log('[getUser] RETURNING USER OBJECT');
-return {
-  login: row.login,
-  password: row.password,
-  displayName: row.displayName,
-  createdAt: row.createdAt
-};
+    var row = rows[0];
+    if (!row || !row.login) return null;
+    return {
+      login: row.login,
+      password: row.password,
+      displayName: row.displayName,
+      createdAt: row.createdAt
+    };
   } catch(e) {
     console.error('Ошибка чтения пользователя:', e.message);
     return null;
@@ -203,13 +203,21 @@ async function createSessionInYDB(token, login) {
 async function getSessionFromYDB(token) {
   if (!ydbReady || !ydbSql) return null;
   try {
-var result = await ydbSql`
-  SELECT token, login, expiresAt
-  FROM iskra_sessions WHERE token = ${token};
-`;
-if (!result || result.length === 0) return null;
-var row = result[0];
-if (!row || !row.token) return null;
+    var result = await ydbSql`
+      SELECT token, login, expiresAt
+      FROM iskra_sessions WHERE token = ${token};
+    `;
+    if (!result || result.length === 0) return null;
+
+    // YDB может вернуть вложенный массив: [[{...}]]
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    if (!rows || rows.length === 0) return null;
+
+    var row = rows[0];
+    if (!row || !row.token) return null;
     var exp = new Date(row.expiresAt).getTime();
     if (exp < Date.now()) return null;
     return { token: row.token, login: row.login, expiresAt: row.expiresAt };
@@ -1163,7 +1171,6 @@ io.on('connection', function(socket) {
 
 socket.on('login', async function(data) {
   try {
-    console.log('[LOGIN] called with:', JSON.stringify(data));
     var login = (data.login || '').trim();
     var password = data.password || '';
 
@@ -1172,38 +1179,27 @@ socket.on('login', async function(data) {
       return;
     }
 
-    console.log('[LOGIN] before getUserFromYDB');
     var user = await getUserFromYDB(login);
-    console.log('[LOGIN] after getUserFromYDB, user =', JSON.stringify(user));
-
     if (!user) {
       socket.emit('auth_error', { message: 'Неверный логин или пароль' });
       return;
     }
 
-    console.log('[LOGIN] before verify, typeof verifyPassword =', typeof verifyPassword);
-    var ok = verifyPassword(password, user.password);
-    console.log('[LOGIN] after verify, ok =', ok);
-
-    if (!ok) {
+    if (!verifyPassword(password, user.password)) {
       socket.emit('auth_error', { message: 'Неверный логин или пароль' });
       return;
     }
 
     var token = generateToken();
-    console.log('[LOGIN] before createSession');
     await createSessionInYDB(token, user.login);
-    console.log('[LOGIN] after createSession');
 
     socket.emit('auth_success', {
       token: token,
       login: user.login,
       displayName: user.displayName
     });
-    console.log('[LOGIN] auth_success emitted');
   } catch(e) {
-    console.log('[LOGIN] EXCEPTION:', e && e.message);
-    console.log('[LOGIN] STACK:', e && e.stack);
+    console.error('[LOGIN] EXCEPTION:', e && e.message);
     socket.emit('auth_error', { message: 'Ошибка сервера: ' + (e && e.message) });
   }
 });
