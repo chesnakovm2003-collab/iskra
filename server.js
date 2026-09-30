@@ -896,6 +896,7 @@ function emitGift(roomId, fromUser, gift) {
   // ===== СПЕЦ-ЛОГИКА ФОНТАНА =====
   var fountainRefund = 0;
   var trainCount = 0;
+  var trainReward = 0;
   if (gift.id === 'fountain') {
     fountainRefund = rollFountainRefund();
     if (fountainRefund > 0) {
@@ -907,12 +908,11 @@ function emitGift(roomId, fromUser, gift) {
       trainCount = rollTrainCount();
       var hostName = roomHosts[roomId] || null;
       if (hostName) {
-        var trainReward = trainCount * 1000;
+        trainReward = trainCount * 1000;
         addBalance(hostName, trainReward);
         pushTransaction(hostName, 'train_reward', trainReward, 'Поезд ×' + trainCount + ' от ' + userName);
         addQuestCoins(hostName, trainReward);
         pushBalanceToUser(hostName);
-        io.to(roomId).emit('host_earnings', (roomBaseDiamonds[roomId] || 0) + (roomEarnings[roomId] || 0) + trainReward);
       }
     }
   }
@@ -939,8 +939,8 @@ function emitGift(roomId, fromUser, gift) {
   if (!roomEarnings[roomId]) roomEarnings[roomId] = 0;
   roomEarnings[roomId] += price;
 
-  var base = roomBaseDiamonds[roomId] || 0;
-  io.to(roomId).emit('host_earnings', base + roomEarnings[roomId]);
+var base = roomBaseDiamonds[roomId] || 0;
+io.to(roomId).emit('host_earnings', base + roomEarnings[roomId] + (typeof trainReward === 'number' ? trainReward : 0));
 
   var hostName = roomHosts[roomId] || null;
   var hostShare = Math.floor(price * (1 - PLATFORM_COMMISSION));
