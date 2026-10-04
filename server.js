@@ -1919,8 +1919,9 @@ async function initYDB_tv() {
 
 // ---------- Утилиты Iskra TV ----------
 function tvToday() {
-  var d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  // Дата в МСК (UTC+3)
+  var d = new Date(Date.now() + 3 * 60 * 60 * 1000);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
 }
 
 function tvTomorrow() {
@@ -2309,12 +2310,15 @@ io.on('connection', function(socket) {
 // ---------- Планировщик Iskra TV ----------
 // Каждую минуту проверяем, не пора ли запустить/завершить слоты
 setInterval(function() {
-  var now = new Date();
-  var today = tvToday();
-  var hh = String(now.getHours()).padStart(2, '0');
-  var mm = String(now.getMinutes()).padStart(2, '0');
+  // Время в МСК (UTC+3), чтобы совпадало с расписанием слотов
+  var nowUtc = new Date();
+  var now = new Date(nowUtc.getTime() + 3 * 60 * 60 * 1000);
+  var today = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0') + '-' + String(now.getUTCDate()).padStart(2, '0');
+  var hh = String(now.getUTCHours()).padStart(2, '0');
+  var mm = String(now.getUTCMinutes()).padStart(2, '0');
   var curTime = hh + ':' + mm;
   var changed = false;
+  console.log('⏰ Iskra TV планировщик: МСК', curTime, '| слотов:', Object.keys(tvSchedule).filter(function(id){return tvSchedule[id].date === today;}).length);
   console.log('⏰ Iskra TV планировщик: проверка в', curTime, '| слотов на сегодня:', Object.keys(tvSchedule).filter(function(id){return tvSchedule[id].date === today;}).length);
 
   for (var sid in tvSchedule) {
