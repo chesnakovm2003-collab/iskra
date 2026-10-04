@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script src="/auth-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Iskra TV · Расписание</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    min-height: 100%;
+    background: #0a0a0a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .page { max-width: 640px; margin: 0 auto; padding-bottom: 40px; }
+
+  /* Обложка канала */
+  .cover {
+    width: 100%;
+    height: 220px;
+    background-image: url(/brand/iskra-tv-cover.png);
+    background-size: cover;
+    background-position: center;
+    position: relative;
+  }
+  .cover .shade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 70%, #0a0a0a 100%);
+  }
+  .cover .back {
+    position: absolute;
+    top: 14px; left: 14px;
+    width: 40px; height: 40px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5;
+  }
+  .cover .title-block {
+    position: absolute;
+    bottom: 16px; left: 18px; right: 18px;
+    z-index: 4;
+  }
+  .cover .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 26px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 4px;
+  }
+  .cover .logo img { width: 34px; height: 34px; }
+  .cover .sub {
+    font-size: 13px;
+    color: #ddd;
+    font-weight: 600;
+  }
+
+  /* Табы дней */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 14px 16px 10px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    background: #1a1a1e;
+    color: #888;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    border: 1px solid #222;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #003;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(77,216,232,0.4);
+  }
+
+  /* Кнопка записи */
+  .apply-btn {
+    display: block;
+    margin: 4px 16px 16px;
+    background: linear-gradient(135deg, #e91e63, #ff80ab);
+    color: #fff;
+    text-decoration: none;
+    text-align: center;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 900;
+    box-shadow: 0 6px 20px rgba(233,30,99,0.35);
+  }
+  .apply-btn:active { transform: scale(0.97); }
+
+  /* Список слотов */
+  .slots {
+    padding: 0 16px;
+  }
+  .slot {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: #16161a;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    border: 1px solid #1f1f24;
+    transition: 0.15s;
+  }
+  .slot.live {
+    background: linear-gradient(135deg, rgba(233,30,99,0.2), rgba(255,152,0,0.2));
+    border-color: rgba(233,30,99,0.6);
+    box-shadow: 0 0 16px rgba(233,30,99,0.3);
+  }
+  .slot.live .slot-time {
+    background: #e91e63;
+    color: #fff;
+  }
+  .slot.past { opacity: 0.5; }
+  .slot.past .slot-time {
+    background: #2a2a30;
+    color: #666;
+  }
+  .slot.canceled { opacity: 0.4; text-decoration: line-through; }
+  .slot.noshow { opacity: 0.4; }
+
+  .slot-time {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: #25252a;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 900;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  .slot-time .min {
+    font-size: 10px;
+    opacity: 0.7;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .slot-info { flex: 1; min-width: 0; }
+  .slot-theme {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+  }
+  .slot-host {
+    font-size: 12px;
+    color: #aaa;
+  }
+  .slot-badge {
+    font-size: 10px;
+    font-weight: 900;
+    padding: 3px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .slot-badge.live { background: #e91e63; color: #fff; animation: pulse 1.5s infinite; }
+  .slot-badge.scheduled { background: #e3f2fd; color: #1565c0; }
+  .slot-badge.finished { background: #2a2a30; color: #666; }
+  .slot-badge.canceled { background: #2a2a30; color: #666; }
+  .slot-badge.noshow { background: #2a2a30; color: #666; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #555;
+    font-size: 14px;
+  }
+
+  /* Live-плашка сверху */
+  .live-banner {
+    display: none;
+    margin: 0 16px 14px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #e91e63, #ff9800);
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(233,30,99,0.4);
+  }
+  .live-banner.show { display: flex; }
+  .live-banner .dot {
+    width: 10px; height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  .live-banner .arrow { margin-left: auto; font-size: 18px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="cover">
+    <button class="back" onclick="history.back()">←</button>
+    <div class="shade"></div>
+    <div class="title-block">
+      <div class="logo">
+        <img src="/brand/spark-main.png" alt="">
+        <span>Iskra TV</span>
+      </div>
+      <div class="sub">Расписание выступлений ведущих</div>
+    </div>
+  </div>
+
+  <div class="live-banner" id="liveBanner" onclick="goLive()">
+    <span class="dot"></span>
+    <span>Сейчас в эфире: <b id="liveName"></b></span>
+    <span class="arrow">›</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchDay('today', this)">Сегодня</div>
+    <div class="tab" onclick="switchDay('tomorrow', this)">Завтра</div>
+  </div>
+
+  <a href="/tv-apply.html" class="apply-btn">📝 Записаться на выступление</a>
+
+  <div class="slots" id="slotsList">
+    <div class="empty">Загрузка...</div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var currentDay = 'today';
+
+function isoDate(offset) {
+  var d = new Date();
+  d.setDate(d.getDate() + (offset || 0));
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function loadDay(day) {
+  var date = day === 'today' ? isoDate(0) : isoDate(1);
+  document.getElementById('slotsList').innerHTML = '<div class="empty">Загрузка...</div>';
+  socket.emit('tv_schedule_get', { date: date });
+}
+
+socket.on('connect', function() {
+  loadDay(currentDay);
+});
+
+socket.on('tv_schedule_data', function(data) {
+  var slots = data.slots || [];
+  var el = document.getElementById('slotsList');
+
+  // Live-баннер
+  var liveSlot = null;
+  for (var i = 0; i < slots.length; i++) {
+    if (slots[i].status === 'live') { liveSlot = slots[i]; break; }
+  }
+  var lb = document.getElementById('liveBanner');
+  if (liveSlot) {
+    lb.classList.add('show');
+    document.getElementById('liveName').textContent = liveSlot.hostName + ' — «' + liveSlot.theme + '»';
+    lb.dataset.slotId = liveSlot.slotId;
+    lb.dataset.host = liveSlot.hostName;
+    lb.dataset.theme = liveSlot.theme;
+  } else {
+    lb.classList.remove('show');
+  }
+
+  if (slots.length === 0) {
+    el.innerHTML = '<div class="empty">На этот день расписания пока нет.<br>Заходите позже!</div>';
+    return;
+  }
+
+  el.innerHTML = '';
+  for (var j = 0; j < slots.length; j++) {
+    var s = slots[j];
+    var div = document.createElement('div');
+    div.className = 'slot';
+
+    if (s.status === 'live') div.classList.add('live');
+    else if (s.status === 'finished') div.classList.add('past');
+    else if (s.status === 'canceled') div.classList.add('canceled');
+    else if (s.status === 'noshow') div.classList.add('noshow');
+
+    var statusLabel = {
+      live: 'В ЭФИРЕ',
+      scheduled: 'Скоро',
+      finished: 'Завершён',
+      canceled: 'Отменён',
+      noshow: 'Невыход'
+    }[s.status] || s.status;
+
+    var timeParts = (s.time || '00:00').split(':');
+
+    div.innerHTML =
+      '<div class="slot-time">' +
+        '<span>' + timeParts[0] + ':' + timeParts[1] + '</span>' +
+        '<span class="min">20 мин</span>' +
+      '</div>' +
+      '<div class="slot-info">' +
+        '<div class="slot-theme">' + escapeHtml(s.theme) + '</div>' +
+        '<div class="slot-host">👤 ' + escapeHtml(s.hostName) + '</div>' +
+      '</div>' +
+      '<div class="slot-badge ' + s.status + '">' + statusLabel + '</div>';
+
+    if (s.status === 'live') {
+      div.style.cursor = 'pointer';
+      div.onclick = (function(slot) {
+        return function() {
+          window.location.href = '/room.html?tv=1' +
+            '&slot=' + encodeURIComponent(slot.slotId) +
+            '&host=' + encodeURIComponent(slot.hostName) +
+            '&title=' + encodeURIComponent('Iskra TV · ' + slot.theme) +
+            '&theme=' + encodeURIComponent(slot.theme);
+        };
+      })(s);
+    }
+
+    el.appendChild(div);
+  }
+});
+
+function switchDay(day, tabEl) {
+  currentDay = day;
+  var tabs = document.querySelectorAll('.tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  tabEl.classList.add('active');
+  loadDay(day);
+}
+
+function goLive() {
+  var lb = document.getElementById('liveBanner');
+  var slotId = lb.dataset.slotId;
+  var host = lb.dataset.host;
+  var theme = lb.dataset.theme;
+  if (!slotId) return;
+  window.location.href = '/room.html?tv=1' +
+    '&slot=' + encodeURIComponent(slotId) +
+    '&host=' + encodeURIComponent(host) +
+    '&title=' + encodeURIComponent('Iskra TV · ' + theme) +
+    '&theme=' + encodeURIComponent(theme);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+</script>
+</body>
+</html>
