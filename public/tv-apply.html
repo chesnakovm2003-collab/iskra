@@ -279,11 +279,13 @@ document.getElementById('nameInput').value = myName;
   if (today >= dateInput.min && today <= dateInput.max) {
     dateInput.value = today;
     loadSlots(today);
+    applyFlashmob(today);
   }
 })();
 
 document.getElementById('dateInput').addEventListener('change', function() {
   loadSlots(this.value);
+  applyFlashmob(this.value);
 });
 
 function loadSlots(date) {
@@ -344,7 +346,10 @@ socket.on('tv_apply_result', function(data) {
     document.getElementById('categoryInput').value = '';
     document.getElementById('themeInput').value = '';
     var date = document.getElementById('dateInput').value;
-    if (date) loadSlots(date);
+    if (date) {
+      loadSlots(date);
+      applyFlashmob(date);
+    }
   } else {
     box.className = 'result err';
     box.textContent = '⚠️ ' + data.message;
@@ -387,6 +392,35 @@ socket.on('tv_apply_my_data', function(data) {
     el.appendChild(div);
   }
 });
+// ===== ФЛЕШМОБЫ =====
+var FLASHMOBS = {
+  '2026-10-10': 'Осенний листопад',
+  '2026-10-17': 'Уютный вечер',
+  '2026-10-24': 'Литературный вечер',
+  '2026-10-31': 'Хэллоуин-мистика'
+};
+
+function applyFlashmob(date) {
+  var themeInput = document.getElementById('themeInput');
+  var hint = themeInput.parentNode.querySelector('.hint');
+  var fm = FLASHMOBS[date];
+  if (fm) {
+    themeInput.value = fm;
+    themeInput.readOnly = true;
+    themeInput.style.background = '#fff3e0';
+    themeInput.style.borderColor = '#ffb74d';
+    if (hint) hint.innerHTML = '📣 <b>Флешмоб!</b> Тема зафиксирована. Категорию выберите сами.';
+  } else {
+    themeInput.readOnly = false;
+    themeInput.style.background = '';
+    themeInput.style.borderColor = '';
+    if (themeInput.value && Object.values(FLASHMOBS).indexOf(themeInput.value) !== -1) {
+      themeInput.value = '';
+    }
+    if (hint) hint.textContent = 'Если участвуете во флешмобе — упомяните его в теме';
+  }
+}
+
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, function(c) {

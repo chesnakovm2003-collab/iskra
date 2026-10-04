@@ -2755,6 +2755,20 @@ io.on('connection', function(socket) {
     if (!contact || !video) { socket.emit('tv_apply_result', { ok: false, message: 'Заполните контакт и ссылку' }); return; }
     if (!date || !slotTime) { socket.emit('tv_apply_result', { ok: false, message: 'Выберите дату и время' }); return; }
     if (!category || !theme) { socket.emit('tv_apply_result', { ok: false, message: 'Выберите категорию и укажите тему' }); return; }
+    // Проверка на флешмоб
+    var flashmobs = {
+      '2026-10-10': 'Осенний листопад',
+      '2026-10-17': 'Уютный вечер',
+      '2026-10-24': 'Литературный вечер',
+      '2026-10-31': 'Хэллоуин-мистика'
+    };
+    var fmTheme = flashmobs[date];
+    if (fmTheme) {
+      if (theme !== fmTheme) {
+        socket.emit('tv_apply_result', { ok: false, message: 'В этот день флешмоб «' + fmTheme + '». Тема должна совпадать.' });
+        return;
+      }
+    }
 
     for (var aid in tvApplications) {
       var app = tvApplications[aid];
