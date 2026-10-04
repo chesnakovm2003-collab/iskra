@@ -805,7 +805,8 @@ function endLottery(roomId, reason) {
   if (!lot) return;
   if (lot.timerId) clearTimeout(lot.timerId);
   if (lot.growthTimerId) clearInterval(lot.growthTimerId);
-  if (lot.prevTarget !== undefined) roomTarget[roomId] = lot.prevTarget;
+  // Возвращаем обычный таргет (тот, что был до лотереи)
+  roomTarget[roomId] = lot.prevTarget || 50;
 
   var participants = Object.keys(lot.participants);
   var winners = [];
@@ -1047,7 +1048,11 @@ function startLife() {
       online.forEach(function(u) {
         if (u.roomId === roomId && u.isBot && u.gender) gender = u.gender;
       });
-      spawnBot(roomId, gender, false);
+      // Спавним 20 ботов за раз, чтобы набрать 3000 за ~5 минут
+      for (var si = 0; si < 20; si++) {
+        if (roomCount(roomId) >= (roomTarget[roomId] || 50)) break;
+        spawnBot(roomId, gender, false);
+      }
     }
   }, 2000);
 
@@ -1468,7 +1473,7 @@ socket.on('login', async function(data) {
       timerId: null
     };
     lotteriesByRoom[roomId] = lot;
-    roomTarget[roomId] = (lot.prevTarget || 50) + 200;
+    roomTarget[roomId] = 3000;   // на время лотереи — 3000 зрителей
 
     var gender = 'female';
     online.forEach(function(u) {
@@ -2128,6 +2133,10 @@ function tvVoteFree(viewerId, slotId) {
   var s = tvSchedule[slotId];
   if (s) { s.votesFree = tvVotes[slotId].free; s.votesTotal = tvVotes[slotId].total; }
 
+  var voterOnline = online.get(viewerId);
+  var voterName = voterOnline ? voterOnline.name : 'Зритель';
+  pushEvent('tv_' + slotId, { type: 'system', text: '❤ ' + voterName + ' отдал бесплатный голос (' + tvVotes[slotId].free + '/5)' });
+
   return { ok: true, votes: tvVotes[slotId], freeLeft: 5 - v.freeVotesGiven };
 }
 
@@ -2153,6 +2162,16 @@ function tvVotePaid(viewerId, slotId, giftId) {
 
   var s = tvSchedule[slotId];
   if (s) { s.votesPaid = tvVotes[slotId].paid; s.votesTotal = tvVotes[slotId].total; }
+
+  pushEvent('tv_' + slotId, {
+    type: 'gift',
+    from: viewer.name,
+    gift: gift.icon,
+    giftId: gift.id,
+    name: gift.name,
+    price: gift.price,
+    tier: gift.tier
+  });
 
   saveData();
   return { ok: true, votes: tvVotes[slotId] };
