@@ -69,9 +69,7 @@ async function initYDB() {
     ydbReady = true;
     console.log('✅ YDB подключена, таблицы готовы');
     await loadAllDataFromYDB();
-	await loadAllDataFromYDB();
-    await initYDB_tv();   // ← добавить эту строку
-  } catch(e) {
+    await initYDB_tv();
   } catch(e) {
     console.error('❌ Ошибка подключения к YDB:', e.message);
     ydbReady = false;
