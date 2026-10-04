@@ -1042,7 +1042,6 @@ function startLife() {
     var roomIds = Object.keys(messagesByRoom);
     if (roomIds.length === 0) return;
     var roomId = random(roomIds);
-    if (lotteriesByRoom[roomId]) return;
     if (roomCount(roomId) < (roomTarget[roomId] || 50) + 3) {
       var gender = 'female';
       online.forEach(function(u) {
@@ -1484,20 +1483,19 @@ socket.on('login', async function(data) {
       lot.activeBots.add('bot_' + botGlobalCounter + '_' + roomId);
     }
 
-    emitLotterySystem(roomId, '🎉 ' + user.name + ' запустил Fan Lottery!');
-    broadcastLottery(roomId);
-
-    lot.timerId = setTimeout(function() { endLottery(roomId, 'time'); }, durationSec * 1000);
-    saveData();
-	
-	    // Автоматически подписываем часть ботов на лотерею
+    // Автоматически подписываем часть ботов на лотерею
     for (var bi2 = 0; bi2 < 200; bi2++) {
       var botName = random(FEMALE_BOT_NAMES.concat(MALE_BOT_NAMES)) + '_auto_' + Math.floor(Math.random()*10000);
-      // Просто добавляем в participants
       if (Object.keys(lot.participants).length < 200) {
         lot.participants[botName] = { name: botName, joinedAt: Date.now(), note: '🤖 бот' };
       }
     }
+
+    emitLotterySystem(roomId, '🎉 ' + user.name + ' запустил Fan Lottery! Участников: ' + Object.keys(lot.participants).length);
+    broadcastLottery(roomId);
+
+    lot.timerId = setTimeout(function() { endLottery(roomId, 'time'); }, durationSec * 1000);
+    saveData();
   });
 
   socket.on('lottery_join', function() {
