@@ -541,44 +541,138 @@ for (var i = 0; i < 50; i++) {
   rooms.push(makeRoom(i));
 }
 console.log('Комнат создано:', rooms.length);
+// ---------- Iskra TV ----------
+var tvSlot = null;   // текущий эфир Iskra TV (если идёт)
+
+function makeTvRoom() {
+  return {
+    id: 'tv_channel',
+    title: 'Iskra TV',
+    host: 'Канал Iskra TV',
+    category: 'ISKRA TV',
+    viewers: 0,
+    cover: 'url(/brand/iskra-tv-cover.png)',
+    isTv: true,
+    diamonds: 0,
+    gender: 'male'
+  };
+}
+
+// Запрашиваем у сервера, идёт ли сейчас эфир Iskra TV
+function loadTvSlot() {
+  var tvSocket = io();
+  tvSocket.on('connect', function() {
+    tvSocket.emit('tv_schedule_get', { date: new Date().toISOString().substring(0, 10) });
+  });
+  tvSocket.on('tv_schedule_data', function(data) {
+    var slots = data.slots || [];
+    for (var i = 0; i < slots.length; i++) {
+      if (slots[i].status === 'live') {
+        tvSlot = slots[i];
+        break;
+      }
+    }
+    tvSocket.disconnect();
+    render();
+  });
+  // на всякий случай отключаем через 3 секунды
+  setTimeout(function() { try { tvSocket.disconnect(); } catch(e) {} }, 3000);
+}
 
 function render() {
   var grid = document.getElementById('grid');
   if (!grid) return;
   grid.innerHTML = '';
 
+  // ---- Собираем общий список: карточка Iskra TV + обычные комнаты ----
+  var allCards = [];
+
+  // 1) Карточка Iskra TV
+  var tvRoom = makeTvRoom();
+  // Если сейчас идёт эфир на Iskra TV — берём его данные
+  if (tvSlot) {
+    tvRoom.title = 'Iskra TV · ' + tvSlot.theme;
+    tvRoom.host = tvSlot.hostName;
+    tvRoom.viewers = 50;
+  }
+  allCards.push({ type: 'tv', room: tvRoom });
+
+  // 2) Обычные комнаты
   for (var i = 0; i < rooms.length; i++) {
-    var r = rooms[i];
+    allCards.push({ type: 'room', room: rooms[i] });
+  }
+
+  // ---- Ставим Iskra TV на 2-е место (индекс 1) ----
+  // (позиции 0 = Топ 1, 1 = Iskra TV, 2 = Топ 2, 3 = Топ 3, ...)
+  var tvCard = allCards[0];
+  allCards.splice(0, 1);
+  allCards.splice(1, 0, tvCard);
+
+  // ---- Рендерим ----
+  for (var k = 0; k < allCards.length; k++) {
+    var item = allCards[k];
+    var r = item.room;
     var card = document.createElement('div');
     card.className = 'card';
 
     var html = '';
-    html += '<div class="cover" style="background:' + r.cover + '"></div>';
+
+    // Обложка: у Iskra TV — картинка канала, у обычных — градиент
+    if (r.isTv) {
+      html += '<div class="cover" style="background-image:' + r.cover + ';background-size:cover;background-position:center;"></div>';
+    } else {
+      html += '<div class="cover" style="background:' + r.cover + '"></div>';
+    }
     html += '<div class="gradient"></div>';
-    html += '<div class="top-tag">📡 ' + r.category + '</div>';
+
+    if (r.isTv) {
+      html += '<div class="top-tag" style="background:linear-gradient(90deg,#ffb74d,#e91e63);color:#fff;font-weight:900;">📺 ISKRA TV</div>';
+    } else {
+      html += '<div class="top-tag">📡 ' + r.category + '</div>';
+    }
     html += '<div class="viewers">◉ ' + r.viewers + '</div>';
-    if (r.special === 'top1') {
-      html += '<div class="special-badge top1">🥇 Топ 1</div>';
-    } else if (r.special === 'top2') {
-      html += '<div class="special-badge top2">🥈 Топ 2</div>';
-    } else if (r.special === 'top3') {
-      html += '<div class="special-badge top3">🥉 Топ 3</div>';
+
+    if (!r.isTv) {
+      if (r.special === 'top1') {
+        html += '<div class="special-badge top1">🥇 Топ 1</div>';
+      } else if (r.special === 'top2') {
+        html += '<div class="special-badge top2">🥈 Топ 2</div>';
+      } else if (r.special === 'top3') {
+        html += '<div class="special-badge top3">🥉 Топ 3</div>';
+      }
     }
     html += '<div class="bottom-info">' + r.title +
             '<span class="host">👤 ' + r.host + '</span></div>';
 
     card.innerHTML = html;
 
-    card.onclick = (function(room) {
-      return function() {
-        window.location.href = '/room.html?room=' + room.id +
-                              '&host=' + encodeURIComponent(room.host) +
-                              '&title=' + encodeURIComponent(room.title) +
-                              '&diamonds=' + room.diamonds +
-                              '&viewers=' + room.viewers +
-                              '&gender=' + (room.gender || 'male');
+    // ---- Клик ----
+    if (r.isTv) {
+      card.onclick = function() {
+        if (tvSlot) {
+          // Идёт эфир — переходим в комнату
+          window.location.href = '/room.html?tv=1' +
+            '&slot=' + encodeURIComponent(tvSlot.slotId) +
+            '&host=' + encodeURIComponent(tvSlot.hostName) +
+            '&title=' + encodeURIComponent('Iskra TV · ' + tvSlot.theme) +
+            '&theme=' + encodeURIComponent(tvSlot.theme);
+        } else {
+          // Эфира нет — переходим на расписание
+          window.location.href = '/tv.html';
+        }
       };
-    })(r);
+    } else {
+      card.onclick = (function(room) {
+        return function() {
+          window.location.href = '/room.html?room=' + room.id +
+                                '&host=' + encodeURIComponent(room.host) +
+                                '&title=' + encodeURIComponent(room.title) +
+                                '&diamonds=' + room.diamonds +
+                                '&viewers=' + room.viewers +
+                                '&gender=' + (room.gender || 'male');
+        };
+      })(r);
+    }
 
     grid.appendChild(card);
   }
@@ -625,6 +719,8 @@ setInterval(function() {
       rooms.push(makeRoom(i));
     }
     render();
+	// Загружаем информацию о текущем эфире Iskra TV
+loadTvSlot();
     console.log('Топ-3 обновлён — новый час: ' + newHour);
   }
 }, 60000);  // проверка раз в минуту
