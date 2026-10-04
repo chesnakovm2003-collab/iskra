@@ -69,6 +69,9 @@ async function initYDB() {
     ydbReady = true;
     console.log('✅ YDB подключена, таблицы готовы');
     await loadAllDataFromYDB();
+	await loadAllDataFromYDB();
+    await initYDB_tv();   // ← добавить эту строку
+  } catch(e) {
   } catch(e) {
     console.error('❌ Ошибка подключения к YDB:', e.message);
     ydbReady = false;
@@ -2310,9 +2313,6 @@ setInterval(function() {
     tvVotesReset();
   }
 }, 60000);
-
-// ---------- Инициализация Iskra TV при старте ----------
-initYDB_tv();
 
 // ============================================================
 // ============== / ISKRA TV MODULE ===========================
