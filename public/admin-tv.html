@@ -569,9 +569,12 @@ function renderSchedule() {
     html += '<td>' + escapeHtml(s.theme) + '</td>';
     html += '<td><span class="status ' + s.status + '">' + statusLabel + '</span></td>';
     html += '<td>';
-    if (s.status === 'scheduled') {
+    if (s.status === 'scheduled' || s.status === 'noshow' || s.status === 'live') {
+      if (s.status !== 'noshow') {
+        html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="noshowSlot(\'' + s.slotId + '\')">Невыход</button> ';
+      }
+      html += '<button class="btn green" style="padding:4px 8px;font-size:11px;" onclick="finishSlot(\'' + s.slotId + '\')">Завершён</button> ';
       html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="cancelSlot(\'' + s.slotId + '\')">Отменить</button> ';
-      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="noshowSlot(\'' + s.slotId + '\')">Невыход</button> ';
       html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="replaceHost(\'' + s.slotId + '\')">Заменить</button>';
     }
     html += '</td>';
@@ -592,6 +595,12 @@ function noshowSlot(slotId) {
   socket.emit('tv_admin_noshow', { password: PASSWORD, slotId: slotId });
 }
 socket.on('tv_admin_slot_noshow', function() { toast('Отмечен невыход'); loadSchedule(); });
+
+function finishSlot(slotId) {
+  if (!confirm('Отметить слот как «Завершён»?')) return;
+  socket.emit('tv_admin_finish_slot', { password: PASSWORD, slotId: slotId });
+}
+socket.on('tv_admin_slot_finished', function() { toast('Слот завершён'); loadSchedule(); });
 
 function replaceHost(slotId) {
   var name = prompt('Имя нового ведущего:');

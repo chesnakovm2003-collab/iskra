@@ -2566,6 +2566,18 @@ io.on('connection', function(socket) {
     saveData();
     socket.emit('tv_admin_slot_noshow', { slotId: slotId });
   });
+    // --- Отметить «Завершён» вручную (исправить старые noshow) ---
+  socket.on('tv_admin_finish_slot', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    slot.status = 'finished';
+    slot.endedAt = Date.now();
+    saveData();
+    socket.emit('tv_admin_slot_finished', { slotId: slotId });
+  });
 
   // --- Вручную поставить ведущего в слот ---
   socket.on('tv_admin_manual_slot', function(data) {
