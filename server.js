@@ -68,8 +68,8 @@ async function initYDB() {
 
     ydbReady = true;
     console.log('✅ YDB подключена, таблицы готовы');
-    await loadAllDataFromYDB();
     await initYDB_tv();
+    await loadAllDataFromYDB();
   } catch(e) {
     console.error('❌ Ошибка подключения к YDB:', e.message);
     ydbReady = false;
@@ -288,12 +288,8 @@ async function loadAllDataFromYDB() {
   hostDailyStats = data.hostDailyStats || {};
   hostWeeklyStats = data.hostWeeklyStats || {};
 
-  // ===== Iskra TV =====
-  if (data.tvHosts) tvHosts = data.tvHosts;
-  if (data.tvApplications) tvApplications = data.tvApplications;
-  if (data.tvSchedule) tvSchedule = data.tvSchedule;
-  if (data.tvVotes) tvVotes = data.tvVotes;
-  // ===== / Iskra TV =====
+  // Iskra TV — загружаем отдельной функцией (она объявлена ниже)
+  loadTvDataFromSaved(data);
 
   console.log('✅ YDB: данные загружены');
 }
@@ -1813,6 +1809,15 @@ let tvSchedule = {};     // slotId -> { slotId, date, time, hostId, hostName, th
 let tvVotes = {};        // slotId -> { free, paid, total }
 let tvViewers = {};      // viewerId -> { slotId, enterTime, lastFreeVote, freeVotesGiven }
 let tvMetrics = {};      // slotId -> [ { ts, viewers, cpuPct } ]
+// ---------- Загрузка данных Iskra TV из YDB ----------
+function loadTvDataFromSaved(data) {
+  if (!data) return;
+  if (data.tvHosts) tvHosts = data.tvHosts;
+  if (data.tvApplications) tvApplications = data.tvApplications;
+  if (data.tvSchedule) tvSchedule = data.tvSchedule;
+  if (data.tvVotes) tvVotes = data.tvVotes;
+  console.log('✅ Iskra TV: данные восстановлены');
+}
 
 // ---------- Инициализация таблиц Iskra TV в YDB ----------
 async function initYDB_tv() {
@@ -2354,6 +2359,7 @@ io.on('connection', function(socket) {
     var date = (data && data.date) || tvToday();
     var count = 80 + Math.floor(Math.random() * 21); // 80..100
     var created = generateTvApplications(date, count);
+    saveData();
     socket.emit('tv_admin_generated', { date: date, count: created.length, applications: created });
   });
 
@@ -2380,6 +2386,7 @@ io.on('connection', function(socket) {
     var app = tvApplications[appId];
     if (!app) { socket.emit('tv_admin_error', { message: 'Заявка не найдена' }); return; }
     app.status = status;
+    saveData();
     socket.emit('tv_admin_app_updated', { appId: appId, status: status });
   });
 
@@ -2389,6 +2396,7 @@ io.on('connection', function(socket) {
     if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
     var date = (data && data.date) || tvToday();
     var assigned = assignTvSlots(date);
+    saveData();
     socket.emit('tv_admin_assigned', { date: date, assigned: assigned });
   });
 
