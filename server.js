@@ -2315,10 +2315,12 @@ setInterval(function() {
   var mm = String(now.getMinutes()).padStart(2, '0');
   var curTime = hh + ':' + mm;
   var changed = false;
+  console.log('⏰ Iskra TV планировщик: проверка в', curTime, '| слотов на сегодня:', Object.keys(tvSchedule).filter(function(id){return tvSchedule[id].date === today;}).length);
 
   for (var sid in tvSchedule) {
     var s = tvSchedule[sid];
     if (s.date !== today) continue;
+    console.log('   ', sid, '| status:', s.status, '| time:', s.time);
 
     // запуск слота в нужную минуту
     if (s.status === 'scheduled' && s.time === curTime) {
