@@ -1970,10 +1970,20 @@ function tvGenerateHostId() {
 function generateTvApplications(date, count) {
   count = count || 60; // больше 52, чтобы был выбор
   var created = [];
+
+  // Проверяем — не флешмоб ли в этот день
+  var flashmobTheme = null;
+  var day = parseInt(date.substring(8, 10));
+  if (day === 10) flashmobTheme = { theme: 'Осенний листопад', category: 'Music' };
+  else if (day === 17) flashmobTheme = { theme: 'Уютный вечер', category: 'Chat' };
+  else if (day === 24) flashmobTheme = { theme: 'Литературный вечер', category: 'Art' };
+  else if (day === 31) flashmobTheme = { theme: 'Хэллоуин-мистика', category: 'Chat' };
+
   for (var i = 0; i < count; i++) {
     var hostId = tvGenerateHostId();
     var hostName = TV_HOST_NAMES[Math.floor(Math.random() * TV_HOST_NAMES.length)] + '_' + (Math.floor(Math.random() * 9000) + 1000);
-    var t = TV_THEMES[Math.floor(Math.random() * TV_THEMES.length)];
+    // Если флешмоб — берём его тему, иначе случайную из общего списка
+    var t = flashmobTheme || TV_THEMES[Math.floor(Math.random() * TV_THEMES.length)];
     var slotPool = tvAllSlotsForDay();
     var slotTime = slotPool[Math.floor(Math.random() * slotPool.length)];
 
@@ -1990,7 +2000,7 @@ function generateTvApplications(date, count) {
     tvApplications[app.appId] = app;
     created.push(app);
   }
-  console.log('✅ Iskra TV: сгенерировано заявок =', created.length);
+  console.log('✅ Iskra TV: сгенерировано заявок =', created.length, flashmobTheme ? '(флешмоб: ' + flashmobTheme.theme + ')' : '');
   return created;
 }
 
