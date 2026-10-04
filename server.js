@@ -2336,8 +2336,9 @@ setInterval(function() {
     // авто-закрытие: слот сегодня, статус scheduled, время уже прошло > 20 мин
     // — считаем, что эфир состоялся (админ вручную отметит невыход, если надо)
     if (s.status === 'scheduled' && s.time < curTime) {
-      var started = new Date(s.date + 'T' + s.time + ':00');
-      var diffMin = (Date.now() - started.getTime()) / 60000;
+      // Считаем в МСК: date + time — это МСК-время, переводим в UTC вычитанием 3 часов
+      var startedUtc = new Date(s.date + 'T' + s.time + ':00Z').getTime() - 3 * 60 * 60 * 1000;
+      var diffMin = (Date.now() - startedUtc) / 60000;
       if (diffMin > 20) {
         s.status = 'finished';
         s.endedAt = Date.now();
@@ -2348,8 +2349,8 @@ setInterval(function() {
     // добить зависшие live: если слот должен был закончиться > 20 мин назад,
     // но всё ещё в статусе live — принудительно завершаем
     if (s.status === 'live') {
-      var startedLive = new Date(s.date + 'T' + s.time + ':00');
-      var diffLive = (Date.now() - startedLive.getTime()) / 60000;
+      var startedLiveUtc = new Date(s.date + 'T' + s.time + ':00Z').getTime() - 3 * 60 * 60 * 1000;
+      var diffLive = (Date.now() - startedLiveUtc) / 60000;
       if (diffLive > 20) {
         s.status = 'finished';
         s.endedAt = Date.now();
