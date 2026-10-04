@@ -2315,7 +2315,206 @@ setInterval(function() {
 // ============================================================
 // ============== / ISKRA TV MODULE ===========================
 // ============================================================
+// ============================================================
+// =========== ISKRA TV: ADMIN SOCKETS ========================
+// ============================================================
 
+const TV_ADMIN_PASSWORD = 'admin_iskra';
+
+// Второй обработчик — для админских событий
+io.on('connection', function(socket) {
+
+  // --- Проверка пароля ---
+  socket.on('tv_admin_auth', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd === TV_ADMIN_PASSWORD) {
+      socket.emit('tv_admin_auth_ok');
+    } else {
+      socket.emit('tv_admin_auth_fail', { message: 'Неверный пароль' });
+    }
+  });
+
+  // --- Генерация заявок на дату ---
+  socket.on('tv_admin_generate', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var count = 80 + Math.floor(Math.random() * 21); // 80..100
+    var created = generateTvApplications(date, count);
+    socket.emit('tv_admin_generated', { date: date, count: created.length, applications: created });
+  });
+
+  // --- Получить список заявок на дату ---
+  socket.on('tv_admin_apps_get', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var list = [];
+    for (var aid in tvApplications) {
+      var app = tvApplications[aid];
+      if (app.date === date) list.push(app);
+    }
+    list.sort(function(a, b) { return a.slotTime.localeCompare(b.slotTime); });
+    socket.emit('tv_admin_apps_data', { date: date, applications: list });
+  });
+
+  // --- Одобрить / отклонить заявку ---
+  socket.on('tv_admin_app_status', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var appId = data && data.appId;
+    var status = data && data.status; // 'approved' | 'rejected' | 'pending'
+    var app = tvApplications[appId];
+    if (!app) { socket.emit('tv_admin_error', { message: 'Заявка не найдена' }); return; }
+    app.status = status;
+    socket.emit('tv_admin_app_updated', { appId: appId, status: status });
+  });
+
+  // --- Расстановка слотов ---
+  socket.on('tv_admin_assign', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var assigned = assignTvSlots(date);
+    socket.emit('tv_admin_assigned', { date: date, assigned: assigned });
+  });
+
+  // --- Получить расписание на день ---
+  socket.on('tv_admin_schedule_get', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var list = [];
+    for (var sid in tvSchedule) {
+      var s = tvSchedule[sid];
+      if (s.date === date) list.push(s);
+    }
+    list.sort(function(a, b) { return a.time.localeCompare(b.time); });
+    socket.emit('tv_admin_schedule_data', { date: date, slots: list });
+  });
+
+  // --- Собрать метрики (ACU/PCU + голоса) ---
+  socket.on('tv_admin_metrics', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var result = [];
+    for (var sid in tvSchedule) {
+      var s = tvSchedule[sid];
+      if (s.date !== date) continue;
+      if (s.status !== 'finished' && s.status !== 'live') continue;
+      result.push({
+        slotId: s.slotId,
+        time: s.time,
+        hostName: s.hostName,
+        theme: s.theme,
+        acuAvg: s.acuAvg || 0,
+        pcuMax: s.pcuMax || 0,
+        duration: s.duration || 0,
+        votesFree: s.votesFree || 0,
+        votesPaid: s.votesPaid || 0,
+        votesTotal: s.votesTotal || 0
+      });
+    }
+    socket.emit('tv_admin_metrics_data', { date: date, slots: result });
+  });
+
+  // --- Сохранить баллы админа (ручные) ---
+  socket.on('tv_admin_save_scores', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var manualScore = parseInt(data && data.manualScore) || 0;
+    if (manualScore > 80) manualScore = 80;
+    if (manualScore < 0) manualScore = 0;
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+
+    slot.manualScore = manualScore;
+
+    // итог = ручной × (ACU/10) × (CPU/70), но не более 100
+    var cpuSim = 60 + Math.min(30, Math.floor((slot.acuAvg || 0) / 5)); // пример
+    var finalScore = manualScore * ((slot.acuAvg || 1) / 10) * (cpuSim / 70);
+    if (finalScore > 100) finalScore = 100;
+    slot.finalScore = Math.round(finalScore * 100) / 100;
+
+    saveData();
+    socket.emit('tv_admin_score_saved', { slotId: slotId, manualScore: manualScore, finalScore: slot.finalScore });
+  });
+
+  // --- Рассчитать награды за месяц для всех ведущих ---
+  socket.on('tv_admin_calc_rewards', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var month = (data && data.month) || tvMonth();
+
+    // собираем уникальных hostId
+    var hostIds = {};
+    for (var sid in tvSchedule) {
+      var s = tvSchedule[sid];
+      if (s.date.indexOf(month) !== 0) continue;
+      if (!s.hostId) continue;
+      hostIds[s.hostId] = true;
+    }
+
+    var results = [];
+    for (var hid in hostIds) {
+      var res = tvCalculateReward(hid, month);
+      results.push(res);
+    }
+    results.sort(function(a, b) { return b.totalReward - a.totalReward; });
+    socket.emit('tv_admin_rewards_data', { month: month, rewards: results });
+  });
+
+  // --- Отмена выступления (ведущий не сможет) ---
+  socket.on('tv_admin_cancel_slot', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    slot.status = 'canceled';
+    saveData();
+    socket.emit('tv_admin_slot_canceled', { slotId: slotId });
+  });
+
+  // --- Замена ведущего в слоте ---
+  socket.on('tv_admin_replace_host', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var newHostName = (data && data.hostName) || '';
+    var newTheme = (data && data.theme) || '';
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    if (newHostName) slot.hostName = newHostName;
+    if (newTheme) slot.theme = newTheme;
+    slot.hostId = 'manual_' + Date.now();
+    slot.status = 'scheduled';
+    saveData();
+    socket.emit('tv_admin_slot_replaced', { slotId: slotId, slot: slot });
+  });
+
+  // --- Отметить невыход ---
+  socket.on('tv_admin_noshow', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    slot.status = 'noshow';
+    slot.manualScore = 0;
+    slot.finalScore = 0;
+    slot.reward = 0;
+    saveData();
+    socket.emit('tv_admin_slot_noshow', { slotId: slotId });
+  });
+
+});
+
+// ============================================================
+// =========== / ISKRA TV: ADMIN SOCKETS ======================
+// ============================================================
 server.listen(process.env.PORT || 3000, '0.0.0.0', function() {
   console.log('Mini Live started');
   console.log('Open: http://localhost:' + (process.env.PORT || 3000));
