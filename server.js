@@ -2282,6 +2282,24 @@ io.on('connection', function(socket) {
   socket.on('tv_vote_free', function(data) {
     var slotId = data && data.slotId;
     if (!slotId) return;
+    var slot = tvSchedule[slotId];
+    if (!slot) {
+      socket.emit('tv_vote_result', { ok: false, error: 'slot_not_found' });
+      return;
+    }
+    if (slot.status !== 'live' && slot.status !== 'scheduled') {
+      socket.emit('tv_vote_result', { ok: false, error: 'slot_closed' });
+      return;
+    }
+    // Авто-регистрация, если зритель ещё не зарегистрирован
+    if (!tvViewers[socket.id]) {
+      tvViewers[socket.id] = {
+        slotId: slotId,
+        enterTime: new Date(),
+        lastFreeVote: null,
+        freeVotesGiven: 0
+      };
+    }
     var res = tvVoteFree(socket.id, slotId);
     socket.emit('tv_vote_result', res);
     if (res.ok) {
