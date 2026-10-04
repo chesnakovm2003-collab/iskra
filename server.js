@@ -1753,6 +1753,571 @@ socket.on('login', async function(data) {
   });
 });
 
+// ============================================================
+// ================= ISKRA TV MODULE ==========================
+// ============================================================
+
+// ---------- Константы Iskra TV ----------
+const TV_SLOT_MINUTES = 20;
+const TV_DAY_START_HOUR = 6;    // 06:30
+const TV_DAY_START_MIN = 30;
+const TV_DAY_END_HOUR = 23;     // 23:59 (последний слот 23:40-00:00)
+const TV_SLOTS_TOTAL = 52;      // 17.5 часов / 20 минут
+
+const TV_VOTE_GIFTS = ['lollipop', 'guitar', 'rocket', 'car']; // Леденец, Гитара, Ракета, Машина
+
+const TV_THEMES = [
+  { theme: 'Осенний листопад',     category: 'Music'   },
+  { theme: 'Уютный вечер',         category: 'Chat'    },
+  { theme: 'Литературный вечер',   category: 'Art'     },
+  { theme: 'Хэллоуин-мистика',     category: 'Chat'    },
+  { theme: 'Танцы до утра',        category: 'Dance'   },
+  { theme: 'Голосовые истории',    category: 'Chat'    },
+  { theme: 'Караоке-вечер',        category: 'Music'   },
+  { theme: 'Игровой стрим',        category: 'Game'    },
+  { theme: 'Ретро-хиты',           category: 'Music'   },
+  { theme: 'Всё о моде',           category: 'Fashion' },
+  { theme: 'Кулинарный эфир',      category: 'Cooking' },
+  { theme: 'Психология общения',   category: 'Chat'    },
+  { theme: 'Астрология и знаки',   category: 'Chat'    },
+  { theme: 'Путешествия и страны', category: 'Nearby'  },
+  { theme: 'Фитнес с утра',        category: 'Sport'   },
+  { theme: 'Обзор гаджетов',       category: 'Tech'    },
+];
+
+const TV_HOST_NAMES = [
+  'Мария', 'Катя', 'Оля', 'Аня', 'Лена', 'Соня', 'Юля', 'Даша',
+  'Мила', 'Ксюша', 'Вика', 'Алина', 'Настя', 'Валя', 'Таня',
+  'Алекс', 'Иван', 'Дмитрий', 'Сергей', 'Макс', 'Никита',
+  'Артём', 'Влад', 'Женя', 'Рома', 'Паша', 'Дима', 'Егор'
+];
+
+// ---------- Состояние Iskra TV (в памяти) ----------
+let tvHosts = {};        // hostId -> { hostId, login, displayName, tier, score, month, noShows }
+let tvApplications = {}; // appId -> { appId, hostId, hostName, theme, category, date, slotTime, status }
+let tvSchedule = {};     // slotId -> { slotId, date, time, hostId, hostName, theme, category, status, acuAvg, pcuMax, duration, manualScore, finalScore, reward, votesFree, votesPaid, votesTotal }
+let tvVotes = {};        // slotId -> { free, paid, total }
+let tvViewers = {};      // viewerId -> { slotId, enterTime, lastFreeVote, freeVotesGiven }
+let tvMetrics = {};      // slotId -> [ { ts, viewers, cpuPct } ]
+
+// ---------- Инициализация таблиц Iskra TV в YDB ----------
+async function initYDB_tv() {
+  if (!ydbReady || !ydbSql) {
+    console.log('⚠️ Iskra TV: YDB не готова, пропускаем создание таблиц');
+    return;
+  }
+  try {
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_hosts (
+        hostId Utf8,
+        login Utf8,
+        displayName Utf8,
+        tier Utf8,
+        score Int64,
+        month Utf8,
+        noShows Int64,
+        createdAt Timestamp,
+        updatedAt Timestamp,
+        PRIMARY KEY (hostId)
+      );
+    `;
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_applications (
+        appId Utf8,
+        hostId Utf8,
+        hostName Utf8,
+        theme Utf8,
+        category Utf8,
+        date Utf8,
+        slotTime Utf8,
+        status Utf8,
+        createdAt Timestamp,
+        PRIMARY KEY (appId)
+      );
+    `;
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_schedule (
+        slotId Utf8,
+        date Utf8,
+        time Utf8,
+        hostId Utf8,
+        hostName Utf8,
+        theme Utf8,
+        category Utf8,
+        status Utf8,
+        acuAvg Double,
+        pcuMax Double,
+        duration Int64,
+        manualScore Int64,
+        finalScore Double,
+        reward Int64,
+        votesFree Int64,
+        votesPaid Int64,
+        votesTotal Int64,
+        createdAt Timestamp,
+        updatedAt Timestamp,
+        PRIMARY KEY (slotId)
+      );
+    `;
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_metrics (
+        metricId Utf8,
+        slotId Utf8,
+        ts Timestamp,
+        viewers Int64,
+        cpuPct Double,
+        PRIMARY KEY (metricId)
+      );
+    `;
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_votes (
+        voteId Utf8,
+        slotId Utf8,
+        voterId Utf8,
+        type Utf8,
+        giftId Utf8,
+        votes Int64,
+        diamondsSpent Int64,
+        ts Timestamp,
+        PRIMARY KEY (voteId)
+      );
+    `;
+    await ydbSql`
+      CREATE TABLE IF NOT EXISTS tv_viewers (
+        viewerId Utf8,
+        slotId Utf8,
+        enterTime Timestamp,
+        lastFreeVote Timestamp,
+        freeVotesGiven Int64,
+        PRIMARY KEY (viewerId)
+      );
+    `;
+    console.log('✅ Iskra TV: таблицы готовы');
+  } catch(e) {
+    console.error('❌ Iskra TV: ошибка создания таблиц:', e.message);
+  }
+}
+
+// ---------- Утилиты Iskra TV ----------
+function tvToday() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function tvTomorrow() {
+  var d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function tvMonth() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+// Все 52 слота дня: 06:30, 06:50, ... 23:40 (последний)
+function tvAllSlotsForDay() {
+  var slots = [];
+  var start = TV_DAY_START_HOUR * 60 + TV_DAY_START_MIN;
+  for (var i = 0; i < TV_SLOTS_TOTAL; i++) {
+    var mins = start + i * TV_SLOT_MINUTES;
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    slots.push(String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0'));
+  }
+  return slots;
+}
+
+function tvGenerateHostId() {
+  return 'bot_host_' + Math.random().toString(36).substring(2, 10);
+}
+
+// ---------- Генератор заявок (симуляция) ----------
+function generateTvApplications(date, count) {
+  count = count || 60; // больше 52, чтобы был выбор
+  var created = [];
+  for (var i = 0; i < count; i++) {
+    var hostId = tvGenerateHostId();
+    var hostName = TV_HOST_NAMES[Math.floor(Math.random() * TV_HOST_NAMES.length)] + '_' + (Math.floor(Math.random() * 9000) + 1000);
+    var t = TV_THEMES[Math.floor(Math.random() * TV_THEMES.length)];
+    var slotPool = tvAllSlotsForDay();
+    var slotTime = slotPool[Math.floor(Math.random() * slotPool.length)];
+
+    var app = {
+      appId: 'app_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 1000),
+      hostId: hostId,
+      hostName: hostName,
+      theme: t.theme,
+      category: t.category,
+      date: date,
+      slotTime: slotTime,
+      status: 'pending'
+    };
+    tvApplications[app.appId] = app;
+    created.push(app);
+  }
+  console.log('✅ Iskra TV: сгенерировано заявок =', created.length);
+  return created;
+}
+
+// ---------- Расстановка слотов (когда админ одобрил заявки) ----------
+function assignTvSlots(date) {
+  var slots = tvAllSlotsForDay();
+  var assigned = 0;
+  // очищаем прошлое расписание этого дня
+  for (var sid in tvSchedule) {
+    if (tvSchedule[sid].date === date) delete tvSchedule[sid];
+  }
+  // проходим по слотам, ищем одобренную заявку на это время
+  for (var i = 0; i < slots.length; i++) {
+    var time = slots[i];
+    var slotId = date + '_' + time;
+    // ищем первую одобренную заявку на это время
+    var found = null;
+    for (var aid in tvApplications) {
+      var app = tvApplications[aid];
+      if (app.date === date && app.slotTime === time && app.status === 'approved') {
+        found = app;
+        break;
+      }
+    }
+    if (found) {
+      tvSchedule[slotId] = {
+        slotId: slotId,
+        date: date,
+        time: time,
+        hostId: found.hostId,
+        hostName: found.hostName,
+        theme: found.theme,
+        category: found.category,
+        status: 'scheduled',
+        acuAvg: 0,
+        pcuMax: 0,
+        duration: 0,
+        manualScore: 0,
+        finalScore: 0,
+        reward: 0,
+        votesFree: 0,
+        votesPaid: 0,
+        votesTotal: 0
+      };
+      assigned++;
+    }
+  }
+  console.log('✅ Iskra TV: расставлено слотов на', date, '=', assigned);
+  return assigned;
+}
+
+// ---------- Автозапуск эфиров и сбор метрик ----------
+function startTvStream(slotId) {
+  var slot = tvSchedule[slotId];
+  if (!slot || slot.status !== 'scheduled') return;
+
+  slot.status = 'live';
+  slot.startedAt = Date.now();
+
+  // создаём «комнату» Iskra TV
+  var roomId = 'tv_' + slotId;
+  if (!messagesByRoom[roomId]) {
+    messagesByRoom[roomId] = [];
+    roomStreamStartedAt[roomId] = Date.now();
+    roomTarget[roomId] = 50;
+    roomHosts[roomId] = slot.hostName;
+    roomBaseDiamonds[roomId] = 0;
+    bellCountByRoom[roomId] = {};
+
+    // стартовые боты-зрители
+    for (var i = 0; i < 30; i++) {
+      spawnBot(roomId, i % 2 === 0 ? 'female' : 'male', false);
+    }
+
+    // приветственное сообщение
+    emitSystem(roomId, '📺 Iskra TV: ' + slot.hostName + ' — «' + slot.theme + '»');
+
+    // сообщаем всем в комнате, что эфир начался
+    io.to(roomId).emit('tv_slot_started', {
+      slotId: slotId,
+      hostName: slot.hostName,
+      theme: slot.theme,
+      category: slot.category
+    });
+  }
+
+  // таймер сбора метрик раз в минуту
+  var metricsTimer = setInterval(function() {
+    var s = tvSchedule[slotId];
+    if (!s || s.status !== 'live') {
+      clearInterval(metricsTimer);
+      return;
+    }
+    var viewers = roomCount(roomId);
+    // CPU симулируем: 60-90% в зависимости от зрителей
+    var cpuBase = 60 + Math.min(30, Math.floor(viewers / 5));
+    var cpuPct = cpuBase + Math.random() * 5;
+    var metric = { ts: Date.now(), viewers: viewers, cpuPct: cpuPct };
+    if (!tvMetrics[slotId]) tvMetrics[slotId] = [];
+    tvMetrics[slotId].push(metric);
+
+    // обновляем ACU/PCU
+    var arr = tvMetrics[slotId];
+    var sum = 0, max = 0;
+    for (var i = 0; i < arr.length; i++) {
+      sum += arr[i].viewers;
+      if (arr[i].viewers > max) max = arr[i].viewers;
+    }
+    s.acuAvg = Math.round((sum / arr.length) * 100) / 100;
+    s.pcuMax = max;
+    s.duration = arr.length; // минут
+  }, 60000);
+
+  // авто-завершение через 20 минут
+  setTimeout(function() {
+    clearInterval(metricsTimer);
+    endTvStream(slotId);
+  }, TV_SLOT_MINUTES * 60 * 1000);
+
+  saveData();
+  console.log('📺 Iskra TV: старт слота', slotId, '—', slot.hostName, '«' + slot.theme + '»');
+}
+
+function endTvStream(slotId) {
+  var slot = tvSchedule[slotId];
+  if (!slot) return;
+  slot.status = 'finished';
+  slot.endedAt = Date.now();
+  saveData();
+  console.log('📺 Iskra TV: завершён слот', slotId);
+}
+
+// ---------- Голосование ----------
+function tvVoteFree(viewerId, slotId) {
+  var v = tvViewers[viewerId];
+  if (!v || v.slotId !== slotId) return { ok: false, error: 'not_in_slot' };
+  if (v.freeVotesGiven >= 5) return { ok: false, error: 'no_free_left' };
+  var now = Date.now();
+  var last = v.lastFreeVote ? new Date(v.lastFreeVote).getTime() : new Date(v.enterTime).getTime();
+  if (now - last < 60000) return { ok: false, error: 'wait', wait: Math.ceil((60000 - (now - last)) / 1000) };
+
+  v.freeVotesGiven++;
+  v.lastFreeVote = new Date(now);
+
+  if (!tvVotes[slotId]) tvVotes[slotId] = { free: 0, paid: 0, total: 0 };
+  tvVotes[slotId].free++;
+  tvVotes[slotId].total++;
+
+  var s = tvSchedule[slotId];
+  if (s) { s.votesFree = tvVotes[slotId].free; s.votesTotal = tvVotes[slotId].total; }
+
+  return { ok: true, votes: tvVotes[slotId], freeLeft: 5 - v.freeVotesGiven };
+}
+
+function tvVotePaid(viewerId, slotId, giftId) {
+  var v = tvViewers[viewerId];
+  if (!v || v.slotId !== slotId) return { ok: false, error: 'not_in_slot' };
+  var gift = GIFTS.find(function(g) { return g.id === giftId; });
+  if (!gift) return { ok: false, error: 'gift_not_found' };
+
+  // голосовать может только зритель (не ведущий)
+  var viewer = online.get(viewerId);
+  if (!viewer) return { ok: false, error: 'no_viewer' };
+
+  if (!deductBalance(viewer.name, gift.price)) {
+    return { ok: false, error: 'no_balance', needed: gift.price, current: getBalance(viewer.name) };
+  }
+  pushTransaction(viewer.name, 'tv_vote', -gift.price, 'Голос Iskra TV: ' + gift.name);
+  pushBalanceToUser(viewer.name);
+
+  if (!tvVotes[slotId]) tvVotes[slotId] = { free: 0, paid: 0, total: 0 };
+  tvVotes[slotId].paid += gift.price;
+  tvVotes[slotId].total += gift.price;
+
+  var s = tvSchedule[slotId];
+  if (s) { s.votesPaid = tvVotes[slotId].paid; s.votesTotal = tvVotes[slotId].total; }
+
+  saveData();
+  return { ok: true, votes: tvVotes[slotId] };
+}
+
+function tvVotesReset() {
+  // вызывается в 00:00 МСК
+  tvVotes = {};
+  tvViewers = {};
+  console.log('🔄 Iskra TV: голоса сброшены (00:00)');
+}
+
+// ---------- Расчёт награды за месяц ----------
+function tvCalculateReward(hostId, month) {
+  var totalReward = 0;
+  var hostName = null;
+  var slotsCount = 0;
+  var qualityReward = 0;
+  var participationReward = 0;
+  var bonus1to8 = 0;
+
+  for (var sid in tvSchedule) {
+    var s = tvSchedule[sid];
+    if (!s || s.hostId !== hostId) continue;
+    if (s.date.indexOf(month) !== 0) continue;
+    if (s.status !== 'finished') continue;
+    slotsCount++;
+    hostName = s.hostName;
+
+    // участие
+    var tier = 'intern';
+    var hostRec = tvHosts[hostId];
+    if (hostRec && hostRec.tier === 'star') tier = 'star';
+    participationReward += (tier === 'star' ? 200 : 100);
+
+    // бонус 1-8 числа
+    var day = parseInt(s.date.substring(8, 10));
+    if (day >= 1 && day <= 8) bonus1to8 += 200;
+
+    // качество по ACU/PCU
+    var acu = s.acuAvg || 0;
+    var pcu = s.pcuMax || 0;
+    var q = 0;
+    if (acu > 100 && pcu > 150) q = (tier === 'star' ? 500 : 400);
+    else if (acu > 80 && pcu > 100) q = (tier === 'star' ? 350 : 250);
+    else if (acu > 65 && pcu > 80) q = (tier === 'star' ? 200 : 150);
+    else if (acu > 50 && pcu > 60) q = (tier === 'star' ? 120 : 80);
+    else if (acu > 40 && pcu > 50) q = (tier === 'star' ? 70 : 50);
+    qualityReward += q;
+  }
+
+  totalReward = participationReward + bonus1to8 + qualityReward;
+
+  // 20% от голосов за месяц (макс 3000)
+  var totalVotes = 0;
+  for (var sid2 in tvSchedule) {
+    var s2 = tvSchedule[sid2];
+    if (!s2 || s2.hostId !== hostId) continue;
+    if (s2.date.indexOf(month) !== 0) continue;
+    totalVotes += (s2.votesTotal || 0);
+  }
+  var votesBonus = Math.min(3000, Math.floor(totalVotes * 0.20));
+  totalReward += votesBonus;
+
+  // ограничение по тиру
+  var cap = (tier === 'star') ? 10000 : 4000;
+  if (totalReward > cap) totalReward = cap;
+
+  return {
+    hostId: hostId,
+    hostName: hostName,
+    month: month,
+    slotsCount: slotsCount,
+    participationReward: participationReward,
+    bonus1to8: bonus1to8,
+    qualityReward: qualityReward,
+    totalVotes: totalVotes,
+    votesBonus: votesBonus,
+    totalReward: totalReward
+  };
+}
+
+// ---------- Сокеты Iskra TV ----------
+io.on('connection', function(socket) {
+  // (второй обработчик, отдельный от основного — просто добавляем свои события)
+
+  // клиент просит расписание на дату
+  socket.on('tv_schedule_get', function(data) {
+    var date = (data && data.date) || tvToday();
+    var list = [];
+    for (var sid in tvSchedule) {
+      var s = tvSchedule[sid];
+      if (s.date === date) {
+        list.push({
+          slotId: s.slotId,
+          time: s.time,
+          hostName: s.hostName,
+          theme: s.theme,
+          category: s.category,
+          status: s.status
+        });
+      }
+    }
+    list.sort(function(a, b) { return a.time.localeCompare(b.time); });
+    socket.emit('tv_schedule_data', { date: date, slots: list });
+  });
+
+  // клиент вошёл в эфир Iskra TV — регистрируем для голосования
+  socket.on('tv_viewer_enter', function(data) {
+    var slotId = data && data.slotId;
+    if (!slotId || !tvSchedule[slotId]) return;
+    tvViewers[socket.id] = {
+      slotId: slotId,
+      enterTime: new Date(),
+      lastFreeVote: null,
+      freeVotesGiven: 0
+    };
+    var slot = tvSchedule[slotId];
+    socket.emit('tv_viewer_state', {
+      slotId: slotId,
+      votes: tvVotes[slotId] || { free: 0, paid: 0, total: 0 },
+      freeLeft: 5
+    });
+  });
+
+  socket.on('tv_vote_free', function(data) {
+    var slotId = data && data.slotId;
+    if (!slotId) return;
+    var res = tvVoteFree(socket.id, slotId);
+    socket.emit('tv_vote_result', res);
+    if (res.ok) {
+      io.emit('tv_votes_update', { slotId: slotId, votes: res.votes });
+    }
+  });
+
+  socket.on('tv_vote_paid', function(data) {
+    var slotId = data && data.slotId;
+    var giftId = data && data.giftId;
+    if (!slotId || !giftId) return;
+    var res = tvVotePaid(socket.id, slotId, giftId);
+    socket.emit('tv_vote_result', res);
+    if (res.ok) {
+      io.emit('tv_votes_update', { slotId: slotId, votes: res.votes });
+    }
+  });
+
+  socket.on('tv_votes_get', function(data) {
+    var slotId = data && data.slotId;
+    if (!slotId) return;
+    socket.emit('tv_votes_update', { slotId: slotId, votes: tvVotes[slotId] || { free: 0, paid: 0, total: 0 } });
+  });
+});
+
+// ---------- Планировщик Iskra TV ----------
+// Каждую минуту проверяем, не пора ли запустить/завершить слоты
+setInterval(function() {
+  var now = new Date();
+  var today = tvToday();
+  var hh = String(now.getHours()).padStart(2, '0');
+  var mm = String(now.getMinutes()).padStart(2, '0');
+  var curTime = hh + ':' + mm;
+
+  // ищем слоты этого дня, которые пора запустить
+  for (var sid in tvSchedule) {
+    var s = tvSchedule[sid];
+    if (s.date !== today) continue;
+    if (s.status !== 'scheduled') continue;
+    if (s.time === curTime) {
+      startTvStream(sid);
+    }
+  }
+
+  // сброс голосов в 00:00
+  if (hh === '00' && mm === '00') {
+    tvVotesReset();
+  }
+}, 60000);
+
+// ---------- Инициализация Iskra TV при старте ----------
+initYDB_tv();
+
+// ============================================================
+// ============== / ISKRA TV MODULE ===========================
+// ============================================================
+
 server.listen(process.env.PORT || 3000, '0.0.0.0', function() {
   console.log('Mini Live started');
   console.log('Open: http://localhost:' + (process.env.PORT || 3000));
