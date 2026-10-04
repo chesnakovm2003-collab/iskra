@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Iskra TV · Админка</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .page { max-width: 1200px; margin: 0 auto; padding: 20px 16px 60px; }
+
+  /* Шапка */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .header .sub { font-size: 12px; color: #888; margin-top: 4px; }
+  .header .logout {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #666;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  /* Замок */
+  .lock-screen {
+    position: fixed;
+    inset: 0;
+    background: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .lock-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 340px;
+    max-width: 92%;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  .lock-card .lock-icon { font-size: 48px; margin-bottom: 12px; }
+  .lock-card h2 { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+  .lock-card p { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .lock-card input {
+    width: 100%;
+    background: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    color: #222;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    font-family: inherit;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .lock-card input:focus { border-color: #4dd8e8; }
+  .lock-card button {
+    width: 100%;
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .lock-card .err { color: #e53935; font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+  /* Панель управления */
+  .controls {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .controls-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .controls-row:last-child { margin-bottom: 0; }
+  .controls label { font-size: 13px; font-weight: 700; color: #666; }
+  .controls input[type="date"],
+  .controls input[type="text"],
+  .controls input[type="number"] {
+    background: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    color: #222;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .controls input:focus { border-color: #4dd8e8; }
+  .btn {
+    background: #fff;
+    border: 2px solid #e0e0e0;
+    color: #222;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); color: #fff; border-color: transparent; }
+  .btn.pink { background: linear-gradient(135deg, #e91e63, #ff80ab); color: #fff; border-color: transparent; }
+  .btn.gold { background: linear-gradient(135deg, #ffd54f, #f57c00); color: #fff; border-color: transparent; }
+  .btn.green { background: linear-gradient(135deg, #43a047, #66bb6a); color: #fff; border-color: transparent; }
+  .btn.red { background: #e53935; color: #fff; border-color: transparent; }
+
+  /* Секции */
+  .section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .section-title {
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title .count {
+    background: #f5f5f5;
+    color: #888;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+  }
+
+  /* Таблицы */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 800;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 6px;
+    border-bottom: 2px solid #eee;
+    white-space: nowrap;
+  }
+  td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  .status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .status.pending { background: #fff3e0; color: #e65100; }
+  .status.approved { background: #e8f5e9; color: #2e7d32; }
+  .status.rejected { background: #ffebee; color: #c62828; }
+  .status.scheduled { background: #e3f2fd; color: #1565c0; }
+  .status.live { background: #ffebee; color: #c62828; animation: pulse 1.5s infinite; }
+  .status.finished { background: #f5f5f5; color: #666; }
+  .status.canceled { background: #f5f5f5; color: #999; text-decoration: line-through; }
+  .status.noshow { background: #ffebee; color: #c62828; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* Ввод баллов */
+  .score-inputs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .score-inputs select {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    color: #222;
+    padding: 4px 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: inherit;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #aaa;
+    font-size: 14px;
+  }
+
+  /* Тост */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Замок -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-icon">🔒</div>
+    <h2>Iskra TV Админка</h2>
+    <p>Введите пароль для доступа</p>
+    <input type="password" id="pwdInput" placeholder="Пароль" autocomplete="off">
+    <button onclick="checkPassword()">Войти</button>
+    <div class="err" id="lockErr"></div>
+  </div>
+</div>
+
+<!-- Основной контент -->
+<div class="page" id="page" style="display:none;">
+
+  <div class="header">
+    <div>
+      <h1>📺 Iskra TV — Админка</h1>
+      <div class="sub">Управление расписанием, метриками и наградами</div>
+    </div>
+    <button class="logout" onclick="logout()">Выйти</button>
+  </div>
+
+  <!-- Панель управления -->
+  <div class="controls">
+    <div class="controls-row">
+      <label>Дата:</label>
+      <input type="date" id="dateInput">
+      <button class="btn primary" onclick="generateApps()">➕ Сгенерировать заявки (80–100)</button>
+      <button class="btn" onclick="loadApps()">📋 Обновить заявки</button>
+    </div>
+    <div class="controls-row">
+      <button class="btn green" onclick="approveAll()">✅ Одобрить все</button>
+      <button class="btn pink" onclick="assignSlots()">📅 Расставить слоты</button>
+      <button class="btn gold" onclick="loadMetrics()">📊 Собрать метрики</button>
+      <button class="btn primary" onclick="calcRewards()">💰 Рассчитать награды</button>
+      <button class="btn" onclick="downloadCSV('schedule')">📥 CSV расписание</button>
+      <button class="btn" onclick="downloadCSV('rewards')">📥 CSV награды</button>
+    </div>
+  </div>
+
+  <!-- Заявки -->
+  <div class="section">
+    <div class="section-title">📋 Заявки <span class="count" id="appsCount">0</span></div>
+    <div id="appsTable"><div class="empty">Нажмите «Обновить заявки»</div></div>
+  </div>
+
+  <!-- Расписание -->
+  <div class="section">
+    <div class="section-title">📅 Расписание <span class="count" id="scheduleCount">0</span></div>
+    <div id="scheduleTable"><div class="empty">Нажмите «Расставить слоты»</div></div>
+  </div>
+
+  <!-- Метрики -->
+  <div class="section">
+    <div class="section-title">📊 Метрики и баллы <span class="count" id="metricsCount">0</span></div>
+    <div id="metricsTable"><div class="empty">Нажмите «Собрать метрики»</div></div>
+  </div>
+
+  <!-- Награды -->
+  <div class="section">
+    <div class="section-title">💰 Награды за месяц <span class="count" id="rewardsCount">0</span></div>
+    <div id="rewardsTable"><div class="empty">Нажмите «Рассчитать награды»</div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var PASSWORD = '';
+var currentDate = '';
+var currentApps = [];
+var currentSchedule = [];
+var currentMetrics = [];
+var currentRewards = [];
+
+// ---------- Инициализация даты ----------
+function setToday() {
+  var d = new Date();
+  var iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  document.getElementById('dateInput').value = iso;
+  currentDate = iso;
+}
+setToday();
+
+document.getElementById('dateInput').addEventListener('change', function() {
+  currentDate = this.value;
+  loadApps();
+  loadSchedule();
+});
+
+// ---------- Авторизация ----------
+function checkPassword() {
+  var pwd = document.getElementById('pwdInput').value;
+  if (!pwd) return;
+  PASSWORD = pwd;
+  socket.emit('tv_admin_auth', { password: pwd });
+}
+
+document.getElementById('pwdInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') checkPassword();
+});
+
+socket.on('tv_admin_auth_ok', function() {
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('page').style.display = 'block';
+  loadApps();
+  loadSchedule();
+});
+
+socket.on('tv_admin_auth_fail', function(data) {
+  document.getElementById('lockErr').textContent = data.message || 'Неверный пароль';
+});
+
+function logout() {
+  location.reload();
+}
+
+// ---------- Заявки ----------
+function generateApps() {
+  var date = document.getElementById('dateInput').value;
+  if (!date) { toast('Выберите дату'); return; }
+  currentDate = date;
+  socket.emit('tv_admin_generate', { password: PASSWORD, date: date });
+}
+
+function loadApps() {
+  var date = document.getElementById('dateInput').value;
+  if (!date) return;
+  currentDate = date;
+  socket.emit('tv_admin_apps_get', { password: PASSWORD, date: date });
+}
+
+socket.on('tv_admin_generated', function(data) {
+  toast('Сгенерировано ' + data.count + ' заявок на ' + data.date);
+  loadApps();
+});
+
+socket.on('tv_admin_apps_data', function(data) {
+  currentApps = data.applications || [];
+  renderApps();
+});
+
+function renderApps() {
+  document.getElementById('appsCount').textContent = currentApps.length;
+  var el = document.getElementById('appsTable');
+  if (currentApps.length === 0) {
+    el.innerHTML = '<div class="empty">Заявок на эту дату нет. Нажмите «Сгенерировать заявки».</div>';
+    return;
+  }
+  var html = '<table><thead><tr><th>Время</th><th>Ведущий</th><th>Тема</th><th>Категория</th><th>Статус</th><th>Действия</th></tr></thead><tbody>';
+  for (var i = 0; i < currentApps.length; i++) {
+    var a = currentApps[i];
+    var statusLabel = { pending: 'Ожидает', approved: 'Одобрено', rejected: 'Отклонено' }[a.status] || a.status;
+    html += '<tr>';
+    html += '<td><b>' + a.slotTime + '</b></td>';
+    html += '<td>' + escapeHtml(a.hostName) + '</td>';
+    html += '<td>' + escapeHtml(a.theme) + '</td>';
+    html += '<td>' + escapeHtml(a.category) + '</td>';
+    html += '<td><span class="status ' + a.status + '">' + statusLabel + '</span></td>';
+    html += '<td>';
+    html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="setAppStatus(\'' + a.appId + '\', \'approved\')">✓</button> ';
+    html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="setAppStatus(\'' + a.appId + '\', \'rejected\')">✗</button>';
+    html += '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function setAppStatus(appId, status) {
+  socket.emit('tv_admin_app_status', { password: PASSWORD, appId: appId, status: status });
+}
+
+socket.on('tv_admin_app_updated', function() {
+  loadApps();
+});
+
+function approveAll() {
+  if (currentApps.length === 0) { toast('Нет заявок'); return; }
+  for (var i = 0; i < currentApps.length; i++) {
+    socket.emit('tv_admin_app_status', { password: PASSWORD, appId: currentApps[i].appId, status: 'approved' });
+  }
+  setTimeout(loadApps, 500);
+}
+
+// ---------- Расписание ----------
+function assignSlots() {
+  var date = document.getElementById('dateInput').value;
+  if (!date) return;
+  socket.emit('tv_admin_assign', { password: PASSWORD, date: date });
+}
+
+socket.on('tv_admin_assigned', function(data) {
+  toast('Расставлено ' + data.assigned + ' слотов на ' + data.date);
+  loadSchedule();
+});
+
+function loadSchedule() {
+  var date = document.getElementById('dateInput').value;
+  if (!date) return;
+  socket.emit('tv_admin_schedule_get', { password: PASSWORD, date: date });
+}
+
+socket.on('tv_admin_schedule_data', function(data) {
+  currentSchedule = data.slots || [];
+  renderSchedule();
+});
+
+function renderSchedule() {
+  document.getElementById('scheduleCount').textContent = currentSchedule.length;
+  var el = document.getElementById('scheduleTable');
+  if (currentSchedule.length === 0) {
+    el.innerHTML = '<div class="empty">На эту дату расписания нет. Одобрите заявки и нажмите «Расставить слоты».</div>';
+    return;
+  }
+  var html = '<table><thead><tr><th>Время</th><th>Ведущий</th><th>Тема</th><th>Статус</th><th>Действия</th></tr></thead><tbody>';
+  for (var i = 0; i < currentSchedule.length; i++) {
+    var s = currentSchedule[i];
+    var statusLabel = { scheduled: 'Запланирован', live: 'В эфире', finished: 'Завершён', canceled: 'Отменён', noshow: 'Невыход' }[s.status] || s.status;
+    html += '<tr>';
+    html += '<td><b>' + s.time + '</b></td>';
+    html += '<td>' + escapeHtml(s.hostName) + '</td>';
+    html += '<td>' + escapeHtml(s.theme) + '</td>';
+    html += '<td><span class="status ' + s.status + '">' + statusLabel + '</span></td>';
+    html += '<td>';
+    if (s.status === 'scheduled') {
+      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="cancelSlot(\'' + s.slotId + '\')">Отменить</button> ';
+      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="noshowSlot(\'' + s.slotId + '\')">Невыход</button> ';
+      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="replaceHost(\'' + s.slotId + '\')">Заменить</button>';
+    }
+    html += '</td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function cancelSlot(slotId) {
+  if (!confirm('Отменить этот слот?')) return;
+  socket.emit('tv_admin_cancel_slot', { password: PASSWORD, slotId: slotId });
+}
+socket.on('tv_admin_slot_canceled', function() { toast('Слот отменён'); loadSchedule(); });
+
+function noshowSlot(slotId) {
+  if (!confirm('Отметить невыход? Слот получит 0 баллов.')) return;
+  socket.emit('tv_admin_noshow', { password: PASSWORD, slotId: slotId });
+}
+socket.on('tv_admin_slot_noshow', function() { toast('Отмечен невыход'); loadSchedule(); });
+
+function replaceHost(slotId) {
+  var name = prompt('Имя нового ведущего:');
+  if (!name) return;
+  var theme = prompt('Тема (оставь пустым, чтобы не менять):') || '';
+  socket.emit('tv_admin_replace_host', { password: PASSWORD, slotId: slotId, hostName: name, theme: theme });
+}
+socket.on('tv_admin_slot_replaced', function() { toast('Ведущий заменён'); loadSchedule(); });
+
+// ---------- Метрики ----------
+function loadMetrics() {
+  var date = document.getElementById('dateInput').value;
+  if (!date) return;
+  socket.emit('tv_admin_metrics', { password: PASSWORD, date: date });
+}
+
+socket.on('tv_admin_metrics_data', function(data) {
+  currentMetrics = data.slots || [];
+  renderMetrics();
+});
+
+function renderMetrics() {
+  document.getElementById('metricsCount').textContent = currentMetrics.length;
+  var el = document.getElementById('metricsTable');
+  if (currentMetrics.length === 0) {
+    el.innerHTML = '<div class="empty">Нет завершённых эфиров на эту дату.</div>';
+    return;
+  }
+  var html = '<table><thead><tr><th>Время</th><th>Ведущий</th><th>ACU</th><th>PCU</th><th>Длит.</th><th>Голоса</th><th>Балл (0–80)</th><th>Итог</th></tr></thead><tbody>';
+  for (var i = 0; i < currentMetrics.length; i++) {
+    var m = currentMetrics[i];
+    var slot = currentSchedule.find(function(s) { return s.slotId === m.slotId; });
+    var manualScore = slot ? (slot.manualScore || 0) : 0;
+    var finalScore = slot ? (slot.finalScore || 0) : 0;
+    html += '<tr>';
+    html += '<td><b>' + m.time + '</b></td>';
+    html += '<td>' + escapeHtml(m.hostName) + '</td>';
+    html += '<td>' + m.acuAvg + '</td>';
+    html += '<td>' + m.pcuMax + '</td>';
+    html += '<td>' + m.duration + ' мин</td>';
+    html += '<td>🆓 ' + m.votesFree + ' · 💎 ' + m.votesPaid + '</td>';
+    html += '<td>';
+    html += '<select onchange="saveScore(\'' + m.slotId + '\', this.value)">';
+    [0, 10, 20, 30, 40, 50, 60, 70, 80].forEach(function(v) {
+      html += '<option value="' + v + '"' + (v === manualScore ? ' selected' : '') + '>' + v + '</option>';
+    });
+    html += '</select>';
+    html += '</td>';
+    html += '<td><b>' + finalScore + '</b></td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function saveScore(slotId, score) {
+  socket.emit('tv_admin_save_scores', { password: PASSWORD, slotId: slotId, manualScore: parseInt(score) });
+}
+
+socket.on('tv_admin_score_saved', function(data) {
+  toast('Балл сохранён: ' + data.manualScore + ' → итог ' + data.finalScore);
+  loadMetrics();
+});
+
+// ---------- Награды ----------
+function calcRewards() {
+  var date = document.getElementById('dateInput').value;
+  var month = date ? date.substring(0, 7) : '';
+  if (!month) return;
+  socket.emit('tv_admin_calc_rewards', { password: PASSWORD, month: month });
+}
+
+socket.on('tv_admin_rewards_data', function(data) {
+  currentRewards = data.rewards || [];
+  renderRewards(data.month);
+});
+
+function renderRewards(month) {
+  document.getElementById('rewardsCount').textContent = currentRewards.length;
+  var el = document.getElementById('rewardsTable');
+  if (currentRewards.length === 0) {
+    el.innerHTML = '<div class="empty">Награды за ' + month + ' не рассчитаны.</div>';
+    return;
+  }
+  var html = '<table><thead><tr><th>Ведущий</th><th>Слотов</th><th>Участие</th><th>Бонус 1–8</th><th>Качество</th><th>Голоса</th><th>ИТОГО</th></tr></thead><tbody>';
+  for (var i = 0; i < currentRewards.length; i++) {
+    var r = currentRewards[i];
+    html += '<tr>';
+    html += '<td><b>' + escapeHtml(r.hostName || r.hostId) + '</b></td>';
+    html += '<td>' + r.slotsCount + '</td>';
+    html += '<td>' + r.participationReward + ' 💎</td>';
+    html += '<td>' + r.bonus1to8 + ' 💎</td>';
+    html += '<td>' + r.qualityReward + ' 💎</td>';
+    html += '<td>' + r.totalVotes + ' → ' + r.votesBonus + ' 💎</td>';
+    html += '<td><b style="color:#e91e63;">' + r.totalReward + ' 💎</b></td>';
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+// ---------- CSV ----------
+function downloadCSV(type) {
+  if (type === 'schedule') {
+    if (currentSchedule.length === 0) { toast('Нет расписания'); return; }
+    var csv = 'Время;Ведущий;Тема;Категория;Статус;ACU;PCU;Голоса\n';
+    for (var i = 0; i < currentSchedule.length; i++) {
+      var s = currentSchedule[i];
+      csv += s.time + ';' + s.hostName + ';' + s.theme + ';' + s.category + ';' + s.status + ';' + (s.acuAvg || 0) + ';' + (s.pcuMax || 0) + ';' + (s.votesTotal || 0) + '\n';
+    }
+    downloadFile('iskra-tv-schedule-' + currentDate + '.csv', csv);
+  } else if (type === 'rewards') {
+    if (currentRewards.length === 0) { toast('Нет наград'); return; }
+    var csv = 'Ведущий;Слотов;Участие;Бонус 1-8;Качество;Голоса;Итого\n';
+    for (var j = 0; j < currentRewards.length; j++) {
+      var r = currentRewards[j];
+      csv += (r.hostName || r.hostId) + ';' + r.slotsCount + ';' + r.participationReward + ';' + r.bonus1to8 + ';' + r.qualityReward + ';' + r.votesBonus + ';' + r.totalReward + '\n';
+    }
+    downloadFile('iskra-tv-rewards.csv', csv);
+  }
+}
+
+function downloadFile(filename, content) {
+  var blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- Утилиты ----------
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+var toastTimer = null;
+function toast(text) {
+  var el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+</script>
+</body>
+</html>
