@@ -311,10 +311,22 @@ socket.on('tv_schedule_data', function(data) {
     var div = document.createElement('div');
     div.className = 'slot';
 
-    if (s.status === 'live') div.classList.add('live');
-    else if (s.status === 'finished') div.classList.add('past');
-    else if (s.status === 'canceled') div.classList.add('canceled');
-    else if (s.status === 'noshow') div.classList.add('noshow');
+    if (effectiveStatus === 'live') div.classList.add('live');
+    else if (effectiveStatus === 'finished') div.classList.add('past');
+    else if (effectiveStatus === 'canceled') div.classList.add('canceled');
+    else if (effectiveStatus === 'noshow') div.classList.add('noshow');
+
+    // Если слот сегодня и его время уже прошло, но статус всё ещё 'scheduled' —
+    // считаем его завершённым (бейдж будет правильным, даже если сервер
+    // не успел обновить статус в YDB)
+    var effectiveStatus = s.status;
+    if (s.status === 'scheduled') {
+      var now2 = new Date();
+      var slotStart = new Date(s.date + 'T' + s.time + ':00');
+      var slotEnd = new Date(slotStart.getTime() + 20 * 60000);
+      if (now2 >= slotEnd) effectiveStatus = 'finished';
+      else if (now2 >= slotStart) effectiveStatus = 'live';
+    }
 
     var statusLabel = {
       live: 'В ЭФИРЕ',
@@ -322,7 +334,7 @@ socket.on('tv_schedule_data', function(data) {
       finished: 'Завершён',
       canceled: 'Отменён',
       noshow: 'Невыход'
-    }[s.status] || s.status;
+    }[effectiveStatus] || effectiveStatus;
 
     var timeParts = (s.time || '00:00').split(':');
 
@@ -335,9 +347,9 @@ socket.on('tv_schedule_data', function(data) {
         '<div class="slot-theme">' + escapeHtml(s.theme) + '</div>' +
         '<div class="slot-host">👤 ' + escapeHtml(s.hostName) + '</div>' +
       '</div>' +
-      '<div class="slot-badge ' + s.status + '">' + statusLabel + '</div>';
+      '<div class="slot-badge ' + effectiveStatus + '">' + statusLabel + '</div>';
 
-    if (s.status === 'live') {
+    if (effectiveStatus === 'live') {
       div.style.cursor = 'pointer';
       div.onclick = (function(slot) {
         return function() {

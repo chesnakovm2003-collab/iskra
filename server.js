@@ -2313,18 +2313,33 @@ setInterval(function() {
   var hh = String(now.getHours()).padStart(2, '0');
   var mm = String(now.getMinutes()).padStart(2, '0');
   var curTime = hh + ':' + mm;
+  var changed = false;
 
-  // ищем слоты этого дня, которые пора запустить
   for (var sid in tvSchedule) {
     var s = tvSchedule[sid];
     if (s.date !== today) continue;
-    if (s.status !== 'scheduled') continue;
-    if (s.time === curTime) {
+
+    // запуск слота в нужную минуту
+    if (s.status === 'scheduled' && s.time === curTime) {
       startTvStream(sid);
+      changed = true;
+      continue;
+    }
+
+    // авто-закрытие: слот сегодня, статус scheduled, время уже прошло > 20 мин
+    if (s.status === 'scheduled' && s.time < curTime) {
+      var started = new Date(s.date + 'T' + s.time + ':00');
+      var diffMin = (Date.now() - started.getTime()) / 60000;
+      if (diffMin > 20) {
+        // эфир не состоялся — отмечаем как невыход
+        s.status = 'noshow';
+        changed = true;
+      }
     }
   }
 
-  // сброс голосов в 00:00
+  if (changed) saveData();
+
   if (hh === '00' && mm === '00') {
     tvVotesReset();
   }
