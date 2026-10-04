@@ -288,6 +288,13 @@ async function loadAllDataFromYDB() {
   hostDailyStats = data.hostDailyStats || {};
   hostWeeklyStats = data.hostWeeklyStats || {};
 
+  // ===== Iskra TV =====
+  if (data.tvHosts) tvHosts = data.tvHosts;
+  if (data.tvApplications) tvApplications = data.tvApplications;
+  if (data.tvSchedule) tvSchedule = data.tvSchedule;
+  if (data.tvVotes) tvVotes = data.tvVotes;
+  // ===== / Iskra TV =====
+
   console.log('✅ YDB: данные загружены');
 }
 
@@ -313,6 +320,36 @@ function getAllDataForSave() {
     platformEarnings: platformEarnings,
     hostDailyStats: hostDailyStats,
     hostWeeklyStats: hostWeeklyStats,
+	function getAllDataForSave() {
+  return {
+    donationsByRoom: donationsByRoom,
+    roomEarnings: roomEarnings,
+    roomBaseDiamonds: roomBaseDiamonds,
+    donationsDaily: donationsDaily,
+    donationsWeekly: donationsWeekly,
+    donationsMonthly: donationsMonthly,
+    donationsAllTime: donationsAllTime,
+    likesByRoom: likesByRoom,
+    subscriptions: subscriptions,
+    balances: balances,
+    transactions: transactions,
+    conversations: conversations,
+    chatCostByUser: chatCostByUser,
+    yummyHistory: yummyHistory,
+    greedyHistory: greedyHistory,
+    crashHistory: crashHistory,
+    platformEarnings: platformEarnings,
+    hostDailyStats: hostDailyStats,
+    hostWeeklyStats: hostWeeklyStats,
+    // ===== Iskra TV =====
+    tvHosts: tvHosts,
+    tvApplications: tvApplications,
+    tvSchedule: tvSchedule,
+    tvVotes: tvVotes,
+    // ===== / Iskra TV =====
+    savedAt: new Date().toISOString()
+  };
+}
     savedAt: new Date().toISOString()
   };
 }
@@ -2497,7 +2534,20 @@ io.on('connection', function(socket) {
 
   // --- Отметить невыход ---
   socket.on('tv_admin_noshow', function(data) {
-	    // --- Вручную поставить ведущего в слот ---
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    slot.status = 'noshow';
+    slot.manualScore = 0;
+    slot.finalScore = 0;
+    slot.reward = 0;
+    saveData();
+    socket.emit('tv_admin_slot_noshow', { slotId: slotId });
+  });
+
+  // --- Вручную поставить ведущего в слот ---
   socket.on('tv_admin_manual_slot', function(data) {
     var pwd = (data && data.password) || '';
     if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
@@ -2516,7 +2566,6 @@ io.on('connection', function(socket) {
     }
 
     var slotId = date + '_' + time;
-    // Проверка: слот уже занят?
     if (tvSchedule[slotId] && tvSchedule[slotId].status !== 'canceled' && tvSchedule[slotId].status !== 'noshow') {
       socket.emit('tv_admin_error', { message: 'Этот слот уже занят' }); return;
     }
@@ -2536,18 +2585,6 @@ io.on('connection', function(socket) {
     };
     saveData();
     socket.emit('tv_admin_manual_slot_ok', { slotId: slotId });
-  });
-    var pwd = (data && data.password) || '';
-    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
-    var slotId = data && data.slotId;
-    var slot = tvSchedule[slotId];
-    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
-    slot.status = 'noshow';
-    slot.manualScore = 0;
-    slot.finalScore = 0;
-    slot.reward = 0;
-    saveData();
-    socket.emit('tv_admin_slot_noshow', { slotId: slotId });
   });
   // ===== ISKRA TV: APPLICATION FORM =====
 
