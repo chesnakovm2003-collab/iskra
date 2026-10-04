@@ -1048,8 +1048,8 @@ function startLife() {
       online.forEach(function(u) {
         if (u.roomId === roomId && u.isBot && u.gender) gender = u.gender;
       });
-      // Спавним 50 ботов за раз — быстрее наберём 3000
-      for (var si = 0; si < 50; si++) {
+      // Спавним 10 ботов за раз — безопасно для памяти
+      for (var si = 0; si < 10; si++) {
         if (roomCount(roomId) >= (roomTarget[roomId] || 50)) break;
         spawnBot(roomId, gender, false);
       }
@@ -1473,14 +1473,14 @@ socket.on('login', async function(data) {
       timerId: null
     };
     lotteriesByRoom[roomId] = lot;
-    roomTarget[roomId] = 3000;   // на время лотереи — 3000 зрителей
+    roomTarget[roomId] = 1000;   // на время лотереи — 1000 зрителей
 
     var gender = 'female';
     online.forEach(function(u) {
       if (u.roomId === roomId && u.isBot && u.gender) gender = u.gender;
     });
-    // Сразу 3000 ботов на время лотереи
-    for (var bi = 0; bi < 3000; bi++) {
+    // 200 ботов при старте + остальные доберёт startLife постепенно
+    for (var bi = 0; bi < 200; bi++) {
       spawnBot(roomId, gender, true);
       lot.activeBots.add('bot_' + botGlobalCounter + '_' + roomId);
     }
