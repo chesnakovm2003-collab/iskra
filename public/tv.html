@@ -278,6 +278,8 @@ function loadDay(day) {
 
 socket.on('connect', function() {
   loadDay(currentDay);
+  // автообновление раз в 30 сек
+  setInterval(function() { loadDay(currentDay); }, 30000);
 });
 
 socket.on('tv_schedule_data', function(data) {
