@@ -3455,8 +3455,15 @@ var isTvRoom = params.get('tv') === '1';
 var tvSlotId = params.get('slot') || '';
 var tvTheme = params.get('theme') || '';
 var tvCurrentVotes = { free: 0, paid: 0, total: 0 };
+// Имитация голосов
+var tvSimVotes = 0;
+var tvRealVotes = 0;
+var tvBaseVotes = 0;   // выставится внутри if (isTvRoom)
 
 if (isTvRoom) {
+  tvBaseVotes = Math.floor(20 + Math.random() * 80);
+  document.getElementById('voteCount').textContent = tvBaseVotes;
+  document.getElementById('voteTotalNum').textContent = tvBaseVotes;
   document.body.classList.add('tv-mode');
   document.getElementById('tvHeader').classList.add('show');
   if (tvTheme) {
@@ -3481,6 +3488,15 @@ if (isTvRoom) {
       socket.emit('tv_viewer_enter', { slotId: tvSlotId });
     }
   }, 60000);
+  // === Фоновая имитация голосов ===
+  // Каждые 3-7 секунд добавляем +1..3 к счётчику в коробке
+  setInterval(function() {
+    // Копим «симулированные» голоса
+    tvSimVotes += 1 + Math.floor(Math.random() * 3);
+    var total = tvBaseVotes + tvSimVotes + tvRealVotes;
+    document.getElementById('voteCount').textContent = total;
+    document.getElementById('voteTotalNum').textContent = total;
+  }, 3000 + Math.random() * 4000);
   // Показываем коробку голосования
   document.getElementById('voteBox').classList.add('show');
   // Запрашиваем голоса
@@ -3586,8 +3602,10 @@ function votePaid(giftId) {
 
 socket.on('tv_viewer_state', function(data) {
   tvCurrentVotes = data.votes || { free: 0, paid: 0, total: 0 };
-  document.getElementById('voteCount').textContent = tvCurrentVotes.total || 0;
-  document.getElementById('voteTotalNum').textContent = tvCurrentVotes.total || 0;
+  tvRealVotes = tvCurrentVotes.total || 0;
+  var total = tvBaseVotes + tvSimVotes + tvRealVotes;
+  document.getElementById('voteCount').textContent = total;
+  document.getElementById('voteTotalNum').textContent = total;
   if (typeof data.freeLeft === 'number') {
     document.getElementById('voteFreeLeft').textContent = data.freeLeft + ' / 5';
     if (data.freeLeft === 0) document.getElementById('voteFree').classList.add('disabled');
@@ -3597,8 +3615,11 @@ socket.on('tv_viewer_state', function(data) {
 socket.on('tv_votes_update', function(data) {
   if (data.slotId !== tvSlotId) return;
   tvCurrentVotes = data.votes || { free: 0, paid: 0, total: 0 };
-  document.getElementById('voteCount').textContent = tvCurrentVotes.total || 0;
-  document.getElementById('voteTotalNum').textContent = tvCurrentVotes.total || 0;
+  // Реальные голоса храним отдельно
+  tvRealVotes = tvCurrentVotes.total || 0;
+  var total = tvBaseVotes + tvSimVotes + tvRealVotes;
+  document.getElementById('voteCount').textContent = total;
+  document.getElementById('voteTotalNum').textContent = total;
 });
 
 socket.on('tv_vote_result', function(res) {
