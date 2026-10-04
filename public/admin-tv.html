@@ -370,6 +370,7 @@ function setToday() {
   currentDate = iso;
 }
 setToday();
+fillManualTimeSlots();
 
 document.getElementById('dateInput').addEventListener('change', function() {
   currentDate = this.value;
@@ -427,6 +428,7 @@ socket.on('tv_admin_generated', function(data) {
 socket.on('tv_admin_apps_data', function(data) {
   currentApps = data.applications || [];
   renderApps();
+  fillManualTimeSlots();
 });
 
 function renderApps() {
@@ -477,15 +479,30 @@ function approveAll() {
 function fillManualTimeSlots() {
   var sel = document.getElementById('manualTime');
   if (!sel) return;
+
+  // Собираем занятые слоты на текущую дату
+  var takenSlots = {};
+  for (var i = 0; i < currentApps.length; i++) {
+    var a = currentApps[i];
+    if (a.status === 'approved') takenSlots[a.slotTime] = true;
+  }
+  for (var j = 0; j < currentSchedule.length; j++) {
+    takenSlots[currentSchedule[j].time] = true;
+  }
+
   var start = 6 * 60 + 30; // 06:30
   var count = 52;
   var html = '<option value="">— выберите время —</option>';
-  for (var i = 0; i < count; i++) {
-    var mins = start + i * 20;
+  for (var k = 0; k < count; k++) {
+    var mins = start + k * 20;
     var h = Math.floor(mins / 60);
     var m = mins % 60;
     var t = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-    html += '<option value="' + t + '">' + t + '</option>';
+    if (takenSlots[t]) {
+      html += '<option value="" disabled>' + t + ' — занято</option>';
+    } else {
+      html += '<option value="' + t + '">' + t + '</option>';
+    }
   }
   sel.innerHTML = html;
 }
@@ -532,6 +549,7 @@ function loadSchedule() {
 socket.on('tv_admin_schedule_data', function(data) {
   currentSchedule = data.slots || [];
   renderSchedule();
+  fillManualTimeSlots();
 });
 
 function renderSchedule() {
