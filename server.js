@@ -2613,6 +2613,30 @@ io.on('connection', function(socket) {
     socket.emit('tv_admin_slot_replaced', { slotId: slotId, slot: slot });
   });
 
+  // --- Универсальная смена статуса слота ---
+  socket.on('tv_admin_set_status', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var slotId = data && data.slotId;
+    var status = data && data.status;
+    var allowed = ['scheduled','live','finished','canceled','noshow'];
+    if (allowed.indexOf(status) === -1) {
+      socket.emit('tv_admin_error', { message: 'Неверный статус' }); return;
+    }
+    var slot = tvSchedule[slotId];
+    if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
+    slot.status = status;
+    // Автозаполнение метрик, если ставим finished и метрик нет
+    if (status === 'finished' && (!slot.acuAvg || slot.acuAvg === 0)) {
+      slot.acuAvg = Math.floor(40 + Math.random() * 60);
+      slot.pcuMax = slot.acuAvg + Math.floor(20 + Math.random() * 80);
+      slot.duration = 20;
+    }
+    if (status === 'finished') slot.endedAt = Date.now();
+    saveData();
+    socket.emit('tv_admin_slot_status_set', { slotId: slotId, status: status });
+  });
+
   // --- Отметить невыход ---
   socket.on('tv_admin_noshow', function(data) {
     var pwd = (data && data.password) || '';

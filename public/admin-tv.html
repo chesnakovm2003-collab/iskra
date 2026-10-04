@@ -569,14 +569,15 @@ function renderSchedule() {
     html += '<td>' + escapeHtml(s.theme) + '</td>';
     html += '<td><span class="status ' + s.status + '">' + statusLabel + '</span></td>';
     html += '<td>';
-    if (s.status === 'scheduled' || s.status === 'noshow' || s.status === 'live') {
-      if (s.status !== 'noshow') {
-        html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="noshowSlot(\'' + s.slotId + '\')">Невыход</button> ';
-      }
-      html += '<button class="btn green" style="padding:4px 8px;font-size:11px;" onclick="finishSlot(\'' + s.slotId + '\')">Завершён</button> ';
-      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="cancelSlot(\'' + s.slotId + '\')">Отменить</button> ';
-      html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="replaceHost(\'' + s.slotId + '\')">Заменить</button>';
+    html += '<select onchange="setStatus(\'' + s.slotId + '\', this.value)" style="padding:4px 6px;font-size:11px;border-radius:6px;border:1px solid #ddd;background:#f5f5f5;font-family:inherit;">';
+    var statuses = ['scheduled','live','finished','canceled','noshow'];
+    var statusNames = { scheduled:'Запланирован', live:'В эфире', finished:'Завершён', canceled:'Отменён', noshow:'Невыход' };
+    for (var si = 0; si < statuses.length; si++) {
+      var st = statuses[si];
+      html += '<option value="' + st + '"' + (st === s.status ? ' selected' : '') + '>' + statusNames[st] + '</option>';
     }
+    html += '</select> ';
+    html += '<button class="btn" style="padding:4px 8px;font-size:11px;" onclick="replaceHost(\'' + s.slotId + '\')">Заменить</button>';
     html += '</td>';
     html += '</tr>';
   }
@@ -596,6 +597,10 @@ function noshowSlot(slotId) {
 }
 socket.on('tv_admin_slot_noshow', function() { toast('Отмечен невыход'); loadSchedule(); });
 
+function setStatus(slotId, status) {
+  socket.emit('tv_admin_set_status', { password: PASSWORD, slotId: slotId, status: status });
+}
+socket.on('tv_admin_slot_status_set', function() { toast('Статус обновлён'); loadSchedule(); });
 function finishSlot(slotId) {
   if (!confirm('Отметить слот как «Завершён»?')) return;
   socket.emit('tv_admin_finish_slot', { password: PASSWORD, slotId: slotId });
