@@ -3459,7 +3459,12 @@ var tvCurrentVotes = { free: 0, paid: 0, total: 0 };
 if (isTvRoom) {
   document.body.classList.add('tv-mode');
   document.getElementById('tvHeader').classList.add('show');
-  ...
+  if (tvTheme) {
+    document.getElementById('tvHeaderMeta').innerHTML =
+      'Выступает <b>' + escapeHtml(hostName) + '</b> · «' + escapeHtml(tvTheme) + '»';
+  } else {
+    document.getElementById('tvHeaderMeta').innerHTML = 'Выступает <b>' + escapeHtml(hostName) + '</b>';
+  }
   // Регистрируемся как зритель Iskra TV
   function registerTvViewer() {
     if (tvSlotId) {
@@ -3476,7 +3481,12 @@ if (isTvRoom) {
       socket.emit('tv_viewer_enter', { slotId: tvSlotId });
     }
   }, 60000);
-  ...
+  // Показываем коробку голосования
+  document.getElementById('voteBox').classList.add('show');
+  // Запрашиваем голоса
+  setTimeout(function() {
+    if (tvSlotId) socket.emit('tv_votes_get', { slotId: tvSlotId });
+  }, 500);
 }
 
 // ---- Модалка расписания ----
