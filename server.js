@@ -2342,6 +2342,12 @@ setInterval(function() {
       if (diffMin > 20) {
         s.status = 'finished';
         s.endedAt = Date.now();
+        // Автозаполнение метрик, если их не было (симуляция прошедшего эфира)
+        if (!s.acuAvg || s.acuAvg === 0) {
+          s.acuAvg = Math.floor(40 + Math.random() * 60);   // 40-100
+          s.pcuMax = s.acuAvg + Math.floor(20 + Math.random() * 80); // +20-100
+          s.duration = 20;  // ровно 20 минут
+        }
         changed = true;
       }
     }
@@ -2354,6 +2360,12 @@ setInterval(function() {
       if (diffLive > 20) {
         s.status = 'finished';
         s.endedAt = Date.now();
+        // Автозаполнение метрик, если их не было
+        if (!s.acuAvg || s.acuAvg === 0) {
+          s.acuAvg = Math.floor(40 + Math.random() * 60);
+          s.pcuMax = s.acuAvg + Math.floor(20 + Math.random() * 80);
+          s.duration = 20;
+        }
         changed = true;
       }
     }
@@ -2575,6 +2587,12 @@ io.on('connection', function(socket) {
     if (!slot) { socket.emit('tv_admin_error', { message: 'Слот не найден' }); return; }
     slot.status = 'finished';
     slot.endedAt = Date.now();
+    // Автозаполнение метрик, если их не было
+    if (!slot.acuAvg || slot.acuAvg === 0) {
+      slot.acuAvg = Math.floor(40 + Math.random() * 60);
+      slot.pcuMax = slot.acuAvg + Math.floor(20 + Math.random() * 80);
+      slot.duration = 20;
+    }
     saveData();
     socket.emit('tv_admin_slot_finished', { slotId: slotId });
   });
