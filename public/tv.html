@@ -284,10 +284,19 @@ socket.on('tv_schedule_data', function(data) {
   var slots = data.slots || [];
   var el = document.getElementById('slotsList');
 
-  // Live-баннер
+  // Live-баннер — с учётом того, что слот может быть "живым" по времени,
+  // даже если сервер ещё не обновил статус
   var liveSlot = null;
   for (var i = 0; i < slots.length; i++) {
-    if (slots[i].status === 'live') { liveSlot = slots[i]; break; }
+    var si = slots[i];
+    var st = si.status;
+    if (st === 'scheduled' && si.date && si.time) {
+      var n2 = new Date();
+      var stStart = new Date(si.date + 'T' + si.time + ':00');
+      var stEnd = new Date(stStart.getTime() + 20 * 60000);
+      if (n2 >= stStart && n2 < stEnd) st = 'live';
+    }
+    if (st === 'live') { liveSlot = si; break; }
   }
   var lb = document.getElementById('liveBanner');
   if (liveSlot) {
@@ -305,28 +314,28 @@ socket.on('tv_schedule_data', function(data) {
     return;
   }
 
-  el.innerHTML = '';
+    el.innerHTML = '';
   for (var j = 0; j < slots.length; j++) {
     var s = slots[j];
     var div = document.createElement('div');
     div.className = 'slot';
 
-    if (effectiveStatus === 'live') div.classList.add('live');
-    else if (effectiveStatus === 'finished') div.classList.add('past');
-    else if (effectiveStatus === 'canceled') div.classList.add('canceled');
-    else if (effectiveStatus === 'noshow') div.classList.add('noshow');
-
     // Если слот сегодня и его время уже прошло, но статус всё ещё 'scheduled' —
     // считаем его завершённым (бейдж будет правильным, даже если сервер
     // не успел обновить статус в YDB)
     var effectiveStatus = s.status;
-    if (s.status === 'scheduled') {
+    if (s.status === 'scheduled' && s.date && s.time) {
       var now2 = new Date();
       var slotStart = new Date(s.date + 'T' + s.time + ':00');
       var slotEnd = new Date(slotStart.getTime() + 20 * 60000);
       if (now2 >= slotEnd) effectiveStatus = 'finished';
       else if (now2 >= slotStart) effectiveStatus = 'live';
     }
+
+    if (effectiveStatus === 'live') div.classList.add('live');
+    else if (effectiveStatus === 'finished') div.classList.add('past');
+    else if (effectiveStatus === 'canceled') div.classList.add('canceled');
+    else if (effectiveStatus === 'noshow') div.classList.add('noshow');
 
     var statusLabel = {
       live: 'В ЭФИРЕ',

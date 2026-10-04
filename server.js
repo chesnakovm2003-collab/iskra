@@ -2247,6 +2247,7 @@ io.on('connection', function(socket) {
       if (s.date === date) {
         list.push({
           slotId: s.slotId,
+          date: s.date,
           time: s.time,
           hostName: s.hostName,
           theme: s.theme,
