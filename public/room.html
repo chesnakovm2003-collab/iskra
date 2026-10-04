@@ -1705,6 +1705,342 @@
     20%  { transform: translateY(-20px) scale(1.2); opacity: 1; }
     100% { transform: translateY(-380px) scale(0.7); opacity: 0; }
   }
+    /* ===== ISKRA TV: ШАПКА КАНАЛА ===== */
+  .tv-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 44px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    z-index: 12;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(233,30,99,0.4);
+  }
+  .tv-header.show { display: flex; }
+  .tv-header .tv-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    flex-shrink: 0;
+  }
+  .tv-header .tv-logo img { width: 20px; height: 20px; }
+  .tv-header .tv-meta {
+    flex: 1;
+    min-width: 0;
+    font-size: 11px;
+    color: #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tv-header .tv-meta b { color: #fff; font-weight: 800; }
+  .tv-header .tv-hint {
+    font-size: 10px;
+    color: #4dd8e8;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  /* Когда эфир Iskra TV — сдвигаем top-bar вниз */
+  body.tv-mode .top-bar { top: 44px; }
+  body.tv-mode .likes-badge { top: 104px; }
+  body.tv-mode .stream-timer { top: 136px; }
+  body.tv-mode .lottery-mini { top: 136px; }
+
+  /* ===== МОДАЛКА РАСПИСАНИЯ ===== */
+  .tv-schedule-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .tv-schedule-modal.open { display: flex; }
+  .tv-schedule-card {
+    background: #16161a;
+    border-radius: 20px;
+    border: 1px solid #2a2a30;
+    width: 100%;
+    max-width: 420px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .tv-schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #1f1f24;
+  }
+  .tv-schedule-title {
+    font-size: 17px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tv-schedule-close {
+    width: 30px; height: 30px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .tv-schedule-tabs {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #1f1f24;
+  }
+  .tv-schedule-tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    background: #1f1f24;
+    color: #888;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .tv-schedule-tab.active {
+    background: linear-gradient(135deg, #4dd8e8, #2bb8d0);
+    color: #003;
+  }
+  .tv-schedule-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 12px 14px;
+  }
+  .tv-slot-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #1a1a1f;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    border: 1px solid #222;
+  }
+  .tv-slot-row.live {
+    background: linear-gradient(135deg, rgba(233,30,99,0.2), rgba(255,152,0,0.2));
+    border-color: rgba(233,30,99,0.5);
+  }
+  .tv-slot-row.past { opacity: 0.5; }
+  .tv-slot-time {
+    font-size: 13px;
+    font-weight: 900;
+    color: #fff;
+    width: 48px;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+  }
+  .tv-slot-info { flex: 1; min-width: 0; }
+  .tv-slot-theme {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tv-slot-host {
+    font-size: 10px;
+    color: #888;
+    margin-top: 2px;
+  }
+  .tv-slot-badge {
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tv-slot-badge.live { background: #e91e63; color: #fff; animation: pulse 1.5s infinite; }
+  .tv-slot-badge.scheduled { background: #e3f2fd; color: #1565c0; }
+  .tv-slot-badge.finished { background: #2a2a30; color: #666; }
+  .tv-slot-badge.canceled,
+  .tv-slot-badge.noshow { background: #2a2a30; color: #666; }
+  .tv-schedule-empty {
+    text-align: center;
+    padding: 30px 20px;
+    color: #555;
+    font-size: 13px;
+  }
+
+  /* ===== КОРОБКА ГОЛОСОВАНИЯ ===== */
+  .vote-box {
+    position: absolute;
+    right: 16px;
+    bottom: 160px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 22;
+    display: none;
+    box-shadow: 0 4px 20px rgba(233,30,99,0.6);
+    overflow: hidden;
+    background: transparent;
+    animation: votePulse 2s ease-in-out infinite;
+  }
+  .vote-box.show { display: block; }
+  .vote-box:active { transform: scale(0.92); }
+  .vote-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @keyframes votePulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(233,30,99,0.6); }
+    50% { box-shadow: 0 4px 30px rgba(255,213,79,0.9); }
+  }
+  .vote-box .vote-count {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #ffd54f;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 8px;
+    white-space: nowrap;
+    border: 1px solid #444;
+  }
+
+  /* Список голосования */
+  .vote-sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    max-height: 70%;
+    background: #16161a;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-top: 1px solid #2a2a2a;
+    z-index: 9500;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .vote-sheet.open { display: flex; }
+  .vote-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #1f1f24;
+  }
+  .vote-sheet-title {
+    font-size: 16px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ff80ab, #ffd54f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .vote-sheet-close {
+    width: 30px; height: 30px;
+    background: #2a2a30;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .vote-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+  }
+  .vote-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #1d1d22;
+    border: 2px solid #25252a;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: 0.15s;
+  }
+  .vote-option:active { transform: scale(0.97); }
+  .vote-option.free { border-color: #43a047; }
+  .vote-option.paid { border-color: #e91e63; }
+  .vote-option.disabled { opacity: 0.4; cursor: not-allowed; }
+  .vote-option .vo-icon {
+    font-size: 26px;
+    flex-shrink: 0;
+    width: 34px;
+    text-align: center;
+  }
+  .vote-option .vo-icon img {
+    width: 30px;
+    height: 30px;
+    display: block;
+    margin: 0 auto;
+  }
+  .vote-option .vo-info { flex: 1; min-width: 0; }
+  .vote-option .vo-name {
+    font-size: 13px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .vote-option .vo-sub {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+  }
+  .vote-option .vo-price {
+    font-size: 13px;
+    font-weight: 900;
+    color: #ffd54f;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .vote-hint {
+    text-align: center;
+    font-size: 11px;
+    color: #666;
+    margin-top: 10px;
+  }
+  .vote-total {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #1d1d22;
+    border-radius: 12px;
+  }
+  .vote-total b { color: #ffd54f; font-size: 16px; }
     /* ===== ПОЕЗД ИЗ ФОНТАНА ===== */
   .flying-train {
     position: absolute;
@@ -2535,7 +2871,96 @@
 </style>
 </head>
 <body>
+  <!-- ===== ISKRA TV: ШАПКА КАНАЛА ===== -->
+  <div class="tv-header" id="tvHeader" onclick="openTvSchedule()">
+    <div class="tv-logo">
+      <img src="/brand/spark-icon.png" alt="">
+      <span>ISKRA TV</span>
+    </div>
+    <div class="tv-meta" id="tvHeaderMeta">Канал Iskra TV</div>
+    <div class="tv-hint">Расписание ›</div>
+  </div>
 
+  <!-- ===== МОДАЛКА РАСПИСАНИЯ ===== -->
+  <div class="tv-schedule-modal" id="tvScheduleModal">
+    <div class="tv-schedule-card">
+      <div class="tv-schedule-header">
+        <div class="tv-schedule-title">📺 Расписание Iskra TV</div>
+        <button class="tv-schedule-close" onclick="closeTvSchedule()">×</button>
+      </div>
+      <div class="tv-schedule-tabs">
+        <button class="tv-schedule-tab active" onclick="switchTvDay('today', this)">Сегодня</button>
+        <button class="tv-schedule-tab" onclick="switchTvDay('tomorrow', this)">Завтра</button>
+      </div>
+      <div class="tv-schedule-body" id="tvScheduleBody">
+        <div class="tv-schedule-empty">Загрузка...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== КОРОБКА ГОЛОСОВАНИЯ ===== -->
+  <button class="vote-box" id="voteBox" onclick="openVoteSheet()">
+    <img src="/brand/vote-box.png" alt="">
+    <div class="vote-count" id="voteCount">0</div>
+  </button>
+
+  <!-- ===== СПИСОК ГОЛОСОВАНИЯ ===== -->
+  <div class="vote-sheet" id="voteSheet">
+    <div class="vote-sheet-header">
+      <div class="vote-sheet-title">💗 Голосование</div>
+      <button class="vote-sheet-close" onclick="closeVoteSheet()">×</button>
+    </div>
+    <div class="vote-sheet-body" id="voteSheetBody">
+      <div class="vote-total">Голосов: <b id="voteTotalNum">0</b></div>
+
+      <div class="vote-option free" id="voteFree" onclick="voteFree()">
+        <div class="vo-icon">🎁</div>
+        <div class="vo-info">
+          <div class="vo-name">Бесплатный голос</div>
+          <div class="vo-sub" id="voteFreeSub">1 минута просмотра = 1 голос (до 5)</div>
+        </div>
+        <div class="vo-price" id="voteFreeLeft">5 / 5</div>
+      </div>
+
+      <div class="vote-option paid" onclick="votePaid('lollipop')">
+        <div class="vo-icon">🍭</div>
+        <div class="vo-info">
+          <div class="vo-name">Леденец</div>
+          <div class="vo-sub">+10 голосов</div>
+        </div>
+        <div class="vo-price">10 💎</div>
+      </div>
+
+      <div class="vote-option paid" onclick="votePaid('guitar')">
+        <div class="vo-icon">🎸</div>
+        <div class="vo-info">
+          <div class="vo-name">Гитара</div>
+          <div class="vo-sub">+77 голосов</div>
+        </div>
+        <div class="vo-price">77 💎</div>
+      </div>
+
+      <div class="vote-option paid" onclick="votePaid('rocket')">
+        <div class="vo-icon">🚀</div>
+        <div class="vo-info">
+          <div class="vo-name">Ракета</div>
+          <div class="vo-sub">+150 голосов</div>
+        </div>
+        <div class="vo-price">150 💎</div>
+      </div>
+
+      <div class="vote-option paid" onclick="votePaid('car')">
+        <div class="vo-icon">🚗</div>
+        <div class="vo-info">
+          <div class="vo-name">Машина</div>
+          <div class="vo-sub">+999 голосов</div>
+        </div>
+        <div class="vo-price">999 💎</div>
+      </div>
+
+      <div class="vote-hint">20% от голосов ведущему — при выплате награды за месяц</div>
+    </div>
+  </div>
   <div class="stream" onclick="sendLike(event)">
     <div class="animated-bg" id="animatedBg"></div>
     <div class="placeholder">[ эфир ведущего ]</div>
@@ -3025,6 +3450,167 @@ function join() {
 }
 
 function goBack() { window.location.href = '/'; }
+// =============== ISKRA TV ===============
+var isTvRoom = params.get('tv') === '1';
+var tvSlotId = params.get('slot') || '';
+var tvTheme = params.get('theme') || '';
+var tvCurrentVotes = { free: 0, paid: 0, total: 0 };
+
+if (isTvRoom) {
+  document.body.classList.add('tv-mode');
+  document.getElementById('tvHeader').classList.add('show');
+  if (tvTheme) {
+    document.getElementById('tvHeaderMeta').innerHTML =
+      'Выступает <b>' + escapeHtml(hostName) + '</b> · «' + escapeHtml(tvTheme) + '»';
+  } else {
+    document.getElementById('tvHeaderMeta').innerHTML = 'Выступает <b>' + escapeHtml(hostName) + '</b>';
+  }
+  // Регистрируемся как зритель Iskra TV
+  socket.on('connect', function() {
+    if (tvSlotId) {
+      socket.emit('tv_viewer_enter', { slotId: tvSlotId });
+    }
+  });
+  // Показываем коробку голосования
+  document.getElementById('voteBox').classList.add('show');
+  // Запрашиваем голоса
+  setTimeout(function() {
+    if (tvSlotId) socket.emit('tv_votes_get', { slotId: tvSlotId });
+  }, 500);
+}
+
+// ---- Модалка расписания ----
+var tvScheduleDay = 'today';
+
+function openTvSchedule() {
+  document.getElementById('tvScheduleModal').classList.add('open');
+  loadTvSchedule();
+}
+
+function closeTvSchedule() {
+  document.getElementById('tvScheduleModal').classList.remove('open');
+}
+
+function isoDate(offset) {
+  var d = new Date();
+  d.setDate(d.getDate() + (offset || 0));
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function switchTvDay(day, el) {
+  tvScheduleDay = day;
+  var tabs = document.querySelectorAll('.tv-schedule-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+  el.classList.add('active');
+  loadTvSchedule();
+}
+
+function loadTvSchedule() {
+  var date = tvScheduleDay === 'today' ? isoDate(0) : isoDate(1);
+  document.getElementById('tvScheduleBody').innerHTML = '<div class="tv-schedule-empty">Загрузка...</div>';
+  socket.emit('tv_schedule_get', { date: date });
+}
+
+socket.on('tv_schedule_data', function(data) {
+  var body = document.getElementById('tvScheduleBody');
+  if (!body) return;
+  var slots = data.slots || [];
+  if (slots.length === 0) {
+    body.innerHTML = '<div class="tv-schedule-empty">На этот день расписания пока нет</div>';
+    return;
+  }
+  body.innerHTML = '';
+  for (var i = 0; i < slots.length; i++) {
+    var s = slots[i];
+    var div = document.createElement('div');
+    div.className = 'tv-slot-row';
+    if (s.status === 'live') div.classList.add('live');
+    else if (s.status === 'finished') div.classList.add('past');
+
+    var label = { live: 'ЭФИР', scheduled: 'Скоро', finished: 'Прошёл', canceled: 'Отменён', noshow: 'Невыход' }[s.status] || s.status;
+    var timeShort = (s.time || '00:00');
+
+    div.innerHTML =
+      '<div class="tv-slot-time">' + timeShort + '</div>' +
+      '<div class="tv-slot-info">' +
+        '<div class="tv-slot-theme">' + escapeHtml(s.theme) + '</div>' +
+        '<div class="tv-slot-host">' + escapeHtml(s.hostName) + '</div>' +
+      '</div>' +
+      '<div class="tv-slot-badge ' + s.status + '">' + label + '</div>';
+
+    if (s.status === 'live' && s.slotId !== tvSlotId) {
+      div.style.cursor = 'pointer';
+      div.onclick = (function(slot) {
+        return function() {
+          window.location.href = '/room.html?tv=1' +
+            '&slot=' + encodeURIComponent(slot.slotId) +
+            '&host=' + encodeURIComponent(slot.hostName) +
+            '&title=' + encodeURIComponent('Iskra TV · ' + slot.theme) +
+            '&theme=' + encodeURIComponent(slot.theme);
+        };
+      })(s);
+    }
+    body.appendChild(div);
+  }
+});
+
+// ---- Коробка голосования ----
+function openVoteSheet() {
+  document.getElementById('voteSheet').classList.add('open');
+  if (tvSlotId) socket.emit('tv_votes_get', { slotId: tvSlotId });
+}
+
+function closeVoteSheet() {
+  document.getElementById('voteSheet').classList.remove('open');
+}
+
+function voteFree() {
+  if (!tvSlotId) return;
+  socket.emit('tv_vote_free', { slotId: tvSlotId });
+}
+
+function votePaid(giftId) {
+  if (!tvSlotId) return;
+  socket.emit('tv_vote_paid', { slotId: tvSlotId, giftId: giftId });
+}
+
+socket.on('tv_viewer_state', function(data) {
+  tvCurrentVotes = data.votes || { free: 0, paid: 0, total: 0 };
+  document.getElementById('voteCount').textContent = tvCurrentVotes.total || 0;
+  document.getElementById('voteTotalNum').textContent = tvCurrentVotes.total || 0;
+  if (typeof data.freeLeft === 'number') {
+    document.getElementById('voteFreeLeft').textContent = data.freeLeft + ' / 5';
+    if (data.freeLeft === 0) document.getElementById('voteFree').classList.add('disabled');
+  }
+});
+
+socket.on('tv_votes_update', function(data) {
+  if (data.slotId !== tvSlotId) return;
+  tvCurrentVotes = data.votes || { free: 0, paid: 0, total: 0 };
+  document.getElementById('voteCount').textContent = tvCurrentVotes.total || 0;
+  document.getElementById('voteTotalNum').textContent = tvCurrentVotes.total || 0;
+});
+
+socket.on('tv_vote_result', function(res) {
+  if (!res.ok) {
+    if (res.error === 'wait') {
+      alert('Подождите ' + res.wait + ' сек до следующего бесплатного голоса');
+    } else if (res.error === 'no_free_left') {
+      alert('Бесплатные голоса закончились (5 из 5 использовано)');
+    } else if (res.error === 'no_balance') {
+      alert('Не хватает алмазов. Пополните баланс.');
+      if (typeof openTopup === 'function') openTopup(res.needed, res.needed - res.current);
+    } else {
+      alert('Ошибка голосования');
+    }
+    return;
+  }
+  if (typeof res.freeLeft === 'number') {
+    document.getElementById('voteFreeLeft').textContent = res.freeLeft + ' / 5';
+    if (res.freeLeft === 0) document.getElementById('voteFree').classList.add('disabled');
+  }
+});
+// =============== / ISKRA TV ===============
 
 function quickBell() { socket.emit('send_gift', { giftId: 'bell' }); }
 
