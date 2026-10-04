@@ -255,6 +255,13 @@
 var socket = io();
 var myLogin = localStorage.getItem('iskra_login') || '';
 var myName = localStorage.getItem('iskra_name') || '';
+// ===== ФЛЕШМОБЫ (объявляем СРАЗУ, до любых вызовов) =====
+var FLASHMOBS = {
+  '2026-10-10': 'Осенний листопад',
+  '2026-10-17': 'Уютный вечер',
+  '2026-10-24': 'Литературный вечер',
+  '2026-10-31': 'Хэллоуин-мистика'
+};
 
 if (!myLogin) {
   window.location.href = '/login.html';
@@ -392,13 +399,7 @@ socket.on('tv_apply_my_data', function(data) {
     el.appendChild(div);
   }
 });
-// ===== ФЛЕШМОБЫ =====
-var FLASHMOBS = {
-  '2026-10-10': 'Осенний листопад',
-  '2026-10-17': 'Уютный вечер',
-  '2026-10-24': 'Литературный вечер',
-  '2026-10-31': 'Хэллоуин-мистика'
-};
+
 
 function applyFlashmob(date) {
   var themeInput = document.getElementById('themeInput');
