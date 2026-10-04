@@ -320,36 +320,12 @@ function getAllDataForSave() {
     platformEarnings: platformEarnings,
     hostDailyStats: hostDailyStats,
     hostWeeklyStats: hostWeeklyStats,
-	function getAllDataForSave() {
-  return {
-    donationsByRoom: donationsByRoom,
-    roomEarnings: roomEarnings,
-    roomBaseDiamonds: roomBaseDiamonds,
-    donationsDaily: donationsDaily,
-    donationsWeekly: donationsWeekly,
-    donationsMonthly: donationsMonthly,
-    donationsAllTime: donationsAllTime,
-    likesByRoom: likesByRoom,
-    subscriptions: subscriptions,
-    balances: balances,
-    transactions: transactions,
-    conversations: conversations,
-    chatCostByUser: chatCostByUser,
-    yummyHistory: yummyHistory,
-    greedyHistory: greedyHistory,
-    crashHistory: crashHistory,
-    platformEarnings: platformEarnings,
-    hostDailyStats: hostDailyStats,
-    hostWeeklyStats: hostWeeklyStats,
     // ===== Iskra TV =====
     tvHosts: tvHosts,
     tvApplications: tvApplications,
     tvSchedule: tvSchedule,
     tvVotes: tvVotes,
     // ===== / Iskra TV =====
-    savedAt: new Date().toISOString()
-  };
-}
     savedAt: new Date().toISOString()
   };
 }
