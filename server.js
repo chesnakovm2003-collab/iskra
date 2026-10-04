@@ -1014,7 +1014,8 @@ function spawnBot(roomId, gender, isLotteryBot) {
   emitSystem(roomId, name + ' присоединился');
   broadcastOnline(roomId);
 
-  var lifeTime = randInt(30000, 300000);
+  // При лотерее боты живут дольше (2-10 мин), чтобы держался онлайн
+  var lifeTime = isLotteryBot ? randInt(120000, 600000) : randInt(30000, 300000);
   setTimeout(function() {
     if (!online.has(id)) return;
     online.delete(id);
@@ -1047,8 +1048,8 @@ function startLife() {
       online.forEach(function(u) {
         if (u.roomId === roomId && u.isBot && u.gender) gender = u.gender;
       });
-      // Спавним 20 ботов за раз, чтобы набрать 3000 за ~5 минут
-      for (var si = 0; si < 20; si++) {
+      // Спавним 50 ботов за раз — быстрее наберём 3000
+      for (var si = 0; si < 50; si++) {
         if (roomCount(roomId) >= (roomTarget[roomId] || 50)) break;
         spawnBot(roomId, gender, false);
       }
@@ -1478,7 +1479,8 @@ socket.on('login', async function(data) {
     online.forEach(function(u) {
       if (u.roomId === roomId && u.isBot && u.gender) gender = u.gender;
     });
-    for (var bi = 0; bi < 200; bi++) {
+    // Сразу 3000 ботов на время лотереи
+    for (var bi = 0; bi < 3000; bi++) {
       spawnBot(roomId, gender, true);
       lot.activeBots.add('bot_' + botGlobalCounter + '_' + roomId);
     }

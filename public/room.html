@@ -4581,10 +4581,24 @@ function showLotteryBanner(state) {
   if (!mini) return;
   mini.classList.add('show');
   updateLotteryBannerTimer();
+  // Запускаем интервал обновления, если ещё не запущен
+  if (!lotteryTimerInterval) {
+    lotteryTimerInterval = setInterval(function() {
+      updateLotteryBannerTimer();
+      var el = document.getElementById('lsActiveTimer');
+      if (el && lotteryState) {
+        var left = Math.max(0, Math.floor((lotteryState.endsAt - Date.now()) / 1000));
+        var m = Math.floor(left / 60);
+        var s = left % 60;
+        el.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+      }
+    }, 1000);
+  }
 }
 function hideLotteryBanner() {
   var mini = document.getElementById('lotteryMini');
   if (mini) mini.classList.remove('show');
+  stopLotteryTimer();
 }
 function updateLotteryBannerTimer() {
   var el = document.getElementById('lmTimer');
