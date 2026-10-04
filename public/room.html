@@ -3375,7 +3375,7 @@
 <script>
 // ---------- Параметры из URL ----------
 var params = new URLSearchParams(window.location.search);
-var roomId = params.get('room') || 'default';
+var roomId = params.get('room') || (params.get('tv') === '1' && params.get('slot') ? 'tv_' + params.get('slot') : 'default');
 var hostName = params.get('host') || 'Ведущий';
 var roomTitle = params.get('title') || 'Эфир';
 var diamonds = parseInt(params.get('diamonds')) || 2512451;

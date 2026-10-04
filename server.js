@@ -1489,6 +1489,15 @@ socket.on('login', async function(data) {
 
     lot.timerId = setTimeout(function() { endLottery(roomId, 'time'); }, durationSec * 1000);
     saveData();
+	
+	    // Автоматически подписываем часть ботов на лотерею
+    for (var bi2 = 0; bi2 < 200; bi2++) {
+      var botName = random(FEMALE_BOT_NAMES.concat(MALE_BOT_NAMES)) + '_auto_' + Math.floor(Math.random()*10000);
+      // Просто добавляем в participants
+      if (Object.keys(lot.participants).length < 200) {
+        lot.participants[botName] = { name: botName, joinedAt: Date.now(), note: '🤖 бот' };
+      }
+    }
   });
 
   socket.on('lottery_join', function() {
@@ -2120,8 +2129,11 @@ function tvVoteFree(viewerId, slotId) {
   if (!v || v.slotId !== slotId) return { ok: false, error: 'not_in_slot' };
   if (v.freeVotesGiven >= 5) return { ok: false, error: 'no_free_left' };
   var now = Date.now();
-  var last = v.lastFreeVote ? new Date(v.lastFreeVote).getTime() : new Date(v.enterTime).getTime();
-  if (now - last < 60000) return { ok: false, error: 'wait', wait: Math.ceil((60000 - (now - last)) / 1000) };
+  // Если ещё ни разу не голосовал — кулдаун не применяется
+  if (v.lastFreeVote) {
+    var last = new Date(v.lastFreeVote).getTime();
+    if (now - last < 60000) return { ok: false, error: 'wait', wait: Math.ceil((60000 - (now - last)) / 1000) };
+  }
 
   v.freeVotesGiven++;
   v.lastFreeVote = new Date(now);
