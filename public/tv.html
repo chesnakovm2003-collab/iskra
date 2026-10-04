@@ -290,7 +290,7 @@ socket.on('tv_schedule_data', function(data) {
   for (var i = 0; i < slots.length; i++) {
     var si = slots[i];
     var st = si.status;
-    if (st === 'scheduled' && si.date && si.time) {
+    if ((st === 'scheduled' || st === 'live') && si.date && si.time) {
       var n2 = new Date();
       var stStart = new Date(si.date + 'T' + si.time + ':00');
       var stEnd = new Date(stStart.getTime() + 20 * 60000);
@@ -324,7 +324,7 @@ socket.on('tv_schedule_data', function(data) {
     // считаем его завершённым (бейдж будет правильным, даже если сервер
     // не успел обновить статус в YDB)
     var effectiveStatus = s.status;
-    if (s.status === 'scheduled' && s.date && s.time) {
+    if ((s.status === 'scheduled' || s.status === 'live') && s.date && s.time) {
       var now2 = new Date();
       var slotStart = new Date(s.date + 'T' + s.time + ':00');
       var slotEnd = new Date(slotStart.getTime() + 20 * 60000);

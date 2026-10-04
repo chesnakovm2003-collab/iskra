@@ -2337,6 +2337,18 @@ setInterval(function() {
         changed = true;
       }
     }
+
+    // добить зависшие live: если слот должен был закончиться > 20 мин назад,
+    // но всё ещё в статусе live — принудительно завершаем
+    if (s.status === 'live') {
+      var startedLive = new Date(s.date + 'T' + s.time + ':00');
+      var diffLive = (Date.now() - startedLive.getTime()) / 60000;
+      if (diffLive > 20) {
+        s.status = 'finished';
+        s.endedAt = Date.now();
+        changed = true;
+      }
+    }
   }
 
   if (changed) saveData();
