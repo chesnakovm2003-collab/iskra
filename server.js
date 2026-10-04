@@ -2509,7 +2509,87 @@ io.on('connection', function(socket) {
     saveData();
     socket.emit('tv_admin_slot_noshow', { slotId: slotId });
   });
+  // ===== ISKRA TV: APPLICATION FORM =====
 
+  socket.on('tv_apply_get_slots', function(data) {
+    var date = (data && data.date) || '';
+    if (!date) { socket.emit('tv_apply_slots_data', { date: date, slots: [] }); return; }
+    var allSlots = tvAllSlotsForDay();
+    var takenSlots = {};
+    for (var aid in tvApplications) {
+      var app = tvApplications[aid];
+      if (app.date === date && app.status === 'approved') takenSlots[app.slotTime] = true;
+    }
+    for (var sid in tvSchedule) {
+      var s = tvSchedule[sid];
+      if (s.date === date) takenSlots[s.time] = true;
+    }
+    var freeSlots = [];
+    for (var i = 0; i < allSlots.length; i++) {
+      if (!takenSlots[allSlots[i]]) freeSlots.push(allSlots[i]);
+    }
+    socket.emit('tv_apply_slots_data', { date: date, slots: freeSlots });
+  });
+
+  socket.on('tv_apply_submit', function(data) {
+    var login = (data && data.login || '').trim();
+    var name = (data && data.name || '').trim();
+    var contact = (data && data.contact || '').trim();
+    var video = (data && data.video || '').trim();
+    var date = (data && data.date || '').trim();
+    var slotTime = (data && data.slotTime || '').trim();
+    var category = (data && data.category || '').trim();
+    var theme = (data && data.theme || '').trim();
+
+    if (!login || !name) { socket.emit('tv_apply_result', { ok: false, message: 'Войдите в аккаунт' }); return; }
+    if (!contact || !video) { socket.emit('tv_apply_result', { ok: false, message: 'Заполните контакт и ссылку' }); return; }
+    if (!date || !slotTime) { socket.emit('tv_apply_result', { ok: false, message: 'Выберите дату и время' }); return; }
+    if (!category || !theme) { socket.emit('tv_apply_result', { ok: false, message: 'Выберите категорию и укажите тему' }); return; }
+
+    for (var aid in tvApplications) {
+      var app = tvApplications[aid];
+      if (app.hostId === login && app.date === date && app.status !== 'rejected') {
+        socket.emit('tv_apply_result', { ok: false, message: 'Вы уже подали заявку на эту дату' }); return;
+      }
+    }
+
+    var allSlots = tvAllSlotsForDay();
+    if (allSlots.indexOf(slotTime) === -1) { socket.emit('tv_apply_result', { ok: false, message: 'Неверное время' }); return; }
+    for (var aid2 in tvApplications) {
+      var app2 = tvApplications[aid2];
+      if (app2.date === date && app2.slotTime === slotTime && app2.status === 'approved') {
+        socket.emit('tv_apply_result', { ok: false, message: 'Это время уже занято' }); return;
+      }
+    }
+
+    var newApp = {
+      appId: 'user_app_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      hostId: login, hostName: name,
+      theme: theme, category: category,
+      date: date, slotTime: slotTime,
+      status: 'pending', contact: contact, video: video,
+      createdAt: new Date()
+    };
+    tvApplications[newApp.appId] = newApp;
+    saveData();
+    io.emit('tv_admin_new_application', { application: newApp });
+    socket.emit('tv_apply_result', { ok: true, message: 'Заявка отправлена! Ждите подтверждения до 20:00 МСК.', application: newApp });
+    console.log('📩 Iskra TV: новая заявка от', name, 'на', date, slotTime, '«' + theme + '»');
+  });
+
+  socket.on('tv_apply_my', function(data) {
+    var login = (data && data.login || '').trim();
+    if (!login) { socket.emit('tv_apply_my_data', { applications: [] }); return; }
+    var list = [];
+    for (var aid in tvApplications) {
+      var app = tvApplications[aid];
+      if (app.hostId === login) list.push(app);
+    }
+    list.sort(function(a, b) { return (b.date + b.slotTime).localeCompare(a.date + a.slotTime); });
+    socket.emit('tv_apply_my_data', { applications: list });
+  });
+
+  // ===== / ISKRA TV: APPLICATION FORM =====
 });
 
 // ============================================================
