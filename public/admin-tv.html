@@ -279,6 +279,33 @@
     <button class="logout" onclick="logout()">Выйти</button>
   </div>
 
+  <!-- Ручная постановка в слот -->
+  <div class="section">
+    <div class="section-title">✍️ Поставить ведущего в свободный слот</div>
+    <div class="controls-row">
+      <label>Время:</label>
+      <select id="manualTime" style="padding:10px 14px;border-radius:10px;border:2px solid #e0e0e0;background:#f5f5f5;font-family:inherit;font-size:14px;">
+        <option value="">— выберите время —</option>
+      </select>
+      <label>Имя:</label>
+      <input type="text" id="manualHost" placeholder="Имя ведущего">
+      <label>Тема:</label>
+      <input type="text" id="manualTheme" placeholder="Тема выступления">
+      <label>Категория:</label>
+      <select id="manualCategory" style="padding:10px 14px;border-radius:10px;border:2px solid #e0e0e0;background:#f5f5f5;font-family:inherit;font-size:14px;">
+        <option value="">Не указана</option>
+        <option value="Танцы">Танцы</option>
+        <option value="Красота">Красота</option>
+        <option value="Музыка">Музыка</option>
+        <option value="Искусство">Искусство</option>
+        <option value="Кулинария">Кулинария</option>
+        <option value="Мода">Мода</option>
+        <option value="Игры">Игры</option>
+        <option value="Спорт">Спорт</option>
+      </select>
+      <button class="btn primary" onclick="manualSlot()">➕ Поставить</button>
+    </div>
+  </div>
   <!-- Панель управления -->
   <div class="controls">
     <div class="controls-row">
@@ -445,6 +472,45 @@ function approveAll() {
   setTimeout(loadApps, 500);
 }
 
+// ---------- Ручная постановка ----------
+// Заполняем селект времени всех 52 слотами
+function fillManualTimeSlots() {
+  var sel = document.getElementById('manualTime');
+  if (!sel) return;
+  var start = 6 * 60 + 30; // 06:30
+  var count = 52;
+  var html = '<option value="">— выберите время —</option>';
+  for (var i = 0; i < count; i++) {
+    var mins = start + i * 20;
+    var h = Math.floor(mins / 60);
+    var m = mins % 60;
+    var t = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    html += '<option value="' + t + '">' + t + '</option>';
+  }
+  sel.innerHTML = html;
+}
+
+function manualSlot() {
+  var time = document.getElementById('manualTime').value;
+  var hostName = document.getElementById('manualHost').value.trim();
+  var theme = document.getElementById('manualTheme').value.trim();
+  var category = document.getElementById('manualCategory').value;
+  var date = document.getElementById('dateInput').value;
+  if (!time || !hostName || !theme) { toast('Заполните время, имя и тему'); return; }
+  if (!date) { toast('Выберите дату'); return; }
+  socket.emit('tv_admin_manual_slot', {
+    password: PASSWORD, date: date, time: time,
+    hostName: hostName, theme: theme, category: category
+  });
+}
+
+socket.on('tv_admin_manual_slot_ok', function(data) {
+  toast('Ведущий поставлен в слот ' + data.slotId);
+  document.getElementById('manualHost').value = '';
+  document.getElementById('manualTheme').value = '';
+  document.getElementById('manualTime').value = '';
+  loadSchedule();
+});
 // ---------- Расписание ----------
 function assignSlots() {
   var date = document.getElementById('dateInput').value;

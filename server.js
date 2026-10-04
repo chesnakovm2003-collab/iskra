@@ -2497,6 +2497,46 @@ io.on('connection', function(socket) {
 
   // --- Отметить невыход ---
   socket.on('tv_admin_noshow', function(data) {
+	    // --- Вручную поставить ведущего в слот ---
+  socket.on('tv_admin_manual_slot', function(data) {
+    var pwd = (data && data.password) || '';
+    if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
+    var date = (data && data.date) || tvToday();
+    var time = (data && data.time) || '';
+    var hostName = (data && data.hostName) || '';
+    var theme = (data && data.theme) || '';
+    var category = (data && data.category) || '';
+
+    if (!time || !hostName || !theme) {
+      socket.emit('tv_admin_error', { message: 'Заполните время, ведущего и тему' }); return;
+    }
+    var allSlots = tvAllSlotsForDay();
+    if (allSlots.indexOf(time) === -1) {
+      socket.emit('tv_admin_error', { message: 'Неверное время' }); return;
+    }
+
+    var slotId = date + '_' + time;
+    // Проверка: слот уже занят?
+    if (tvSchedule[slotId] && tvSchedule[slotId].status !== 'canceled' && tvSchedule[slotId].status !== 'noshow') {
+      socket.emit('tv_admin_error', { message: 'Этот слот уже занят' }); return;
+    }
+
+    tvSchedule[slotId] = {
+      slotId: slotId,
+      date: date,
+      time: time,
+      hostId: 'manual_' + Date.now(),
+      hostName: hostName,
+      theme: theme,
+      category: category || 'Другое',
+      status: 'scheduled',
+      acuAvg: 0, pcuMax: 0, duration: 0,
+      manualScore: 0, finalScore: 0, reward: 0,
+      votesFree: 0, votesPaid: 0, votesTotal: 0
+    };
+    saveData();
+    socket.emit('tv_admin_manual_slot_ok', { slotId: slotId });
+  });
     var pwd = (data && data.password) || '';
     if (pwd !== TV_ADMIN_PASSWORD) { socket.emit('tv_admin_error', { message: 'Нет доступа' }); return; }
     var slotId = data && data.slotId;
