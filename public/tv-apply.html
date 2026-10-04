@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<script src="/auth-guard.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Заявка на Iskra TV</title>
+<link rel="icon" type="image/png" href="/brand/spark-favicon.png">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    overflow-y: auto;
+    background: #f5f5f5;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  }
+  .page { max-width: 560px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #ffb74d, #e91e63);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 6px;
+  }
+  .header .logo img { width: 32px; height: 32px; }
+  .header .sub { font-size: 13px; color: #888; }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: #fff;
+    padding: 6px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #888;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+  }
+  .tab.active { background: linear-gradient(135deg, #4dd8e8, #2bb8d0); color: #fff; }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 900;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #666;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    background: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    color: #222;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    outline: none;
+    font-family: inherit;
+  }
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus { border-color: #4dd8e8; }
+  .field input[readonly] { background: #eee; color: #888; }
+  .field textarea { resize: vertical; min-height: 70px; }
+  .field .hint { font-size: 11px; color: #999; margin-top: 4px; }
+
+  .btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #e91e63, #ff80ab);
+    color: #fff;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 6px 20px rgba(233,30,99,0.3);
+    transition: 0.15s;
+  }
+  .btn-submit:active { transform: scale(0.97); }
+  .btn-submit:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+  .result {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    display: none;
+  }
+  .result.ok { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+  .result.err { display: block; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+  .app-item {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-item .info { flex: 1; min-width: 0; }
+  .app-item .line1 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+  .app-item .line2 { font-size: 12px; color: #888; }
+  .status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+  .status.pending { background: #fff3e0; color: #e65100; }
+  .status.approved { background: #e8f5e9; color: #2e7d32; }
+  .status.rejected { background: #ffebee; color: #c62828; }
+
+  .empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <div class="logo">
+      <img src="/brand/spark-main.png" alt="">
+      <span>Iskra TV</span>
+    </div>
+    <div class="sub">Заявка на выступление на канале</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('apply')">📝 Новая заявка</div>
+    <div class="tab" onclick="switchTab('my')">📋 Мои заявки</div>
+  </div>
+
+  <div id="tabApply" class="fade-in">
+    <div class="card">
+      <div class="card-title">👤 Данные ведущего</div>
+      <div class="field">
+        <label>Логин</label>
+        <input type="text" id="loginInput" readonly>
+      </div>
+      <div class="field">
+        <label>Имя в эфире</label>
+        <input type="text" id="nameInput" readonly>
+      </div>
+      <div class="field">
+        <label>Контакт для связи *</label>
+        <input type="text" id="contactInput" placeholder="Telegram, WhatsApp, телефон">
+        <div class="hint">По этому контакту админ свяжется с вами</div>
+      </div>
+      <div class="field">
+        <label>Ссылка на видео-визитку *</label>
+        <input type="text" id="videoInput" placeholder="Google Drive / Яндекс.Диск / Instagram">
+        <div class="hint">Видео до 2 минут. Ссылка должна открываться без авторизации</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 Дата и время</div>
+      <div class="field">
+        <label>Дата *</label>
+        <input type="date" id="dateInput">
+        <div class="hint">Только в пределах текущего месяца</div>
+      </div>
+      <div class="field">
+        <label>Свободное время *</label>
+        <select id="slotInput"><option value="">Сначала выберите дату</option></select>
+        <div class="hint">Выступления по 20 минут, с 06:30 до 00:00 МСК</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎭 Категория и тема</div>
+      <div class="field">
+        <label>Категория *</label>
+        <select id="categoryInput">
+          <option value="">Выберите категорию</option>
+          <option value="Танцы">Танцы</option>
+          <option value="Красота">Красота</option>
+          <option value="Музыка">Музыка</option>
+          <option value="Искусство">Искусство</option>
+          <option value="Кулинария">Кулинария</option>
+          <option value="Мода">Мода</option>
+          <option value="Игры">Игры</option>
+          <option value="Спорт">Спорт</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Тема выступления *</label>
+        <input type="text" id="themeInput" placeholder="Например: Осенний листопад: осенние хиты">
+        <div class="hint">Если участвуете во флешмобе — упомяните его в теме</div>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitApplication()">Отправить заявку</button>
+    <div class="result" id="resultBox"></div>
+  </div>
+
+  <div id="tabMy" style="display:none;" class="fade-in">
+    <div id="myAppsList"><div class="empty">Загрузка...</div></div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io();
+var myLogin = localStorage.getItem('iskra_login') || '';
+var myName = localStorage.getItem('iskra_name') || '';
+
+if (!myLogin) {
+  window.location.href = '/login.html';
+}
+
+document.getElementById('loginInput').value = myLogin;
+document.getElementById('nameInput').value = myName;
+
+(function() {
+  var now = new Date();
+  var y = now.getFullYear();
+  var m = now.getMonth();
+  var firstDay = new Date(y, m, 1);
+  var lastDay = new Date(y, m + 1, 0);
+  function iso(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+  var dateInput = document.getElementById('dateInput');
+  dateInput.min = iso(firstDay);
+  dateInput.max = iso(lastDay);
+  var today = iso(new Date());
+  if (today >= dateInput.min && today <= dateInput.max) {
+    dateInput.value = today;
+    loadSlots(today);
+  }
+})();
+
+document.getElementById('dateInput').addEventListener('change', function() {
+  loadSlots(this.value);
+});
+
+function loadSlots(date) {
+  var sel = document.getElementById('slotInput');
+  sel.innerHTML = '<option value="">Загрузка...</option>';
+  socket.emit('tv_apply_get_slots', { date: date });
+}
+
+socket.on('tv_apply_slots_data', function(data) {
+  var sel = document.getElementById('slotInput');
+  if (!data.slots || data.slots.length === 0) {
+    sel.innerHTML = '<option value="">Нет свободных слотов</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Выберите время</option>';
+  for (var i = 0; i < data.slots.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = data.slots[i];
+    opt.textContent = data.slots[i];
+    sel.appendChild(opt);
+  }
+});
+
+function submitApplication() {
+  var contact = document.getElementById('contactInput').value.trim();
+  var video = document.getElementById('videoInput').value.trim();
+  var date = document.getElementById('dateInput').value;
+  var slotTime = document.getElementById('slotInput').value;
+  var category = document.getElementById('categoryInput').value;
+  var theme = document.getElementById('themeInput').value.trim();
+
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  socket.emit('tv_apply_submit', {
+    login: myLogin,
+    name: myName,
+    contact: contact,
+    video: video,
+    date: date,
+    slotTime: slotTime,
+    category: category,
+    theme: theme
+  });
+}
+
+socket.on('tv_apply_result', function(data) {
+  var box = document.getElementById('resultBox');
+  var btn = document.getElementById('submitBtn');
+  btn.disabled = false;
+
+  if (data.ok) {
+    box.className = 'result ok';
+    box.textContent = '✅ ' + data.message;
+    document.getElementById('contactInput').value = '';
+    document.getElementById('videoInput').value = '';
+    document.getElementById('slotInput').innerHTML = '<option value="">Сначала выберите дату</option>';
+    document.getElementById('categoryInput').value = '';
+    document.getElementById('themeInput').value = '';
+    var date = document.getElementById('dateInput').value;
+    if (date) loadSlots(date);
+  } else {
+    box.className = 'result err';
+    box.textContent = '⚠️ ' + data.message;
+  }
+  setTimeout(function() { box.className = 'result'; box.textContent = ''; }, 6000);
+});
+
+function switchTab(tab) {
+  var tabs = document.querySelectorAll('.tab');
+  tabs[0].classList.toggle('active', tab === 'apply');
+  tabs[1].classList.toggle('active', tab === 'my');
+  document.getElementById('tabApply').style.display = (tab === 'apply') ? 'block' : 'none';
+  document.getElementById('tabMy').style.display = (tab === 'my') ? 'block' : 'none';
+  if (tab === 'my') loadMyApps();
+}
+
+function loadMyApps() {
+  socket.emit('tv_apply_my', { login: myLogin });
+}
+
+socket.on('tv_apply_my_data', function(data) {
+  var el = document.getElementById('myAppsList');
+  var list = data.applications || [];
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty">У вас пока нет заявок</div>';
+    return;
+  }
+  el.innerHTML = '';
+  for (var i = 0; i < list.length; i++) {
+    var a = list[i];
+    var statusLabel = { pending: 'Ожидает', approved: 'Одобрено', rejected: 'Отклонено' }[a.status] || a.status;
+    var div = document.createElement('div');
+    div.className = 'app-item';
+    div.innerHTML =
+      '<div class="info">' +
+        '<div class="line1">' + escapeHtml(a.theme) + '</div>' +
+        '<div class="line2">' + a.date + ' · ' + a.slotTime + ' · ' + escapeHtml(a.category) + '</div>' +
+      '</div>' +
+      '<div class="status ' + a.status + '">' + statusLabel + '</div>';
+    el.appendChild(div);
+  }
+});
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+</script>
+</body>
+</html>
