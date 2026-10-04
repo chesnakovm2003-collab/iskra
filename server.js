@@ -2328,12 +2328,13 @@ setInterval(function() {
     }
 
     // авто-закрытие: слот сегодня, статус scheduled, время уже прошло > 20 мин
+    // — считаем, что эфир состоялся (админ вручную отметит невыход, если надо)
     if (s.status === 'scheduled' && s.time < curTime) {
       var started = new Date(s.date + 'T' + s.time + ':00');
       var diffMin = (Date.now() - started.getTime()) / 60000;
       if (diffMin > 20) {
-        // эфир не состоялся — отмечаем как невыход
-        s.status = 'noshow';
+        s.status = 'finished';
+        s.endedAt = Date.now();
         changed = true;
       }
     }
