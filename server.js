@@ -1371,6 +1371,7 @@ io.on('connection', function(socket) {
 
         addBalance(login, 300);
         pushTransaction(login, 'referral_welcome', 300, 'Приветственный бонус по приглашению');
+        pushBalanceToUser(login);
 
         console.log('🎁 Реферал: ' + referrerLogin + ' пригласил ' + login);
       } else {
@@ -1392,7 +1393,8 @@ io.on('connection', function(socket) {
       login: login,
       displayName: displayName,
       referralCode: newCode,
-      referredBy: referrerLogin
+      referredBy: referrerLogin,
+      balance: getBalance(login)
     });
   });
 

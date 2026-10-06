@@ -259,6 +259,12 @@ socket.on('auth_success', function(data) {
   localStorage.setItem('iskra_token', data.token);
   localStorage.setItem('iskra_login', data.login);
   localStorage.setItem('iskra_name', data.displayName);
+  if (data.balance !== undefined) {
+    localStorage.setItem('iskra_start_balance', data.balance);
+  }
+  if (data.referredBy) {
+    alert('🎉 Ты зарегистрирован по приглашению! Бонус +300 💎');
+  }
   window.location.href = '/';
 });
 
