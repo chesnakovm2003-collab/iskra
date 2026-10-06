@@ -1533,10 +1533,6 @@ socket.on('login', async function(data) {
     socket.emit('stream_started_at', { startedAt: roomStreamStartedAt[roomId] || Date.now() });
     socket.emit('lottery_config', { durations: ALLOWED_DURATIONS, costs: ALLOWED_COSTS });
     socket.emit('balance_update', { balance: getBalance(name) });
-// Дополнительно: если у юзера есть displayName с другим балансом — синхронизируем
-if (displayName && displayName !== name) {
-  // Тут ничего — displayName сервер не знает в join. Пропускаем.
-}
     socket.emit('pm_chat_cost', { cost: chatCostByUser[name] || 0 });
     socket.emit('user_level', getLevelProgress(donationsAllTime[name] || 0));
     socket.emit('transactions', transactions[name] || []);
