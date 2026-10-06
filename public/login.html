@@ -208,6 +208,10 @@
       <label>Пароль (минимум 4 символа)</label>
       <input type="password" id="regPassword" placeholder="Придумай пароль" autocomplete="new-password">
     </div>
+    <div class="field">
+      <label>Код пригласившего (если есть)</label>
+      <input type="text" id="referralInput" placeholder="ISKRA_XXXXXX" style="text-transform: uppercase;" maxlength="12">
+    </div>
     <button class="btn" id="registerBtn" onclick="doRegister()">Создать аккаунт</button>
   </div>
 
@@ -313,11 +317,13 @@ function doRegister() {
 
   hideError();
   document.getElementById('registerBtn').disabled = true;
-  socket.emit('register', {
-    login: login,
-    password: password,
-    displayName: name
-  });
+var referralCode = (document.getElementById('referralInput').value || '').trim().toUpperCase();
+socket.emit('register', {
+  login: login,
+  password: password,
+  displayName: name,
+  referralCode: referralCode
+});
 }
 
 // Enter для отправки

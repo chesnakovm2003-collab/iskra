@@ -194,7 +194,7 @@
     color: #666;
     margin-top: 2px;
   }
-
+</div>
   /* Бейджи */
   .pp-badges {
     display: flex;
@@ -541,6 +541,27 @@
       <div class="pp-plate pp-plate-gold" id="ppLevel">💎 Lv.0</div>
       <div class="pp-plate pp-plate-dark" onclick="alert('Зал Почета')">🏆 Зал Почета</div>
     </div>
+	    <div class="pp-plates">
+      <div class="pp-plate pp-plate-gold" id="ppLevel">💎 Lv.0</div>
+      <div class="pp-plate pp-plate-dark" onclick="alert('Зал Почета')">🏆 Зал Почета</div>
+    </div>
+
+    <div class="referral-block" style="background: linear-gradient(135deg, #ff9800, #e91e63); border-radius: 16px; padding: 20px; margin: 16px 0; color: #fff;">
+      <div style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">🎁 Приглашай друзей</div>
+      <div style="font-size: 13px; opacity: 0.95; margin-bottom: 16px;">
+        За каждого друга: <b>+200 💎</b> тебе, <b>+300 💎</b> другу. Плюс <b>10%</b> от его донатов (30 дней).
+      </div>
+      <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+        <div style="font-size: 11px; opacity: 0.8; margin-bottom: 6px;">ТВОЙ КОД:</div>
+        <div style="font-family: monospace; font-size: 20px; font-weight: 900; letter-spacing: 2px;" id="referralCode">ISKRA_XXXXXX</div>
+      </div>
+      <button onclick="copyReferralCode()" style="width: 100%; background: #fff; color: #e91e63; border: none; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; font-family: inherit;">
+        📋 Скопировать код
+      </button>
+      <div style="margin-top: 14px; font-size: 12px; opacity: 0.9;">
+        Приглашено: <b id="referralCount">0</b> человек
+      </div>
+    </div>
 
     <div class="pp-actions">
       <button class="pp-action pp-subscribe" id="ppSubscribeBtn" onclick="toggleSubscribe()">➕ Подписаться</button>
@@ -864,6 +885,30 @@ function openChatFromProfile() {
 }
 function goHome() {
   window.location.href = '/';
+}
+</script>
+<script>
+// Загружаем реферальные данные
+var myLogin = localStorage.getItem('iskra_login') || '';
+if (myLogin && typeof io === 'function') {
+  var refSocket = io();
+  refSocket.on('connect', function() {
+    refSocket.emit('referral_get', { login: myLogin });
+  });
+  refSocket.on('referral_data', function(data) {
+    if (data.error) return;
+    var codeEl = document.getElementById('referralCode');
+    var countEl = document.getElementById('referralCount');
+    if (codeEl) codeEl.textContent = data.code;
+    if (countEl) countEl.textContent = data.totalReferred || 0;
+  });
+}
+
+function copyReferralCode() {
+  var code = document.getElementById('referralCode').textContent;
+  navigator.clipboard.writeText(code).then(function() {
+    alert('Код скопирован: ' + code);
+  });
 }
 </script>
 </body>

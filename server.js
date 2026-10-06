@@ -65,6 +65,16 @@ async function initYDB() {
         PRIMARY KEY (token)
       );
     `;
+	    await ydbSql`
+      CREATE TABLE IF NOT EXISTS iskra_referrals (
+        login Utf8,
+        referralCode Utf8,
+        referredBy Utf8,
+        referredAt Timestamp,
+        bonusEarned Int64,
+        PRIMARY KEY (login)
+      );
+    `;
 
     ydbReady = true;
     console.log('✅ YDB подключена, таблицы готовы');
@@ -335,7 +345,88 @@ function saveData() {
     saveDataToYDB(getAllDataForSave());
   }, 2000);
 }
+// ---------- РЕФЕРАЛЫ ----------
+function generateReferralCode(login) {
+  var hash = crypto.createHash('md5').update(login + 'iskra_salt_2026').digest('hex');
+  return 'ISKRA_' + hash.substring(0, 6).toUpperCase();
+}
 
+async function createReferralRecord(login, referredBy) {
+  if (!ydbReady || !ydbSql) return false;
+  try {
+    var code = generateReferralCode(login);
+    await ydbSql`
+      UPSERT INTO iskra_referrals (login, referralCode, referredBy, referredAt, bonusEarned)
+      VALUES (${login}, ${code}, ${referredBy || ''}, CurrentUtcTimestamp(), 0);
+    `;
+    return true;
+  } catch(e) {
+    console.error('Ошибка создания реферала:', e.message);
+    return false;
+  }
+}
+
+async function getReferralInfo(login) {
+  if (!ydbReady || !ydbSql) return null;
+  try {
+    var result = await ydbSql`
+      SELECT login, referralCode, referredBy, referredAt, bonusEarned
+      FROM iskra_referrals WHERE login = ${login};
+    `;
+    if (!result || result.length === 0) return null;
+
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    if (!rows || rows.length === 0) return null;
+
+    return rows[0];
+  } catch(e) {
+    console.error('Ошибка чтения реферала:', e.message);
+    return null;
+  }
+}
+
+async function getReferredUsers(referrerLogin) {
+  if (!ydbReady || !ydbSql) return [];
+  try {
+    var result = await ydbSql`
+      SELECT login, referredAt, bonusEarned
+      FROM iskra_referrals WHERE referredBy = ${referrerLogin};
+    `;
+    if (!result || result.length === 0) return [];
+
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    return rows || [];
+  } catch(e) {
+    console.error('Ошибка чтения приглашённых:', e.message);
+    return [];
+  }
+}
+
+async function findByReferralCode(code) {
+  if (!ydbReady || !ydbSql) return null;
+  try {
+    var result = await ydbSql`
+      SELECT login FROM iskra_referrals WHERE referralCode = ${code};
+    `;
+    if (!result || result.length === 0) return null;
+
+    var rows = result;
+    if (Array.isArray(rows) && rows.length === 1 && Array.isArray(rows[0])) {
+      rows = rows[0];
+    }
+    if (!rows || rows.length === 0) return null;
+    return rows[0].login;
+  } catch(e) {
+    console.error('Ошибка поиска по коду:', e.message);
+    return null;
+  }
+}
 initYDB();
 
 const express = require('express');
@@ -987,6 +1078,23 @@ io.to(roomId).emit('host_earnings', base + roomEarnings[roomId]);
   }
   platformEarnings += platformShare;
 
+  // Реферальный бонус: 10% от донатов приглашённого (в течение 30 дней)
+  if (typeof getReferralInfo === 'function') {
+    getReferralInfo(userName).then(function(info) {
+      if (info && info.referredBy) {
+        var referredAt = new Date(info.referredAt).getTime();
+        var daysDiff = (Date.now() - referredAt) / (1000 * 60 * 60 * 24);
+        if (daysDiff <= 30) {
+          var refBonus = Math.floor(price * 0.1);
+          if (refBonus > 0) {
+            addBalance(info.referredBy, refBonus);
+            pushTransaction(info.referredBy, 'referral_income', refBonus, '10% от ' + userName);
+            pushBalanceToUser(info.referredBy);
+          }
+        }
+      }
+    }).catch(function(){});
+  }
   pushBalanceToUser(userName);
   var levelData = getLevelProgress(donationsAllTime[userName] || 0);
   online.forEach(function(u, sid) {
@@ -1249,13 +1357,42 @@ io.on('connection', function(socket) {
       return;
     }
 
+    // Реферальная система
+    var referrerLogin = null;
+    var referralCode = (data.referralCode || '').trim().toUpperCase();
+
+    if (referralCode) {
+      referrerLogin = await findByReferralCode(referralCode);
+      if (referrerLogin && referrerLogin !== login) {
+        // Начисляем бонусы
+        addBalance(referrerLogin, 200);
+        pushTransaction(referrerLogin, 'referral_bonus', 200, 'Реферальный бонус за ' + login);
+        pushBalanceToUser(referrerLogin);
+
+        addBalance(login, 300);
+        pushTransaction(login, 'referral_welcome', 300, 'Приветственный бонус по приглашению');
+
+        console.log('🎁 Реферал: ' + referrerLogin + ' пригласил ' + login);
+      } else {
+        referrerLogin = null;
+      }
+    }
+
+    // Создаём запись реферала
+    await createReferralRecord(login, referrerLogin);
+
     var token = generateToken();
     await createSessionInYDB(token, login);
+    saveData();
+
+    var newCode = generateReferralCode(login);
 
     socket.emit('auth_success', {
       token: token,
       login: login,
-      displayName: displayName
+      displayName: displayName,
+      referralCode: newCode,
+      referredBy: referrerLogin
     });
   });
 
@@ -1574,6 +1711,43 @@ socket.on('login', async function(data) {
     var user = online.get(socket.id);
     if (!user) return;
     socket.emit('pm_chat_cost', { cost: chatCostByUser[user.name] || 0 });
+  });
+
+  // ---------- РЕФЕРАЛЬНАЯ СИСТЕМА ----------
+  socket.on('referral_get', async function(data) {
+    var login = (data && data.login) || '';
+    if (!login) {
+      socket.emit('referral_data', { error: 'Не авторизован' });
+      return;
+    }
+
+    try {
+      var info = await getReferralInfo(login);
+      var code = info ? info.referralCode : generateReferralCode(login);
+
+      if (!info) {
+        await createReferralRecord(login, null);
+        info = await getReferralInfo(login);
+        code = info ? info.referralCode : code;
+      }
+
+      var referred = await getReferredUsers(login);
+
+      socket.emit('referral_data', {
+        login: login,
+        code: code,
+        referredBy: info ? info.referredBy : null,
+        referredUsers: referred.map(function(r) {
+          return {
+            login: r.login,
+            referredAt: r.referredAt
+          };
+        }),
+        totalReferred: referred.length
+      });
+    } catch(e) {
+      socket.emit('referral_data', { error: e.message });
+    }
   });
 
   socket.on('events_get', function() {
