@@ -1368,10 +1368,20 @@ io.on('connection', function(socket) {
         addBalance(referrerLogin, 200);
         pushTransaction(referrerLogin, 'referral_bonus', 200, 'Реферальный бонус за ' + login);
         pushBalanceToUser(referrerLogin);
+        // Если реферер сейчас в сети — обновим его баланс в комнате
+        online.forEach(function(u, sid) {
+          if (u.name === referrerLogin) {
+            io.to(sid).emit('balance_update', { balance: getBalance(referrerLogin) });
+          }
+        });
 
         addBalance(login, 300);
         pushTransaction(login, 'referral_welcome', 300, 'Приветственный бонус по приглашению');
+        // Синхронизируем баланс под имя (его использует интерфейс)
+        addBalance(displayName, getBalance(displayName) + 0);  // создаём запись если нет
+        balances[displayName] = balances[login];  // ← ключевая строка
         pushBalanceToUser(login);
+        pushBalanceToUser(displayName);
 
         console.log('🎁 Реферал: ' + referrerLogin + ' пригласил ' + login);
       } else {
@@ -1523,6 +1533,10 @@ socket.on('login', async function(data) {
     socket.emit('stream_started_at', { startedAt: roomStreamStartedAt[roomId] || Date.now() });
     socket.emit('lottery_config', { durations: ALLOWED_DURATIONS, costs: ALLOWED_COSTS });
     socket.emit('balance_update', { balance: getBalance(name) });
+// Дополнительно: если у юзера есть displayName с другим балансом — синхронизируем
+if (displayName && displayName !== name) {
+  // Тут ничего — displayName сервер не знает в join. Пропускаем.
+}
     socket.emit('pm_chat_cost', { cost: chatCostByUser[name] || 0 });
     socket.emit('user_level', getLevelProgress(donationsAllTime[name] || 0));
     socket.emit('transactions', transactions[name] || []);

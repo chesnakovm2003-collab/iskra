@@ -3396,7 +3396,7 @@ document.getElementById('roomTitle').textContent = roomTitle;
 document.title = roomTitle + ' · Iskra';
 
 var socket = io();
-var myName = localStorage.getItem('iskra_name') || null;
+var myName = localStorage.getItem('iskra_login') || null;
 var myToken = localStorage.getItem('iskra_token');
 
 if (!myName || !myToken) {
@@ -3418,7 +3418,18 @@ socket.on('connect', function() {
     if (ov) ov.style.display = 'none';
   }
 });
-
+// Принудительно синхронизируем баланс с сервером
+setInterval(function() {
+  if (!myName) return;
+  socket.emit('join', {
+    name: myName,
+    roomId: roomId,
+    host: hostName,
+    gender: roomGender,
+    baseViewers: 0,
+    diamonds: diamonds
+  });
+}, 10000);
 socket.on('host_earnings', function(total) {
   document.getElementById('hostCoins').textContent = total.toLocaleString('ru-RU');
 });
