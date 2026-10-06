@@ -5117,7 +5117,7 @@ function openTopup(needed, missing) {
   if (giftSheet) giftSheet.classList.remove('open');
   var info = document.getElementById('topupInfo');
   if (needed && missing) {
-    document.getElementById('topupCurrent').textContent = myBalanceValue;
+    document.getElementById('topupCurrent').textContent = myBalanceValue.toLocaleString('ru-RU');
     document.getElementById('topupNeeded').textContent = needed;
     document.getElementById('topupMissing').textContent = missing;
     info.style.display = 'block';
@@ -5188,6 +5188,8 @@ socket.on('balance_update', function(data) {
   if (yb) yb.textContent = data.balance.toLocaleString('ru-RU');
   var gb = document.getElementById('gdBalance');
   if (gb) gb.textContent = data.balance.toLocaleString('ru-RU');
+  var tc = document.getElementById('topupCurrent');
+  if (tc) tc.textContent = data.balance.toLocaleString('ru-RU');
 });
 
 // Обновление уровня
